@@ -35,10 +35,10 @@ int worldMap[MAP_WIDTH][MAP_HEIGHT]=
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,4,0,0,0,0,4,0,0,0,0,0,1,2,3,4,0,0,0,0,0,1},
   {1,4,0,0,0,0,5,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,4,0,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,4,4,4,4,4,4,0,0,0,0,0,4,3,2,1,0,0,0,0,0,1},
   {1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
@@ -116,16 +116,20 @@ ColorRGB getColor(int colorIndex, int side) {
 struct InputPacket {
   bool forward;
   bool backward;
+  bool strafeLeft;
+  bool strafeRight;
   bool rotateLeft;
   bool rotateRight;
   bool quit;
   
-  InputPacket(bool forward, bool backward, bool rotateLeft, bool rotateRight, bool quit);
+  InputPacket(bool forward, bool backward, bool strafeLeft, bool strafeRight, bool rotateLeft, bool rotateRight, bool quit);
 };
 
-InputPacket::InputPacket( bool f, bool b, bool rl, bool rr, bool q) {
+InputPacket::InputPacket( bool f, bool b, bool sl, bool sr, bool rl, bool rr, bool q) {
   this->forward = f;
   this->backward = b;
+  this->strafeLeft = sl;
+  this->strafeRight = sr;
   this->rotateLeft = rl;
   this->rotateRight = rr;
   this->quit = q;
@@ -136,13 +140,16 @@ InputPacket handleInput () {
                                    KEY_PRESSES[SDLK_s],
                                    KEY_PRESSES[SDLK_a],
                                    KEY_PRESSES[SDLK_d],
+                                   KEY_PRESSES[SDLK_k],
+                                   KEY_PRESSES[SDLK_l],
                                    KEY_PRESSES[SDLK_q]);
   return packet;
 }
 
 ostream& operator << (ostream &os, const InputPacket &ip) {
   return (os << "InputPacket: Forward(" << ip.forward 
-            << ") Backward(" << ip.backward << ") RotateLeft(" << ip.rotateLeft
+            << ") Backward(" << ip.backward << ") StrafeLeft(" << ip.strafeLeft << 
+            ") StrafeRight(" << ip.strafeRight << ") RotateLeft(" << ip.rotateLeft
             << ") RotateRight(" << ip.rotateRight << ") Quit(" << ip.quit) << ")";
 }
 
@@ -226,6 +233,38 @@ void Player::handleInputs(InputPacket inputPacket, World world, double frameTime
   if (inputPacket.backward) {
     double newX = this->camera->posX - this->camera->dirX * moveSpeed;
     double newY = this->camera->posY - this->camera->dirY * moveSpeed;
+
+    if (world.getMapPoint(int(newX), this->camera->posY) == 0) {
+      this->camera->posX = newX;
+    }
+
+    if (world.getMapPoint(this->camera->posX, int(newY)) == 0) {
+      this->camera->posY = newY;
+    }
+  }
+
+  if (inputPacket.strafeLeft) {
+    double perpDirX = this->camera->dirY;
+    double perpDirY = -this->camera->dirX;
+
+    double newX = this->camera->posX - perpDirX * moveSpeed;
+    double newY = this->camera->posY - perpDirY * moveSpeed;
+
+    if (world.getMapPoint(int(newX), this->camera->posY) == 0) {
+      this->camera->posX = newX;
+    }
+
+    if (world.getMapPoint(this->camera->posX, int(newY)) == 0) {
+      this->camera->posY = newY;
+    }
+  }
+
+  if (inputPacket.strafeRight) {
+    double perpDirX = this->camera->dirY;
+    double perpDirY = -this->camera->dirX;
+
+    double newX = this->camera->posX + perpDirX * moveSpeed;
+    double newY = this->camera->posY + perpDirY * moveSpeed;
 
     if (world.getMapPoint(int(newX), this->camera->posY) == 0) {
       this->camera->posX = newX;
