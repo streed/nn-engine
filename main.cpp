@@ -4,8 +4,8 @@
 
 using namespace std;
 
-#define SCREEN_WIDTH 1024
-#define SCREEN_HEIGHT 768
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 200
 #define MAP_WIDTH 24
 #define MAP_HEIGHT 24
 
@@ -313,10 +313,11 @@ int main(int argc, char **args) {
   SDL_Renderer* renderer = NULL;
   clearKeys();
 
-  if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+  if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_JOYSTICK) < 0) {
     cout << "SDL Could not initialize! SDL_Error: " << SDL_GetError() << "\n";
   } else {
     SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window, &renderer);
+    SDL_GL_SetSwapInterval(0);
 
     if (window == NULL) {
       cout << "Window could not be created! SDL_Error: " << SDL_GetError() << "\n";
@@ -413,6 +414,7 @@ int main(int argc, char **args) {
 
           drawWallSlice(renderer, x, drawStart, drawEnd, world.getMapPoint(mapX, mapY), side);
         }
+
         SDL_RenderPresent(renderer);
 
         /*
