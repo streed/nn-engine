@@ -1,2 +1,7 @@
-game:
-	g++ main.cpp -o play -l SDL2-2.0.0
+OBJS = main.cpp
+
+OBJ_NAME = game
+
+
+all : $(OBJS)
+	g++ $(OBJS) -w -lSDL2 -o $(OBJ_NAME)
