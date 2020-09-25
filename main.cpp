@@ -238,7 +238,7 @@ Player::Player(Camera *camera,
                                                   accelerationConstant,
                                                   maxSpeedClip,
                                                   maxRotateSpeedClip),
-                                     camera(camera) {}
+                                            camera(camera) {}
 
 int Player::getMapX() {
   return int(this->posX);
