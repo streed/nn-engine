@@ -9,8 +9,8 @@
 #define MOVE_SPEED 5
 #define ROTATE_SPEED 3
 
-static bool quit = false;
-static bool debug = false;
+#define TEXTURE_WIDTH 128
+#define TEXTURE_HEIGHT (TEXTURE_WIDTH)
 
 static int worldMap[MAP_WIDTH][MAP_HEIGHT]=
 {

@@ -57,7 +57,6 @@ void Game::run() {
           quit = true;
         }
       }
-
     }
 
     renderer.cleanup();

@@ -6,6 +6,7 @@ using namespace std;
 
 #include "globals.h"
 #include "color_rgb.h"
+#include "raycast.h"
 
 ColorRGB getColor(int colorIndex, int side) {
   ColorRGB color;
@@ -68,60 +69,11 @@ void Renderer::drawWorld(Player &player) {
         double rayDirX = player.camera->getRayDirX(cameraX);
         double rayDirY = player.camera->getRayDirY(cameraX);
 
-        int mapX = player.getMapX();
-        int mapY = player.getMapY();;
+        RayCast ray(player.posX, player.posY, rayDirX, rayDirY);
 
-        double sideDistX;
-        double sideDistY;
+        RayCastHit hit = ray.collideWorld(world);
 
-        double deltaDistX = abs(1 / rayDirX);
-        double deltaDistY = abs(1 / rayDirY);
-
-        int stepX;
-        int stepY;
-        int hit = 0;
-        int side;
-
-        if (rayDirX < 0) {
-          stepX = -1;
-          sideDistX = (player.posX - mapX) * deltaDistX;
-        } else {
-          stepX = 1;
-          sideDistX = (mapX + 1.0 - player.posX) * deltaDistX;
-        }
-
-        if (rayDirY < 0) {
-          stepY = -1;
-          sideDistY = (player.posY - mapY) * deltaDistY;
-        } else {
-          stepY = 1;
-          sideDistY = (mapY + 1.0 - player.posY) * deltaDistY;
-        }
-
-        while(hit == 0) {
-          if (sideDistX < sideDistY) {
-            sideDistX += deltaDistX;
-            mapX += stepX;
-            side = 0;
-          } else {
-            sideDistY += deltaDistY;
-            mapY += stepY;
-            side = 1;
-          }
-
-          if (world.getMapPoint(mapX, mapY) > 0) {
-            hit = 1;
-          }
-        }
-
-        double perpWallDist;
-        if (side == 0) {
-          perpWallDist = (mapX - player.posX + (1 - stepX) / 2) / rayDirX;
-        } else {
-          perpWallDist = (mapY - player.posY + (1 - stepY) / 2) / rayDirY;
-        }
-
-        int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
+        int lineHeight = (int)(SCREEN_HEIGHT / hit.perpWallDist);
         int drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2;
         if (drawStart < 0) {
           drawStart = 0;
@@ -133,6 +85,6 @@ void Renderer::drawWorld(Player &player) {
         }
 
 
-        drawWallSlice(x, drawStart, drawEnd, world.getMapPoint(mapX, mapY), side);
+        drawWallSlice(x, drawStart, drawEnd, world.getMapPoint(hit.mapX, hit.mapY), hit.side);
       }
 }
