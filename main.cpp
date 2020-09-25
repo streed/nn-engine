@@ -44,13 +44,14 @@ int worldMap[MAP_WIDTH][MAP_HEIGHT]=
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
-struct World {
-  int width;
-  int height;
-  int *map;
+class World {
+  public:
+    int width;
+    int height;
+    int *map;
 
-  World(int width, int height, int *map);
-  int getMapPoint(int x, int y);
+    World(int width, int height, int *map);
+    int getMapPoint(int x, int y);
 };
 
 World::World(int width, int height, int *map) {
@@ -65,13 +66,14 @@ int World::getMapPoint(int x, int y) {
 
 World world = World(MAP_WIDTH,  MAP_HEIGHT, (int *)&worldMap);
 
-struct ColorRGB {
-  int r;
-  int g;
-  int b;
+class ColorRGB {
+  public:
+    int r;
+    int g;
+    int b;
 
-  ColorRGB(int r, int g, int b);
-  ColorRGB();
+    ColorRGB(int r, int g, int b);
+    ColorRGB();
 };
 
 ColorRGB::ColorRGB(int r, int g, int b) {
@@ -113,16 +115,17 @@ ColorRGB getColor(int colorIndex, int side) {
   return color;
 }
 
-struct InputPacket {
-  bool forward;
-  bool backward;
-  bool strafeLeft;
-  bool strafeRight;
-  bool rotateLeft;
-  bool rotateRight;
-  bool quit;
-  
-  InputPacket(bool forward, bool backward, bool strafeLeft, bool strafeRight, bool rotateLeft, bool rotateRight, bool quit);
+class InputPacket {
+  public:
+    bool forward;
+    bool backward;
+    bool strafeLeft;
+    bool strafeRight;
+    bool rotateLeft;
+    bool rotateRight;
+    bool quit;
+    
+    InputPacket(bool forward, bool backward, bool strafeLeft, bool strafeRight, bool rotateLeft, bool rotateRight, bool quit);
 };
 
 InputPacket::InputPacket( bool f, bool b, bool sl, bool sr, bool rl, bool rr, bool q) {
@@ -153,18 +156,17 @@ ostream& operator << (ostream &os, const InputPacket &ip) {
             << ") RotateRight(" << ip.rotateRight << ") Quit(" << ip.quit) << ")";
 }
 
-struct Camera {
-  double posX;
-  double posY;
-  double dirX;
-  double dirY;
-  double planeX;
-  double planeY;
+class Camera {
+  public:
+    double dirX;
+    double dirY;
+    double planeX;
+    double planeY;
 
-  Camera(double posX, double posY, double dirX, double dirY, double planeX, double planeY);
-  double getCameraX(int x);
-  double getRayDirX(double cameraX);
-  double getRayDirY(double cameraX);
+    Camera(double dirX, double dirY, double planeX, double planeY);
+    double getCameraX(int x);
+    double getRayDirX(double cameraX);
+    double getRayDirY(double cameraX);
 };
 
 double Camera::getCameraX(int x) {
@@ -179,67 +181,103 @@ double Camera::getRayDirY(double cameraX) {
   return this->dirY + this->planeY * cameraX;
 }
 
-Camera::Camera(double posX, double posY, double dirX, double dirY, double planeX, double planeY) {
-  this->posX = posX;
-  this->posY = posY;
+Camera::Camera(double dirX, double dirY, double planeX, double planeY) {
   this->dirX = dirX;
   this->dirY = dirY;
   this->planeX = planeX;
   this->planeY = planeY;
 }
 
-struct Player {
-  Camera *camera;
-
-  Player(Camera *camera);
-  int getMapX();
-  int getMapY();
-  void handleInputs(InputPacket inputPacket, World world, double frameTime);
+class Entity {
+  public:
+    double posX;
+    double posY;
+    Entity(double posX, double posY): posX(posX), posY(posY) {};
 };
 
-Player::Player(Camera *camera) {
-  this->camera = camera;
-}
+class MovingEntity: public Entity {
+  public:
+    double accelerationConstant;
+    double currentAcceleration;
+    double currentSpeed;
+    double maxSpeedClip; 
+    double maxRotateSpeedClip;
 
+    MovingEntity(double posX,
+                 double posY,
+                 double accelerationConstant,
+                 double maxSpeedClip,
+                 double maxRotateSpeedClip): Entity(posX, posY), 
+                                             accelerationConstant(accelerationConstant),
+                                             maxSpeedClip(maxSpeedClip),
+                                             maxRotateSpeedClip(maxRotateSpeedClip) {};
+};
+
+class Player: public MovingEntity {
+  public:
+    Camera *camera;
+
+    Player(Camera *camera,
+           double posX,
+           double posY,
+           double accelerationConstant,
+           double maxSpeedClip,
+           double maxRotateSpeedClip);
+    int getMapX();
+    int getMapY();
+    void handleInputs(InputPacket inputPacket, World world, double frameTime);
+};
+
+Player::Player(Camera *camera,
+               double posX,
+               double posY,
+               double accelerationConstant,
+               double maxSpeedClip,
+               double maxRotateSpeedClip): MovingEntity(posX,
+                                                  posY,
+                                                  accelerationConstant,
+                                                  maxSpeedClip,
+                                                  maxRotateSpeedClip),
+                                     camera(camera) {}
 
 int Player::getMapX() {
-  return int(this->camera->posX);
+  return int(this->posX);
 }
 
 int Player::getMapY() {
-  return int(this->camera->posY);
+  return int(this->posY);
 }
 
 void Player::handleInputs(InputPacket inputPacket, World world, double frameTime) {
   if (debug) {
     cout << inputPacket << endl;
   }
-  double moveSpeed = MOVE_SPEED * frameTime;
-  double rotateSpeed = ROTATE_SPEED * frameTime;
+  double moveSpeed = this->maxSpeedClip * frameTime;
+  double rotateSpeed = this->maxRotateSpeedClip * frameTime;
 
   if (inputPacket.forward) {
-    double newX = this->camera->posX + this->camera->dirX * moveSpeed;
-    double newY = this->camera->posY + this->camera->dirY * moveSpeed;
+    double newX = this->posX + this->camera->dirX * moveSpeed;
+    double newY = this->posY + this->camera->dirY * moveSpeed;
 
-    if (world.getMapPoint(int(newX), this->camera->posY) == 0) {
-      this->camera->posX = newX;
+    if (world.getMapPoint(int(newX), this->posY) == 0) {
+      this->posX = newX;
     }
 
-    if (world.getMapPoint(this->camera->posX, int(newY)) == 0) {
-      this->camera->posY = newY;
+    if (world.getMapPoint(this->posX, int(newY)) == 0) {
+      this->posY = newY;
     }
   }
 
   if (inputPacket.backward) {
-    double newX = this->camera->posX - this->camera->dirX * moveSpeed;
-    double newY = this->camera->posY - this->camera->dirY * moveSpeed;
+    double newX = this->posX - this->camera->dirX * moveSpeed;
+    double newY = this->posY - this->camera->dirY * moveSpeed;
 
-    if (world.getMapPoint(int(newX), this->camera->posY) == 0) {
-      this->camera->posX = newX;
+    if (world.getMapPoint(int(newX), this->posY) == 0) {
+      this->posX = newX;
     }
 
-    if (world.getMapPoint(this->camera->posX, int(newY)) == 0) {
-      this->camera->posY = newY;
+    if (world.getMapPoint(this->posX, int(newY)) == 0) {
+      this->posY = newY;
     }
   }
 
@@ -247,15 +285,15 @@ void Player::handleInputs(InputPacket inputPacket, World world, double frameTime
     double perpDirX = this->camera->dirY;
     double perpDirY = -this->camera->dirX;
 
-    double newX = this->camera->posX - perpDirX * moveSpeed;
-    double newY = this->camera->posY - perpDirY * moveSpeed;
+    double newX = this->posX - perpDirX * moveSpeed;
+    double newY = this->posY - perpDirY * moveSpeed;
 
-    if (world.getMapPoint(int(newX), this->camera->posY) == 0) {
-      this->camera->posX = newX;
+    if (world.getMapPoint(int(newX), this->posY) == 0) {
+      this->posX = newX;
     }
 
-    if (world.getMapPoint(this->camera->posX, int(newY)) == 0) {
-      this->camera->posY = newY;
+    if (world.getMapPoint(this->posX, int(newY)) == 0) {
+      this->posY = newY;
     }
   }
 
@@ -263,15 +301,15 @@ void Player::handleInputs(InputPacket inputPacket, World world, double frameTime
     double perpDirX = this->camera->dirY;
     double perpDirY = -this->camera->dirX;
 
-    double newX = this->camera->posX + perpDirX * moveSpeed;
-    double newY = this->camera->posY + perpDirY * moveSpeed;
+    double newX = this->posX + perpDirX * moveSpeed;
+    double newY = this->posY + perpDirY * moveSpeed;
 
-    if (world.getMapPoint(int(newX), this->camera->posY) == 0) {
-      this->camera->posX = newX;
+    if (world.getMapPoint(int(newX), this->posY) == 0) {
+      this->posX = newX;
     }
 
-    if (world.getMapPoint(this->camera->posX, int(newY)) == 0) {
-      this->camera->posY = newY;
+    if (world.getMapPoint(this->posX, int(newY)) == 0) {
+      this->posY = newY;
     }
   }
 
@@ -310,6 +348,81 @@ void drawWallSlice(SDL_Renderer *renderer, int x, int bottom, int end, int color
   SDL_RenderDrawLine(renderer, x, bottom, x, end);
 }
 
+void drawWorld(SDL_Renderer *renderer, World &world, Player &player) {
+      for(int x = 0; x < SCREEN_WIDTH; x++) {
+        double cameraX = player.camera->getCameraX(x);
+        double rayDirX = player.camera->getRayDirX(cameraX);
+        double rayDirY = player.camera->getRayDirY(cameraX);
+
+        int mapX = player.getMapX();
+        int mapY = player.getMapY();;
+
+        double sideDistX;
+        double sideDistY;
+
+        double deltaDistX = abs(1 / rayDirX);
+        double deltaDistY = abs(1 / rayDirY);
+
+        int stepX;
+        int stepY;
+        int hit = 0;
+        int side;
+
+        if (rayDirX < 0) {
+          stepX = -1;
+          sideDistX = (player.posX - mapX) * deltaDistX;
+        } else {
+          stepX = 1;
+          sideDistX = (mapX + 1.0 - player.posX) * deltaDistX;
+        }
+
+        if (rayDirY < 0) {
+          stepY = -1;
+          sideDistY = (player.posY - mapY) * deltaDistY;
+        } else {
+          stepY = 1;
+          sideDistY = (mapY + 1.0 - player.posY) * deltaDistY;
+        }
+
+        while(hit == 0) {
+          if (sideDistX < sideDistY) {
+            sideDistX += deltaDistX;
+            mapX += stepX;
+            side = 0;
+          } else {
+            sideDistY += deltaDistY;
+            mapY += stepY;
+            side = 1;
+          }
+
+          if (world.getMapPoint(mapX, mapY) > 0) {
+            hit = 1;
+          }
+        }
+
+        double perpWallDist;
+        if (side == 0) {
+          perpWallDist = (mapX - player.posX + (1 - stepX) / 2) / rayDirX;
+        } else {
+          perpWallDist = (mapY - player.posY + (1 - stepY) / 2) / rayDirY;
+        }
+
+        int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
+        int drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2;
+        if (drawStart < 0) {
+          drawStart = 0;
+        }
+
+        int drawEnd = lineHeight / 2 + SCREEN_HEIGHT / 2;
+        if (drawEnd > SCREEN_HEIGHT) {
+          drawEnd = SCREEN_HEIGHT - 1;
+        }
+
+
+        drawWallSlice(renderer, x, drawStart, drawEnd, world.getMapPoint(mapX, mapY), side);
+      }
+}
+
 void clearKeys() {
   for(int i = 0; i < 322; i++) {
     KEY_PRESSES[i] = false;
@@ -342,8 +455,8 @@ int main(int argc, char **args) {
   /*
    * Player data
    */
-  Camera camera = Camera(22, 12, -1, 0, 0, 0.66);
-  Player player = Player(&camera);
+  Camera camera = Camera(-1, 0, 0, 0.66);
+  Player player = Player(&camera, 22, 12, 3, MOVE_SPEED, ROTATE_SPEED);
 
   double time = 0;
   double oldTime = 0;
@@ -387,78 +500,7 @@ int main(int argc, char **args) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
 
-        for(int x = 0; x < SCREEN_WIDTH; x++) {
-          double cameraX = player.camera->getCameraX(x);
-          double rayDirX = player.camera->getRayDirX(cameraX);
-          double rayDirY = player.camera->getRayDirY(cameraX);
-
-          int mapX = player.getMapX();
-          int mapY = player.getMapY();;
-
-          double sideDistX;
-          double sideDistY;
-
-          double deltaDistX = abs(1 / rayDirX);
-          double deltaDistY = abs(1 / rayDirY);
-
-          int stepX;
-          int stepY;
-          int hit = 0;
-          int side;
-
-          if (rayDirX < 0) {
-            stepX = -1;
-            sideDistX = (camera.posX - mapX) * deltaDistX;
-          } else {
-            stepX = 1;
-            sideDistX = (mapX + 1.0 - camera.posX) * deltaDistX;
-          }
-
-          if (rayDirY < 0) {
-            stepY = -1;
-            sideDistY = (camera.posY - mapY) * deltaDistY;
-          } else {
-            stepY = 1;
-            sideDistY = (mapY + 1.0 - camera.posY) * deltaDistY;
-          }
-
-          while(hit == 0) {
-            if (sideDistX < sideDistY) {
-              sideDistX += deltaDistX;
-              mapX += stepX;
-              side = 0;
-            } else {
-              sideDistY += deltaDistY;
-              mapY += stepY;
-              side = 1;
-            }
-
-            if (world.getMapPoint(mapX, mapY) > 0) {
-              hit = 1;
-            }
-          }
-
-          double perpWallDist;
-          if (side == 0) {
-            perpWallDist = (mapX - camera.posX + (1 - stepX) / 2) / rayDirX;
-          } else {
-            perpWallDist = (mapY - camera.posY + (1 - stepY) / 2) / rayDirY;
-          }
-
-          int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
-          int drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2;
-          if (drawStart < 0) {
-            drawStart = 0;
-          }
-
-          int drawEnd = lineHeight / 2 + SCREEN_HEIGHT / 2;
-          if (drawEnd > SCREEN_HEIGHT) {
-            drawEnd = SCREEN_HEIGHT - 1;
-          }
-
-
-          drawWallSlice(renderer, x, drawStart, drawEnd, world.getMapPoint(mapX, mapY), side);
-        }
+        drawWorld(renderer, world, player);
 
         SDL_RenderPresent(renderer);
 
