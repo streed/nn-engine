@@ -1,8 +1,8 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 200
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 768
 #define MAP_WIDTH 24
 #define MAP_HEIGHT 24
 
