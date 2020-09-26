@@ -12,6 +12,7 @@ class Renderer {
   World world;
   SDL_Renderer *renderer;
   SDL_Window *window;
+  std::vector<Texture> textures;
   public:
     Renderer(Camera *camera, World world): camera(camera), world(world) {};
     bool setup(int width, int height);

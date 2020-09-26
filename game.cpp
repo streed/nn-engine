@@ -7,11 +7,12 @@ using namespace std;
 #include <SDL2/SDL.h>
 
 Game::Game(int width, int height, Camera *camera, World world): width(width),
-                                                               height(height),
-                                                               camera(camera),
-                                                               world(world),
-                                                               renderer(Renderer(camera, world)),
-                                                               quit(false) {
+                                                                height(height),
+                                                                camera(camera),
+                                                                world(world),
+                                                                renderer(Renderer(camera, world)),
+                                                                config(Config()),
+                                                                quit(false) {
   renderer.setup(width, height);
 }
 

@@ -2,13 +2,15 @@
 #define GAME_H
 
 #include "camera.h"
-#include "renderer.h"
+#include "config.h"
 #include "player.h"
+#include "renderer.h"
 #include "world.h"
 
 static bool KEY_PRESSES[322];
 
 class Game {
+  Config config;
   bool quit;
   bool debug;
   int width;

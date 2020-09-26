@@ -8,6 +8,7 @@
 #include "camera.h"
 #include "player.h"
 #include "game.h"
+#include "texture.h"
 
 using namespace std;
 

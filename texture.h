@@ -18,7 +18,7 @@ class Texture {
   void loadImage();
 
   public:
-    Texture(int width, int height, std::string filename);
+    Texture(std::string filename);
 
     std::vector<unsigned char> getStripe(int x);
 };

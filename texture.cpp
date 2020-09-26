@@ -1,9 +1,10 @@
+#include <iostream>
+
 #include "texture.h"
 #include "png.h"
 
-Texture::Texture(int width, int height, std::string filename): width(width),
-                                                               height(height),
-                                                               filename(filename) {
+Texture::Texture(std::string filename): filename(filename) {
+  std::cout << "Loading texture: " << filename << std::endl;
   loadImage();
 }
 
