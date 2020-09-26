@@ -20,7 +20,7 @@ bool Renderer::setup(int width, int height, vector<Texture> *textures) {
     this->renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     this->screen = SDL_CreateTexture(renderer,
-                                     SDL_PIXELFORMAT_RGBA32,
+                                     SDL_PIXELFORMAT_BGRA32,
                                      SDL_TEXTUREACCESS_TARGET,
                                      width,
                                      height);
@@ -45,9 +45,9 @@ void Renderer::drawTextureSlice(int x, int bottom, int end, RayCastHit hit) {
     int texY = (int)texPos & (TEXTURE_HEIGHT - 1);
     texPos += step;
 
-    unsigned int color = textures->at(hit.textureIndex)
-                                 .getPixels()
-                                 ->at(TEXTURE_HEIGHT * texY + hit.texX);
+    Uint32 color = textures->at(hit.textureIndex)
+      .getPixels()
+      ->at(TEXTURE_HEIGHT * texY + hit.texX);
 
     if (hit.side == 1) {
       color = (color >> 1) & 8355711;
@@ -86,6 +86,53 @@ void Renderer::cleanup() {
 }
 
 void Renderer::drawWorld(Player &player) {
+  // Ceiling and floor
+  for(int y = 0; y < SCREEN_HEIGHT; y++) {
+    double rayDirX0 = player.camera->dirX - player.camera->planeX;
+    double rayDirY0 = player.camera->dirY - player.camera->planeY;
+    double rayDirX1 = player.camera->dirX + player.camera->planeX;
+    double rayDirY1 = player.camera->dirY + player.camera->planeY;
+
+    // Center of screen
+    int p = y - SCREEN_HEIGHT / 2;
+    int posZ = SCREEN_HEIGHT / 2;
+
+    double rowDistance = 1.0 * posZ / p;
+
+    double floorStepX = rowDistance * (rayDirX1 - rayDirX0) / SCREEN_WIDTH;
+    double floorStepY = rowDistance * (rayDirY1 - rayDirY0) / SCREEN_WIDTH;
+
+    double floorX = player.posX + rowDistance * rayDirX0;
+    double floorY = player.posY + rowDistance * rayDirY0;
+
+    for(int x = 0; x < SCREEN_WIDTH; x++) {
+      int cellX = (int)floorX;
+      int cellY = (int)floorY;
+
+      int tx = (int)(TEXTURE_WIDTH * (floorX - cellX)) & (TEXTURE_WIDTH - 1);
+      int ty = (int)(TEXTURE_HEIGHT * (floorY - cellY)) & (TEXTURE_HEIGHT - 1);
+
+      floorX += floorStepX;
+      floorY += floorStepY;
+
+      int floorTexture = 3;
+      int ceilingTexture = 7;
+
+      Uint32 color = textures->at(floorTexture)
+        .getPixels()
+        ->at(TEXTURE_HEIGHT * ty + tx);
+      //color = (color >> 1) & 8355711;
+      buffer[y][x] = color;
+
+      color = textures->at(ceilingTexture)
+        .getPixels()
+        ->at(TEXTURE_HEIGHT * ty + tx);
+      //color = (color >> 1) & 8355711;
+      buffer[SCREEN_HEIGHT - y - 1][x] = color;
+    }
+
+  }
+  // Wall Rendering
   for(int x = 0; x < SCREEN_WIDTH; x++) {
     double cameraX = player.camera->getCameraX(x);
     double rayDirX = player.camera->getRayDirX(cameraX);
