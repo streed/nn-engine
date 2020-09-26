@@ -10,8 +10,9 @@ class InputPacket {
     bool rotateLeft;
     bool rotateRight;
     bool quit;
+    bool debug;
     
-    InputPacket(bool forward, bool backward, bool strafeLeft, bool strafeRight, bool rotateLeft, bool rotateRight, bool quit);
+    InputPacket(bool forward, bool backward, bool strafeLeft, bool strafeRight, bool rotateLeft, bool rotateRight, bool quit, bool debug = false);
 };
 
 #endif

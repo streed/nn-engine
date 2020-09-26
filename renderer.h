@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "camera.h"
 #include "world.h"
@@ -17,9 +18,11 @@ class Renderer {
   SDL_Renderer *renderer = NULL;
   SDL_Window *window = NULL;
   SDL_Texture *screen = NULL;
+  TTF_Font *font = NULL;
   std::vector<Texture> *textures;
 
   Uint32 buffer[SCREEN_HEIGHT][SCREEN_WIDTH];
+  double zBuffer[SCREEN_WIDTH];
 
   public:
     Renderer(Camera *camera, World world): camera(camera), world(world) {};
@@ -28,7 +31,7 @@ class Renderer {
     void drawWorld(Player &player);
     void drawBuffer();
     void clearBuffer();
-    void present();
+    void present(bool debug, int fps);
     void clear();
     void cleanup();
 };

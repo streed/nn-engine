@@ -4,4 +4,4 @@ OBJ_NAME = play
 
 
 all : $(OBJS)
-	g++ $(OBJS) -w -lSDL2 -o $(OBJ_NAME)
+	g++ $(OBJS) -g -w -lSDL2 -l SDL2_ttf -o $(OBJ_NAME)

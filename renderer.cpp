@@ -2,8 +2,11 @@
 
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 using namespace std;
+
+#include <SDL2/SDL_ttf.h>
 
 #include "globals.h"
 #include "color_rgb.h"
@@ -28,6 +31,13 @@ bool Renderer::setup(int width, int height, vector<Texture> *textures) {
     this->textures = textures;
 
     SDL_GL_SetSwapInterval(0);
+
+    font = TTF_OpenFont("./font/font.TTF", 32);
+
+    if (font == NULL) {
+      cout << "TTF Font could not be loaded: " << TTF_GetError() << "\n";
+      return false;
+    }
     
     if (window == NULL) {
       cout << "Window could not be created! SDL_Error: " << SDL_GetError() << "\n";
@@ -69,14 +79,33 @@ void Renderer::clearBuffer() {
   }
 }
 
-void Renderer::present() {
+void Renderer::present(bool debug, int fps) {
   drawBuffer();
   SDL_RenderCopy(renderer, screen, NULL, NULL);
+
+  if (debug) {
+    ostringstream fpsString;
+    fpsString << "FPS: " << fps;
+    SDL_Color color = {50, 205, 50};
+    SDL_Surface *fpsText = TTF_RenderText_Blended(font, fpsString.str().c_str(), color);
+    SDL_Rect dest;
+    dest.x = 0;
+    dest.y = 0;
+    dest.w = fpsText->w;
+    dest.h = fpsText->h;
+
+    SDL_Texture *fpsTexture = SDL_CreateTextureFromSurface(renderer, fpsText);
+    SDL_RenderCopy(renderer, fpsTexture, NULL, &dest);
+    SDL_DestroyTexture(fpsTexture);
+    SDL_FreeSurface(fpsText);
+  }
+
   SDL_RenderPresent(renderer);
 }
 
 void Renderer::clear() {
   clearBuffer();
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderClear(renderer);
 }
 
@@ -130,8 +159,8 @@ void Renderer::drawWorld(Player &player) {
       //color = (color >> 1) & 8355711;
       buffer[SCREEN_HEIGHT - y - 1][x] = color;
     }
-
   }
+
   // Wall Rendering
   for(int x = 0; x < SCREEN_WIDTH; x++) {
     double cameraX = player.camera->getCameraX(x);
@@ -141,6 +170,8 @@ void Renderer::drawWorld(Player &player) {
     RayCast ray(player.posX, player.posY, rayDirX, rayDirY);
 
     RayCastHit hit = ray.collideWorld(world);
+
+    zBuffer[x] = hit.perpWallDist;
 
     int lineHeight = (int)(SCREEN_HEIGHT / hit.perpWallDist);
     int drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2;

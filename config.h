@@ -15,6 +15,7 @@ class Config {
 
   private:
     void loadTextures();
+    void loadSprites();
 };
 
 #endif

@@ -5,6 +5,7 @@
 using namespace std;
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 Game::Game(int width, int height, Camera *camera, World world): width(width),
                                                                 height(height),
@@ -16,8 +17,9 @@ Game::Game(int width, int height, Camera *camera, World world): width(width),
 }
 
 void Game::run() {
-  if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_JOYSTICK) < 0) {
+  if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_JOYSTICK) < 0 || TTF_Init() < 0) {
     cout << "SDL Could not initialize! SDL_Error: " << SDL_GetError() << "\n";
+    cout << "TTF Could not inituialize! TTF_Error: " << TTF_GetError() << "\n";
   } else {
 
     if (renderer.setup(width, height, config.getTextures())) {
@@ -27,19 +29,11 @@ void Game::run() {
       SDL_Event e;
 
       while(!quit) {
-        /*
-         * Render logic
-         */
-
         oldTime = time;
         time = SDL_GetTicks();
         double frameTime = (time - oldTime) / 1000.0;
-        if (debug) {
-          cout << "FPS: " << (1 / frameTime) << "\n";
-        }
-
         renderer.drawWorld(*player);
-        renderer.present();
+        renderer.present(debug, (int)(1 / frameTime));
         renderer.clear();
 
         /*
@@ -56,6 +50,10 @@ void Game::run() {
           }
           quit = true;
         }
+
+        if (inputPacket.debug) {
+          debug = !debug;
+        }
       }
     }
 
@@ -63,6 +61,7 @@ void Game::run() {
   }
 
   SDL_Quit();
+  TTF_Quit();
 }
 
 void Game::addPlayer(Player *player) {
@@ -99,6 +98,7 @@ InputPacket Game::handleInput () {
                                    KEY_PRESSES[SDLK_d],
                                    KEY_PRESSES[SDLK_k],
                                    KEY_PRESSES[SDLK_l],
-                                   KEY_PRESSES[SDLK_q]);
+                                   KEY_PRESSES[SDLK_q],
+                                   KEY_PRESSES[SDLK_p]);
   return packet;
 }

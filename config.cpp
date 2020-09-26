@@ -13,6 +13,9 @@ void Config::loadTextures() {
   textures.push_back(Texture("./textures/purplestone.png"));
   textures.push_back(Texture("./textures/redbrick.png"));
   textures.push_back(Texture("./textures/wood.png"));
+  textures.push_back(Texture("./textures/barrel.png"));
+  textures.push_back(Texture("./textures/greenlight.png"));
+  textures.push_back(Texture("./textures/pillar.png"));
 }
 
 std::vector<Texture> *Config::getTextures() {
