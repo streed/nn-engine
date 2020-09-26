@@ -14,3 +14,7 @@ void Config::loadTextures() {
   textures.push_back(Texture("./textures/redbrick.png"));
   textures.push_back(Texture("./textures/wood.png"));
 }
+
+std::vector<Texture> *Config::getTextures() {
+  return &textures;
+}

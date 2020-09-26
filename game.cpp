@@ -13,7 +13,6 @@ Game::Game(int width, int height, Camera *camera, World world): width(width),
                                                                 renderer(Renderer(camera, world)),
                                                                 config(Config()),
                                                                 quit(false) {
-  renderer.setup(width, height);
 }
 
 void Game::run() {
@@ -21,7 +20,7 @@ void Game::run() {
     cout << "SDL Could not initialize! SDL_Error: " << SDL_GetError() << "\n";
   } else {
 
-    if (renderer.setup(width, height)) {
+    if (renderer.setup(width, height, config.getTextures())) {
       if (debug) {
         cout << "Window created, starting game." << endl;
       }
@@ -39,9 +38,9 @@ void Game::run() {
           cout << "FPS: " << (1 / frameTime) << "\n";
         }
 
-        renderer.clear();
         renderer.drawWorld(*player);
         renderer.present();
+        renderer.clear();
 
         /*
          * Input logic

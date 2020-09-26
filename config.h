@@ -11,7 +11,7 @@ class Config {
   public:
     Config();
 
-    std::vector<Texture> getTextures();
+    std::vector<Texture> *getTextures();
 
   private:
     void loadTextures();

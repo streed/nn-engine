@@ -10,6 +10,8 @@ struct RayCastHit {
   int texX;
   int side;
   double perpWallDist;
+  int colorIndex;
+  int textureIndex;
 };
 
 class RayCast {

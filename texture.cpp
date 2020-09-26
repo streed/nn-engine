@@ -36,11 +36,20 @@ void Texture::loadImage() {
     return;
   }
 
+  colors.resize(image.size() / 4);
   pixels.resize(image.size() / 4);
 
-  for (size_t i = 0; i < pixels.size(); i++) {
-    pixels[i].r = image[i * 4 + 0];
-    pixels[i].g = image[i * 4 + 0];
-    pixels[i].b = image[i * 4 + 0];
+  for (size_t i = 0; i < colors.size(); i++) {
+    colors[i].r = image[i * 4 + 0];
+    colors[i].g = image[i * 4 + 0];
+    colors[i].b = image[i * 4 + 0];
+    pixels[i] = 0x1000000 * image[i * 4 + 3] +
+                0x10000 * image[i * 4 + 0] +
+                0x100 * image[i * 4 + 1] +
+                image[i * 4 + 2];
   }
+}
+
+std::vector<unsigned int> *Texture::getPixels() {
+  return &pixels;
 }

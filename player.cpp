@@ -86,29 +86,19 @@ void Player::handleInputs(InputPacket inputPacket, World world, double frameTime
 
   if (inputPacket.rotateRight) {
     double oldDirX = this->camera->dirX;
-    double newDirX = oldDirX * cos(-rotateSpeed) - this->camera->dirY * sin(-rotateSpeed);
-    double newDirY = oldDirX * sin(-rotateSpeed) + this->camera->dirY * cos(-rotateSpeed);
+    this->camera->dirX = this->camera->dirX * cos(-rotateSpeed) - this->camera->dirY * sin(-rotateSpeed);
+    this->camera->dirY = oldDirX * sin(-rotateSpeed) + this->camera->dirY * cos(-rotateSpeed);
     double oldPlaneX = this->camera->planeX;
-    double newPlaneX = oldPlaneX * cos(-rotateSpeed) - this->camera->planeY * sin(-rotateSpeed);
-    double newPlaneY = oldPlaneX * sin(-rotateSpeed) + this->camera->planeY * cos(-rotateSpeed);
-
-    this->camera->dirX = newDirX;
-    this->camera->dirY = newDirY;
-    this->camera->planeX = newPlaneX;
-    this->camera->planeY = newPlaneY;
+    this->camera->planeX = this->camera->planeX * cos(-rotateSpeed) - this->camera->planeY * sin(-rotateSpeed);
+    this->camera->planeY = oldPlaneX * sin(-rotateSpeed) + this->camera->planeY * cos(-rotateSpeed);
   }
 
   if (inputPacket.rotateLeft) {
     double oldDirX = this->camera->dirX;
-    double newDirX = oldDirX * cos(rotateSpeed) - this->camera->dirY * sin(rotateSpeed);
-    double newDirY = oldDirX * sin(rotateSpeed) + this->camera->dirY * cos(rotateSpeed);
+    this->camera->dirX = this->camera->dirX * cos(rotateSpeed) - this->camera->dirY * sin(rotateSpeed);
+    this->camera->dirY = oldDirX * sin(rotateSpeed) + this->camera->dirY * cos(rotateSpeed);
     double oldPlaneX = this->camera->planeX;
-    double newPlaneX = oldPlaneX * cos(rotateSpeed) - this->camera->planeY * sin(rotateSpeed);
-    double newPlaneY = oldPlaneX * sin(rotateSpeed) + this->camera->planeY * cos(rotateSpeed);
-
-    this->camera->dirX = newDirX;
-    this->camera->dirY = newDirY;
-    this->camera->planeX = newPlaneX;
-    this->camera->planeY = newPlaneY;
+    this->camera->planeX = this->camera->planeX * cos(rotateSpeed) - this->camera->planeY * sin(rotateSpeed);
+    this->camera->planeY = oldPlaneX * sin(rotateSpeed) + this->camera->planeY * cos(rotateSpeed);
   }
 }

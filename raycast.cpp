@@ -62,6 +62,7 @@ RayCastHit RayCast::collideWorld(World &world) {
   }
 
   wallX -= floor(wallX);
+
   int texX = int(wallX * double(TEXTURE_WIDTH));
   if (side == 0 && dirX > 0) {
     texX = TEXTURE_WIDTH - texX - 1;
@@ -71,6 +72,15 @@ RayCastHit RayCast::collideWorld(World &world) {
     texX = TEXTURE_WIDTH - texX - 1;
   }
 
-  return {mapX, mapY, wallX, texX, side, perpWallDist};
+  return {
+    mapX,
+    mapY,
+    wallX,
+    texX,
+    side,
+    perpWallDist,
+    world.getMapPoint(mapX, mapY),
+    world.getMapPoint(mapX, mapY) - 1
+  };
 }
 
