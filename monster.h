@@ -10,7 +10,7 @@ typedef std::pair<int, int> Point;
 
 class Monster: public Sprite {
   bool seeking;
-  double searchDistance = 4;//Sqaured to not need the sqrt call
+  double searchDistance = 2;//Sqaured to not need the sqrt call
 
   public:
     Monster(double posX, double posY, int textureIndex): Sprite(posX, posY, 0, 2, 0, textureIndex) {}

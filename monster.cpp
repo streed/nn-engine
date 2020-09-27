@@ -9,10 +9,26 @@ using namespace std;
 #include "monster.h"
 #include "player.h"
 
+// Taken from Quake3 source code.
+float inverseSqrt(float number) {
+  const float threeHalfs = 1.5F;
+
+  float x2 = number * 0.5F;
+  float y = number;
+
+  long i = *(long *)&y;
+
+  i = 0x5f3759df - (i >> 1);
+  y = *(float *)&i;
+  y = y * (threeHalfs - (x2 * y * y));
+  return y;
+}
+
 void Monster::update(World &world, Player *player, std::vector<Entity *> *entities, double timeDiff) {
 
-  double distanceToPlayer = (posX - player->posX) * (posX - player->posX) +
+  float distanceToPlayer = (posX - player->posX) * (posX - player->posX) +
                             (posY - player->posY) * (posY - player->posY);
+  distanceToPlayer *= inverseSqrt(distanceToPlayer);
 
   if (distanceToPlayer > searchDistance) {
     seeking = true;
@@ -21,16 +37,26 @@ void Monster::update(World &world, Player *player, std::vector<Entity *> *entiti
   }
 
   if (seeking) {
+    double moveSpeed = maxSpeedClip * timeDiff;
     Point nextCellToMoveTo = findNextCellToMoveTo(world, player);
-    /*double diffX = posX - nextCellToMoveTo.first;
-    double diffY = posY - nextCellToMoveTo.second;
-    double length = sqrt(diffX * diffX + diffY * diffY);
+    float diffX = 1.0 * nextCellToMoveTo.first - posX;
+    float diffY = 1.0 * nextCellToMoveTo.second - posY;
+    float length = diffX * diffX + diffY * diffY;
+    float fiSqrt = inverseSqrt(length);
 
-    double dirX = diffX / length;
-    double dirY = diffY / length;
+    double dirX = diffX * fiSqrt;
+    double dirY = diffY * fiSqrt;
 
-    posX = posX + maxSpeedClip * timeDiff;
-    posY = posY + maxSpeedClip * timeDiff;*/
+    double newPosX = posX + dirX * moveSpeed;
+    double newPosY = posY + dirY * moveSpeed;
+
+    if (world.getMapPoint(int(newPosX), int(posY)) == 0) {
+      posX = newPosX;
+    }
+
+    if (world.getMapPoint(int(posX), int(newPosY)) == 0) {
+      posY = newPosY;
+    }
   }
 }
 
@@ -101,18 +127,21 @@ Point Monster::findNextCellToMoveTo(World &world, Player *player) {
   Point u = destination;
 
   while (true) {
-    S.push_back(u);
+    if (u != source) {
+      S.insert(S.begin(), u);
+    }
     auto search = previous.find(u);
-    if (search != previous.end()) {
+    if (search != previous.end() && search->second != undefined) {
       u = search->second;
     } else {
       break;
     }
   }
 
-  if (S.size() >= 2) {
-    return S.at(1);
+  if (S.size() >= 1) {
+    return S.front();
   } else {
+    cout << source.first << " " << source.second << endl;
     return source;
   }
 }
@@ -142,7 +171,7 @@ std::vector<Point> Monster::getNeighbors(World &world, Point point, std::map<Poi
     if (px < 0 || py < 0 || px >= boundX || py >= boundY) {
       continue;
     } else {
-      if(world.getMapPoint(px, py) == 0) {
+      if(world.getMapPoint(px, py) == 0 && Q.count(point) > 0) {
         neighbors.push_back(point);
       }
     }
