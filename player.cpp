@@ -43,11 +43,11 @@ void Player::handleInputs(InputPacket inputPacket, World world, double frameTime
     double newX = this->posX - this->camera->dirX * moveSpeed;
     double newY = this->posY - this->camera->dirY * moveSpeed;
 
-    if (world.getMapPoint(int(newX), this->posY) == 0) {
+    if (world.getMapPoint(int(newX), int(this->posY)) == 0) {
       this->posX = newX;
     }
 
-    if (world.getMapPoint(this->posX, int(newY)) == 0) {
+    if (world.getMapPoint(int(this->posX), int(newY)) == 0) {
       this->posY = newY;
     }
   }

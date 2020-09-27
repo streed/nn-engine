@@ -33,6 +33,7 @@ bool Renderer::setup(int width, int height, vector<Texture> *textures) {
     this->textures = textures;
 
     SDL_GL_SetSwapInterval(0);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
     font = TTF_OpenFont("./font/font.TTF", 32);
 
