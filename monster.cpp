@@ -1,8 +1,9 @@
-#include <iostream>
+#include <algorithm>
 #include <cmath>
-#include <queue>
-#include <map>
+#include <iostream>
 #include <limits>
+#include <map>
+#include <queue>
 
 using namespace std;
 
@@ -39,8 +40,8 @@ void Monster::update(World &world, Player *player, std::vector<Entity *> *entiti
   if (seeking) {
     double moveSpeed = maxSpeedClip * timeDiff;
     Point nextCellToMoveTo = findNextCellToMoveTo(world, player);
-    float diffX = 1.0 * nextCellToMoveTo.first - posX;
-    float diffY = 1.0 * nextCellToMoveTo.second - posY;
+    float diffX = 1.0 * (nextCellToMoveTo.first + 0.5 - posX);
+    float diffY = 1.0 * (nextCellToMoveTo.second + 0.5 - posY);
     float length = diffX * diffX + diffY * diffY;
     float fiSqrt = inverseSqrt(length);
 
@@ -60,6 +61,40 @@ void Monster::update(World &world, Player *player, std::vector<Entity *> *entiti
   }
 }
 
+int distance(Point a, Point b) {
+  return (a.first - b.first) * (a.first - b.first) +
+         (a.second - b.second) * (a.second - b.second);
+}
+
+int h(Point p, Point d, World &world) {
+  return distance(p, d);
+}
+
+Point getNextFromOpenSet(std::map<Point, Point> openSet, std::map<Point, int> fScore) {
+  std::vector<std::pair<int, Point>> fScorePointTuples;
+
+  for (auto const &point: openSet) {
+    int f = fScore[point.first];
+    fScorePointTuples.push_back(std::make_pair(f, point.first));
+  }
+
+  std::sort(fScorePointTuples.begin(), fScorePointTuples.end());
+
+  return fScorePointTuples.front().second;
+}
+
+std::vector<Point> reconstructPath(std::map<Point, Point> cameFrom, Point start, Point end) {
+  std::vector<Point> path;
+  path.push_back(end);
+
+  while (end != start) {
+    end = cameFrom[end];
+    path.insert(path.begin(), end);
+  }
+
+  return path;
+}
+
 Point Monster::findNextCellToMoveTo(World &world, Player *player) {
   int myX = int(posX);
   int myY = int(posY);
@@ -69,84 +104,59 @@ Point Monster::findNextCellToMoveTo(World &world, Player *player) {
   Point source(myX, myY);
   Point destination(cellX, cellY);
 
-  std::map<Point, Point> Q;
-  std::map<Point, int> distances;
-  std::map<Point, Point> previous;
+  std::map<Point, Point> openSet;
+  std::map<Point, Point> cameFrom;
 
-  Point undefined(-1, -1);
+  std::map<Point, int> gScore;
+  std::map<Point, int> fScore;
+
   for(int x = 0; x < world.width; x++) {
     for(int y = 0; y < world.height; y++) {
       if(world.getMapPoint(x,y) == 0) {
         Point point(x,y);
-        distances[point] = std::numeric_limits<int>::max();
-        previous[point] = undefined;
-        Q[point] = point;
+        gScore[point] = std::numeric_limits<int>::max();
+        fScore[point] = std::numeric_limits<int>::max();
       }
     }
   }
 
-  distances[source] = 0;
+  bool foundPath = false;
+  openSet[source] = source;
+  Point current;
+  while (!openSet.empty()) {
+    current = getNextFromOpenSet(openSet, fScore);
 
-  while(!Q.empty()) {
-    std::vector<Point> remaining; 
-
-    for(std::pair<Point, Point> const &p: Q) {
-      remaining.push_back(p.first);
-    }
-
-    Point shortest = remaining.at(0);
-
-    // We made it!
-    if (shortest == destination) {
+    if (current == destination) {
+      foundPath = true;
       break;
     }
 
-    for(auto const &point: remaining) {
-      if (distances[shortest] > distances[point]) {
-        shortest = point;
-      }
-    }
+    openSet.erase(current);
 
-    Q.erase(shortest);
+    for (auto const &neighbor: getNeighbors(world, current)) {
+      int tentativeGScore = gScore[current] + distance(current, neighbor);
 
-    std::vector<Point> neighbors = getNeighbors(world, shortest, Q);
+      if (tentativeGScore < gScore[neighbor]) {
+        cameFrom[neighbor] = current;
+        gScore[neighbor] = tentativeGScore;
+        fScore[neighbor] = gScore[neighbor] + h(neighbor, destination, world);
 
-    for (auto const &v: neighbors) {
-      int alt = distances[shortest] +
-                (shortest.first - v.first) * (shortest.first - v.first) +
-                (shortest.second - v.second) * (shortest.second - v.second);
-
-      if (alt < distances[v]) {
-        distances[v] = alt;
-        previous[v] = shortest;
+        if (openSet.count(neighbor) == 0) {
+          openSet[neighbor] = neighbor;
+        }
       }
     }
   }
 
-  std::vector<Point> S;
-  Point u = destination;
-
-  while (true) {
-    if (u != source) {
-      S.insert(S.begin(), u);
-    }
-    auto search = previous.find(u);
-    if (search != previous.end() && search->second != undefined) {
-      u = search->second;
-    } else {
-      break;
-    }
-  }
-
-  if (S.size() >= 1) {
-    return S.front();
+  if (foundPath) {
+    std::vector<Point> path = reconstructPath(cameFrom, source, current);
+    return path.at(1);
   } else {
-    cout << source.first << " " << source.second << endl;
     return source;
   }
 }
 
-std::vector<Point> Monster::getNeighbors(World &world, Point point, std::map<Point, Point> Q) {
+std::vector<Point> Monster::getNeighbors(World &world, Point point) {
   int x = point.first;
   int y= point.second;
   int boundX = world.width;
@@ -171,7 +181,7 @@ std::vector<Point> Monster::getNeighbors(World &world, Point point, std::map<Poi
     if (px < 0 || py < 0 || px >= boundX || py >= boundY) {
       continue;
     } else {
-      if(world.getMapPoint(px, py) == 0 && Q.count(point) > 0) {
+      if(world.getMapPoint(px, py) == 0) {
         neighbors.push_back(point);
       }
     }

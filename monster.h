@@ -19,7 +19,7 @@ class Monster: public Sprite {
 
   private:
     Point findNextCellToMoveTo(World &world, Player *player);
-    std::vector<Point> getNeighbors(World &world, Point, std::map<Point, Point> Q);
+    std::vector<Point> getNeighbors(World &world, Point);
 };
 
 #endif
