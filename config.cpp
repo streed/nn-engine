@@ -1,6 +1,15 @@
+#include <iostream>
+
+using namespace std;
+
 #include "config.h"
 
-Config::Config() {
+Config::Config(int argc, char **args) {
+
+  if (argc >= 2) {
+    cout << "Running game in fullscreen\!" << endl;
+    fullscreen = true;
+  }
   loadTextures();
 }
 
@@ -21,4 +30,8 @@ void Config::loadTextures() {
 
 std::vector<Texture> *Config::getTextures() {
   return &textures;
+}
+
+bool Config::getFullscreen() {
+  return fullscreen;
 }

@@ -28,7 +28,7 @@ class Game {
   std::vector<Entity *> entities;
 
   public:
-    Game(int width, int height, Camera *camera, World world);
+    Game(int width, int height, Camera *camera, World world, Config config);
     void run();
     void addPlayer(Player *player);
     void addSprite(Sprite *sprite);

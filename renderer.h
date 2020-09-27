@@ -27,7 +27,7 @@ class Renderer {
 
   public:
     Renderer(Camera *camera, World world): camera(camera), world(world) {};
-    bool setup(int width, int height, std::vector<Texture> *textures);
+    bool setup(int width, int height, std::vector<Texture> *textures, bool fullscreen);
     void drawTextureSlice(int x, int bottom, int end, RayCastHit hit);
     void drawWorld(Player &player);
     void drawSprites(Player &player, std::vector<Sprite *> &sprites);

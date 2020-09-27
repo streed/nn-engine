@@ -15,39 +15,45 @@ using namespace std;
 #include "raycast.h"
 #include "texture.h"
 
-bool Renderer::setup(int width, int height, vector<Texture> *textures) {
-    this->window = SDL_CreateWindow("nn-engine",
-                              SDL_WINDOWPOS_UNDEFINED,
-                              SDL_WINDOWPOS_UNDEFINED,
-                              SCREEN_WIDTH,
-                              SCREEN_HEIGHT,
-                              SDL_WINDOW_SHOWN);
-    this->renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+bool Renderer::setup(int width, int height, vector<Texture> *textures, bool fullscreen) {
+  Uint32 flags = SDL_WINDOW_SHOWN;
 
-    this->screen = SDL_CreateTexture(renderer,
-                                     SDL_PIXELFORMAT_BGRA32,
-                                     SDL_TEXTUREACCESS_TARGET,
-                                     width,
-                                     height);
+  if (fullscreen) {
+    flags |= SDL_WINDOW_FULLSCREEN;
+  }
 
-    this->textures = textures;
+  this->window = SDL_CreateWindow("nn-engine",
+      SDL_WINDOWPOS_UNDEFINED,
+      SDL_WINDOWPOS_UNDEFINED,
+      SCREEN_WIDTH,
+      SCREEN_HEIGHT,
+      flags);
+  this->renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    SDL_GL_SetSwapInterval(0);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+  this->screen = SDL_CreateTexture(renderer,
+      SDL_PIXELFORMAT_BGRA32,
+      SDL_TEXTUREACCESS_TARGET,
+      width,
+      height);
 
-    font = TTF_OpenFont("./font/font.TTF", 32);
+  this->textures = textures;
 
-    if (font == NULL) {
-      cout << "TTF Font could not be loaded: " << TTF_GetError() << "\n";
-      return false;
-    }
-    
-    if (window == NULL) {
-      cout << "Window could not be created! SDL_Error: " << SDL_GetError() << "\n";
-      return false;
-    } else {
-      return true;
-    }
+  SDL_GL_SetSwapInterval(0);
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+
+  font = TTF_OpenFont("./font/font.TTF", 32);
+
+  if (font == NULL) {
+    cout << "TTF Font could not be loaded: " << TTF_GetError() << "\n";
+    return false;
+  }
+
+  if (window == NULL) {
+    cout << "Window could not be created! SDL_Error: " << SDL_GetError() << "\n";
+    return false;
+  } else {
+    return true;
+  }
 }
 
 void Renderer::drawTextureSlice(int x, int bottom, int end, RayCastHit hit) {

@@ -7,14 +7,13 @@ using namespace std;
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-Game::Game(int width, int height, Camera *camera, World world): width(width),
-                                                                height(height),
-                                                                camera(camera),
-                                                                world(world),
-                                                                renderer(Renderer(camera, world)),
-                                                                config(Config()),
-                                                                quit(false) {
-}
+Game::Game(int width, int height, Camera *camera, World world, Config config): width(width),
+                                                                               height(height),
+                                                                               camera(camera),
+                                                                               world(world),
+                                                                               renderer(Renderer(camera, world)),
+                                                                               config(config),
+                                                                               quit(false) {}
 
 void Game::run() {
   if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_JOYSTICK) < 0 || TTF_Init() < 0) {
@@ -22,7 +21,7 @@ void Game::run() {
     cout << "TTF Could not inituialize! TTF_Error: " << TTF_GetError() << "\n";
   } else {
 
-    if (renderer.setup(width, height, config.getTextures())) {
+    if (renderer.setup(width, height, config.getTextures(), config.getFullscreen())) {
       if (debug) {
         cout << "Window created, starting game." << endl;
       }
