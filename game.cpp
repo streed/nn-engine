@@ -33,6 +33,7 @@ void Game::run() {
         time = SDL_GetTicks();
         double frameTime = (time - oldTime) / 1000.0;
         renderer.drawWorld(*player);
+        renderer.drawSprites(*player, sprites);
         renderer.present(debug, (int)(1 / frameTime));
         renderer.clear();
 
@@ -66,6 +67,10 @@ void Game::run() {
 
 void Game::addPlayer(Player *player) {
   this->player = player;
+}
+
+void Game::addSprite(Sprite *sprite) {
+  sprites.push_back(sprite);
 }
 
 void Game::clearKeys() {

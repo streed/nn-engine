@@ -16,6 +16,7 @@ void Config::loadTextures() {
   textures.push_back(Texture("./textures/barrel.png"));
   textures.push_back(Texture("./textures/greenlight.png"));
   textures.push_back(Texture("./textures/pillar.png"));
+  textures.push_back(Texture("./textures/penguin.png"));
 }
 
 std::vector<Texture> *Config::getTextures() {

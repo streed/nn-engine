@@ -21,3 +21,7 @@ Camera::Camera(double dirX, double dirY, double planeX, double planeY) {
   this->planeX = planeX;
   this->planeY = planeY;
 }
+
+double Camera::getInvDet() {
+  return 1.0 / (planeX * dirY - dirX * planeY);
+}

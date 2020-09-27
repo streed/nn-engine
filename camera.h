@@ -12,6 +12,7 @@ class Camera {
     double getCameraX(int x);
     double getRayDirX(double cameraX);
     double getRayDirY(double cameraX);
+    double getInvDet();
 };
 
 #endif

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <algorithm>
+#include <array>
 
 using namespace std;
 
@@ -150,13 +152,13 @@ void Renderer::drawWorld(Player &player) {
       Uint32 color = textures->at(floorTexture)
         .getPixels()
         ->at(TEXTURE_HEIGHT * ty + tx);
-      //color = (color >> 1) & 8355711;
+      color = (color >> 1) & 8355711;
       buffer[y][x] = color;
 
       color = textures->at(ceilingTexture)
         .getPixels()
         ->at(TEXTURE_HEIGHT * ty + tx);
-      //color = (color >> 1) & 8355711;
+      color = (color >> 1) & 8355711;
       buffer[SCREEN_HEIGHT - y - 1][x] = color;
     }
   }
@@ -186,4 +188,96 @@ void Renderer::drawWorld(Player &player) {
 
     drawTextureSlice(x, drawStart, drawEnd, hit);
   }
+}
+
+void sortSprites(int *order, double *dist, int amount) {
+  std::vector<std::pair<double, int>> sprites(amount);
+  for(int i = 0; i < amount; i++) {
+    sprites[i].first = dist[i];
+    sprites[i].second = order[i];
+  }
+
+  std::sort(sprites.begin(), sprites.end());
+
+  for(int i = 0; i < amount; i++) {
+    dist[i] = sprites[amount - i - 1].first;
+    order[i] = sprites[amount - i - 1].second;
+  }
+}
+
+void Renderer::drawSprites(Player &player, std::vector<Sprite *> &sprites) {
+  if (sprites.size() <= 0) {
+    return;
+  }
+
+  int  *spriteOrder = new int[sprites.size()];
+  double *spriteDistance = new double[sprites.size()];
+
+  for(size_t i = 0; i < sprites.size(); i++) {
+    spriteOrder[i] = i;
+    spriteDistance[i] = sprites.at(i)->distanceFromSquared(player);
+  }
+
+  sortSprites(spriteOrder, spriteDistance, sprites.size());
+
+  for(int i = 0; i < sprites.size(); i++) {
+    Sprite *sprite = sprites.at(spriteOrder[i]);
+
+    double spriteX = sprite->posX - player.posX;
+    double spriteY = sprite->posY - player.posY;
+
+    double invDet = player.camera->getInvDet();
+
+    double transformX = invDet * (player.camera->dirY * spriteX - player.camera->dirX * spriteY);
+    double transformY = invDet * (-player.camera->planeY * spriteX + player.camera->planeX * spriteY);
+
+    int spriteScreenX = int((SCREEN_WIDTH / 2) * (1 + transformX / transformY));
+
+    int spriteHeight = abs(int(SCREEN_HEIGHT / transformY));
+
+    int drawStartY = -spriteHeight / 2 + SCREEN_HEIGHT / 2;
+    if (drawStartY < 0) {
+      drawStartY = 0;
+    }
+
+    int drawEndY = spriteHeight / 2 + SCREEN_HEIGHT / 2;
+
+    if (drawEndY >= SCREEN_HEIGHT) {
+      drawEndY = SCREEN_HEIGHT - 1;
+    }
+
+    int spriteWidth = abs(int(SCREEN_HEIGHT / transformY));
+
+    int drawStartX = -spriteWidth/ 2 + spriteScreenX;
+    if (drawStartX < 0) {
+      drawStartX = 0;
+    }
+
+    int drawEndX = spriteWidth / 2 + spriteScreenX;
+
+    if (drawEndX >= SCREEN_WIDTH) {
+      drawEndX = SCREEN_WIDTH - 1;
+    }
+
+    for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
+      int texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * TEXTURE_WIDTH / spriteWidth) / 256;
+
+      if (transformY > 0 && stripe > 0 && stripe < SCREEN_WIDTH && transformY < zBuffer[stripe]) {
+        for(int y = drawStartY; y < drawEndY; y++) {
+          int d = (y) * 256 - SCREEN_HEIGHT * 128 + spriteHeight * 128;
+          int texY = ((d * TEXTURE_HEIGHT) / spriteHeight) / 256;
+          Uint32 color = textures->at(sprite->getTextureIndex())
+            .getPixels()
+            ->at(TEXTURE_WIDTH * texY + texX);
+
+          if ((color & 0x00FFFFFF) != 0) {
+            buffer[y][stripe] = color;
+          }
+        }
+      }
+    }
+  }
+
+  delete spriteOrder;
+  delete spriteDistance;
 }
