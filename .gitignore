@@ -35,3 +35,6 @@
 play
 *.swo
 *.swp
+
+.DS_Store
+*.dSYM
