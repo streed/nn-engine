@@ -25,12 +25,14 @@ class Game {
   Player *player;
   World world;
   std::vector<Sprite *> sprites;
+  std::vector<Entity *> entities;
 
   public:
     Game(int width, int height, Camera *camera, World world);
     void run();
     void addPlayer(Player *player);
     void addSprite(Sprite *sprite);
+    void addEntity(Entity *entity);
 
   private:
     void clearKeys();

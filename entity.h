@@ -3,7 +3,9 @@
 
 #include <vector>
 
-#include "world.h"
+
+class World;
+class Player;
 
 class Entity {
   public:
@@ -11,7 +13,7 @@ class Entity {
     double posY;
     Entity(double posX, double posY): posX(posX), posY(posY) {};
     
-    void update(World &world, std::vector<Entity *> entities) {};
+    virtual void update(World &world, Player *player, std::vector<Entity *> *entities, double timeDiff) {};
 };
 
 #endif

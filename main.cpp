@@ -9,6 +9,8 @@
 #include "player.h"
 #include "game.h"
 #include "texture.h"
+#include "sprite.h"
+#include "monster.h"
 
 using namespace std;
 
@@ -23,7 +25,9 @@ int main(int argc, char **args) {
   game.addSprite(new Sprite(1.5, 15.5, 8));
   game.addSprite(new Sprite(4.5, 17.5, 10));
   game.addSprite(new Sprite(1.5, 17.5, 10));
-  game.addSprite(new Sprite(3, 20, 11));
+  Monster monster(3, 20, 11);
+  game.addSprite(&monster);
+  game.addEntity(&monster);
   game.run();
 
   return 0;

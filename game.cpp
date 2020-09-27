@@ -55,6 +55,13 @@ void Game::run() {
         if (inputPacket.debug) {
           debug = !debug;
         }
+
+        /*
+         * Handle Entities
+         */
+        for(const auto &entity: entities) {
+          entity->update(world, player, &entities, frameTime);
+        }
       }
     }
 
@@ -71,6 +78,10 @@ void Game::addPlayer(Player *player) {
 
 void Game::addSprite(Sprite *sprite) {
   sprites.push_back(sprite);
+}
+
+void Game::addEntity(Entity *entity) {
+  entities.push_back(entity);
 }
 
 void Game::clearKeys() {
