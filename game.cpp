@@ -35,16 +35,30 @@ void Game::run() {
       SDL_Thread *renderingThread = SDL_CreateThread(renderThread, "RenderThread", (void *)this);
 
       while(!quit) {
-        oldProcessingTIme = processingTime;
-        processingTime = SDL_GetTicks();
-        double diff = processingTime - oldProcessingTIme;
-        processingFrameTime = (processingTime - oldProcessingTIme) / 1000.0;
-
+        oldFrameTime = currentFrameTime;
+        currentFrameTime = SDL_GetTicks();
+        double frameTime = (currentFrameTime - oldFrameTime) / 1000.0;
+        renderer.drawWorld(*player);
+        renderer.drawSprites(*player, sprites);
+        renderer.present(debug, (int)(1 / frameTime));
+        renderer.clear();
         /*
-         * Handle Entities
+         * Input logic
          */
-        for(const auto &entity: entities) {
-          entity->update(world, player, &entities, processingFrameTime);
+        handleKeyboard();
+        InputPacket inputPacket = handleInput();
+
+        player->handleInputs(inputPacket, world, frameTime);
+
+        if (inputPacket.quit) {
+          if (debug) {
+            cout << "Quitting the game" << endl;
+          }
+          quit = true;
+        }
+
+        if (inputPacket.debug) {
+          debug = !debug;
         }
       }
 
@@ -60,32 +74,17 @@ void Game::run() {
 
 void Game::render() {
   while(!quit) {
-    oldFrameTime = currentFrameTime;
-    currentFrameTime = SDL_GetTicks();
-    double frameTime = (currentFrameTime - oldFrameTime) / 1000.0;
-    renderer.drawWorld(*player);
-    renderer.drawSprites(*player, sprites);
-    renderer.present(debug, (int)(1 / frameTime));
-    renderer.clear();
+    oldProcessingTIme = processingTime;
+    processingTime = SDL_GetTicks();
+    double diff = processingTime - oldProcessingTIme;
+    processingFrameTime = (processingTime - oldProcessingTIme) / 1000.0;
+
     /*
-     * Input logic
+     * Handle Entities
      */
-    handleKeyboard();
-    InputPacket inputPacket = handleInput();
-
-    player->handleInputs(inputPacket, world, frameTime);
-
-    if (inputPacket.quit) {
-      if (debug) {
-        cout << "Quitting the game" << endl;
-      }
-      quit = true;
+    for(const auto &entity: entities) {
+      entity->update(world, player, &entities, processingFrameTime);
     }
-
-    if (inputPacket.debug) {
-      debug = !debug;
-    }
-
   }
 }
 
