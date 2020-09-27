@@ -46,7 +46,6 @@ void Monster::update(World &world,
   if (seeking) {
     double moveSpeed = maxSpeedClip * timeDiff;
     Point nextCellToMoveTo = findNextCellToMoveTo(world, player);
-    cout << nextCellToMoveTo.first << ", " << nextCellToMoveTo.second << endl;
     float diffX = 1.0 * (nextCellToMoveTo.first + 0.5 - posX);
     float diffY = 1.0 * (nextCellToMoveTo.second + 0.5 - posY);
     float length = diffX * diffX + diffY * diffY;
