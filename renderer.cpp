@@ -198,7 +198,7 @@ void Renderer::drawWorld(Player &player) {
 }
 
 void sortSprites(int *order, double *dist, int amount) {
-  std::vector<std::pair<double, int>> sprites(amount);
+  std::vector<std::pair<double, int> > sprites(amount);
   for(int i = 0; i < amount; i++) {
     sprites[i].first = dist[i];
     sprites[i].second = order[i];

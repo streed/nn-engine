@@ -5,6 +5,8 @@
 #include <map>
 #include <queue>
 
+#include <SDL2/SDL.h>
+
 using namespace std;
 
 #include "monster.h"
@@ -17,7 +19,8 @@ float inverseSqrt(float number) {
   float x2 = number * 0.5F;
   float y = number;
 
-  long i = *(long *)&y;
+  // Use specific type to ensure that it is 32bits long, 64bits messes this up.
+  Uint32 i = *(Uint32 *)&y;
 
   i = 0x5f3759df - (i >> 1);
   y = *(float *)&i;
@@ -25,7 +28,10 @@ float inverseSqrt(float number) {
   return y;
 }
 
-void Monster::update(World &world, Player *player, std::vector<Entity *> *entities, double timeDiff) {
+void Monster::update(World &world,
+                     Player *player,
+                     std::vector<Entity *> *entities,
+                     double timeDiff) {
 
   float distanceToPlayer = (posX - player->posX) * (posX - player->posX) +
                             (posY - player->posY) * (posY - player->posY);
@@ -40,6 +46,7 @@ void Monster::update(World &world, Player *player, std::vector<Entity *> *entiti
   if (seeking) {
     double moveSpeed = maxSpeedClip * timeDiff;
     Point nextCellToMoveTo = findNextCellToMoveTo(world, player);
+    cout << nextCellToMoveTo.first << ", " << nextCellToMoveTo.second << endl;
     float diffX = 1.0 * (nextCellToMoveTo.first + 0.5 - posX);
     float diffY = 1.0 * (nextCellToMoveTo.second + 0.5 - posY);
     float length = diffX * diffX + diffY * diffY;
@@ -71,7 +78,7 @@ int h(Point p, Point d, World &world) {
 }
 
 Point getNextFromOpenSet(std::map<Point, Point> openSet, std::map<Point, int> fScore) {
-  std::vector<std::pair<int, Point>> fScorePointTuples;
+  std::vector<std::pair<int, Point> > fScorePointTuples;
 
   for (auto const &point: openSet) {
     int f = fScore[point.first];
