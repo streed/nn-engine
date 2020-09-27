@@ -18,8 +18,11 @@ class Game {
   bool debug;
   int width;
   int height;
-  double time;
-  double oldTime;
+  double processingFrameTime;
+  double processingTime;
+  double oldProcessingTIme;
+  double currentFrameTime;
+  double oldFrameTime;
   Renderer renderer;
   Camera *camera;
   Player *player;
@@ -33,6 +36,8 @@ class Game {
     void addPlayer(Player *player);
     void addSprite(Sprite *sprite);
     void addEntity(Entity *entity);
+
+    void render();
 
   private:
     void clearKeys();
