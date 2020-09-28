@@ -35,7 +35,7 @@ void Game::run() {
         cout << "Window created, starting game." << endl;
       }
 
-      cout << "Starting rendering thread!" << endl;
+      cout << "Starting Entity processing thread!" << endl;
       SDL_Thread *entityThread = SDL_CreateThread(entityProcessingThread, "RenderThread", (void *)this);
 
       while(!quit) {
