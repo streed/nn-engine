@@ -11,6 +11,8 @@
 #include "sprite.h"
 
 static bool KEY_PRESSES[322];
+static int mouseXRel = 0;
+static int mouseYRel = 0;
 
 class Game {
   Config config;
@@ -18,11 +20,25 @@ class Game {
   bool debug;
   int width;
   int height;
+
   double processingFrameTime;
   double processingTime;
   double oldProcessingTIme;
+  double capTime;
+  double oldCapTime;
+
+  static const int desiredProcessingFps = 35;
+  static const int processingFpsTicksPerFrame = 1000 / desiredProcessingFps;
+
+  double fpsCapTime;
+  double oldFpsCapTime;
   double currentFrameTime;
   double oldFrameTime;
+
+  static const int desiredFps = 35;
+  static const int fpsTicksPerFrame = 1000 / desiredFps;
+
+
   Renderer renderer;
   Camera *camera;
   Player *player;

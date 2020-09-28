@@ -25,7 +25,6 @@ void Game::run() {
     cout << "SDL Could not initialize! SDL_Error: " << SDL_GetError() << "\n";
     cout << "TTF Could not inituialize! TTF_Error: " << TTF_GetError() << "\n";
   } else {
-
     if (renderer.setup(width, height, config.getTextures(), config.getFullscreen())) {
       if (debug) {
         cout << "Window created, starting game." << endl;
@@ -35,6 +34,8 @@ void Game::run() {
       SDL_Thread *entityThread = SDL_CreateThread(entityProcessingThread, "RenderThread", (void *)this);
 
       while(!quit) {
+        oldFpsCapTime = fpsCapTime;
+        fpsCapTime = SDL_GetTicks();
         oldFrameTime = currentFrameTime;
         currentFrameTime = SDL_GetTicks();
         double frameTime = (currentFrameTime - oldFrameTime) / 1000.0;
@@ -60,6 +61,11 @@ void Game::run() {
         if (inputPacket.debug) {
           debug = !debug;
         }
+
+        int frameTicks = SDL_GetTicks() - fpsCapTime;
+        if (frameTicks < fpsTicksPerFrame) {
+          SDL_Delay(fpsTicksPerFrame - frameTicks);
+        }
       }
 
       SDL_WaitThread(entityThread, NULL);
@@ -74,6 +80,8 @@ void Game::run() {
 
 void Game::processEntities() {
   while(!quit) {
+    oldCapTime = capTime;
+    capTime = SDL_GetTicks();
     oldProcessingTIme = processingTime;
     processingTime = SDL_GetTicks();
     double diff = processingTime - oldProcessingTIme;
@@ -84,6 +92,11 @@ void Game::processEntities() {
      */
     for(const auto &entity: entities) {
       entity->update(world, player, &entities, processingFrameTime);
+    }
+
+    int frameTicks = SDL_GetTicks() - capTime;
+    if (frameTicks < processingFpsTicksPerFrame) {
+      SDL_Delay(processingFpsTicksPerFrame - frameTicks);
     }
   }
 }
