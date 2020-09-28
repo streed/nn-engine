@@ -17,7 +17,10 @@ void Projectile::update(Game *game,
                         double timeDiff) {
   lifeSpanSeconds -= timeDiff;
 
-  if (lifeSpanSeconds > 0) {
+  int mapX = int(posX);
+  int mapY = int(posY);
+
+  if (lifeSpanSeconds > 0 && world.getMapPoint(mapX, mapY) == 0) {
     double speed = maxSpeedClip * timeDiff;
     posX = posX + dirX * speed;
     posY = posY + dirY * speed;

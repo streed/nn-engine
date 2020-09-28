@@ -14,6 +14,7 @@ using namespace std;
 #include "projectile.h"
 #include "game.h"
 #include "utils.h"
+#include "raycast.h"
 
 
 void Monster::update(Game *game,
@@ -65,8 +66,17 @@ void Monster::update(Game *game,
       double projectileDirX = -diffX * fiSqrt;
       double projectileDirY = -diffY * fiSqrt;
 
-      Projectile *projectile = new Projectile(posX, posY, projectileDirX, projectileDirY, 2, 3.5, 12);
-      game->addEntity(projectile);
+      RayCast ray(posX, posY, projectileDirX, projectileDirY);
+      RayCastHit hit = ray.collideWorld(world);
+      float distanceToWall = (posX - hit.mapX) * (posX - hit.mapX) + (posY - hit.mapY) * (posY - hit.mapY);
+      distanceToWall *= inverseSqrt(distanceToWall);
+
+      if (distanceToPlayer < distanceToWall) {
+        Projectile *projectile = new Projectile(posX, posY, projectileDirX, projectileDirY, 2, 3.5, 12);
+        game->addEntity(projectile);
+      } else {
+        cout << "A wall is in the way!!!!" << endl;
+      }
     } else {
       timeUntilNextShot -= timeDiff;
     }
@@ -175,14 +185,14 @@ std::vector<Point> Monster::getNeighbors(World &world, Point point) {
   int boundY = world.height;
   std::vector<Point> potentialNeighbors;
 
-  potentialNeighbors.push_back(Point(x - 1, y - 1));
+  //potentialNeighbors.push_back(Point(x - 1, y - 1));
   potentialNeighbors.push_back(Point(x,     y - 1));
-  potentialNeighbors.push_back(Point(x + 1, y - 1));
+  //potentialNeighbors.push_back(Point(x + 1, y - 1));
   potentialNeighbors.push_back(Point(x - 1, y));
   potentialNeighbors.push_back(Point(x + 1, y));
-  potentialNeighbors.push_back(Point(x - 1, y + 1));
+  //potentialNeighbors.push_back(Point(x - 1, y + 1));
   potentialNeighbors.push_back(Point(x,     y + 1));
-  potentialNeighbors.push_back(Point(x + 1, y + 1));
+  //potentialNeighbors.push_back(Point(x + 1, y + 1));
 
   std::vector<Point> neighbors;
 
