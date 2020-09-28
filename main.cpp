@@ -26,8 +26,7 @@ int main(int argc, char **args) {
   game.addSprite(new Sprite(1.5, 15.5, 8));
   game.addSprite(new Sprite(4.5, 17.5, 10));
   game.addSprite(new Sprite(1.5, 17.5, 10));
-  Monster monster(3, 20, 11);
-  game.addSprite(&monster);
+  Monster monster(100, 3, 20, 11);
   game.addEntity(&monster);
   game.run();
 

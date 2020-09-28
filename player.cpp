@@ -22,6 +22,10 @@ int Player::getMapY() {
   return int(this->posY);
 }
 
+double Player::getDiameter() {
+  return diameter;
+}
+
 void Player::handleInputs(InputPacket inputPacket, World world, double frameTime) {
   double moveSpeed = this->maxSpeedClip * frameTime;
   double rotateSpeed = this->maxRotateSpeedClip * frameTime;

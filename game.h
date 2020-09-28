@@ -38,6 +38,7 @@ class Game {
   static const int desiredFps = 35;
   static const int fpsTicksPerFrame = 1000 / desiredFps;
 
+  SDL_mutex *entityLock;
 
   Renderer renderer;
   Camera *camera;
@@ -52,6 +53,7 @@ class Game {
     void addPlayer(Player *player);
     void addSprite(Sprite *sprite);
     void addEntity(Entity *entity);
+    void removeEntity(Entity *entity);
 
     void processEntities();
 

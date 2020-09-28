@@ -11,24 +11,13 @@ using namespace std;
 
 #include "monster.h"
 #include "player.h"
+#include "projectile.h"
+#include "game.h"
+#include "utils.h"
 
-// Taken from Quake3 source code.
-float inverseSqrt(float number) {
-  const float threeHalfs = 1.5F;
 
-  float x2 = number * 0.5F;
-  float y = number;
-
-  // Use specific type to ensure that it is 32bits long, 64bits messes this up.
-  Uint32 i = *(Uint32 *)&y;
-
-  i = 0x5f3759df - (i >> 1);
-  y = *(float *)&i;
-  y = y * (threeHalfs - (x2 * y * y));
-  return y;
-}
-
-void Monster::update(World &world,
+void Monster::update(Game *game,
+                     World &world,
                      Player *player,
                      std::vector<Entity *> *entities,
                      double timeDiff) {
@@ -43,6 +32,7 @@ void Monster::update(World &world,
     seeking = false;
   }
 
+  // Move close to the player!
   if (seeking) {
     double moveSpeed = maxSpeedClip * timeDiff;
     Point nextCellToMoveTo = findNextCellToMoveTo(world, player);
@@ -63,6 +53,22 @@ void Monster::update(World &world,
 
     if (world.getMapPoint(int(posX), int(newPosY)) == 0) {
       posY = newPosY;
+    }
+  } else { // Shoot at the player
+    if (timeUntilNextShot <= 0.0) {
+      timeUntilNextShot = shootingCoolDownConstant;
+      float diffX = posX - player->posX;
+      float diffY = posY - player->posY;
+      float length = (diffX * diffX) + (diffY * diffY);
+      float fiSqrt = inverseSqrt(length);
+
+      double projectileDirX = -diffX * fiSqrt;
+      double projectileDirY = -diffY * fiSqrt;
+
+      Projectile *projectile = new Projectile(posX, posY, projectileDirX, projectileDirY, 2, 3.5, 12);
+      game->addEntity(projectile);
+    } else {
+      timeUntilNextShot -= timeDiff;
     }
   }
 }

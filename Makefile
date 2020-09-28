@@ -1,4 +1,4 @@
-OBJS = main.cpp camera.cpp world.cpp color_rgb.cpp input_packet.cpp player.cpp renderer.cpp game.cpp raycast.cpp png.cpp texture.cpp config.cpp sprite.cpp monster.cpp
+OBJS = main.cpp camera.cpp world.cpp color_rgb.cpp input_packet.cpp player.cpp renderer.cpp game.cpp raycast.cpp png.cpp texture.cpp config.cpp sprite.cpp monster.cpp projectile.cpp utils.cpp
 
 OBJ_NAME = play
 

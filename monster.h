@@ -6,16 +6,24 @@
 
 #include "sprite.h"
 
+class Game;
+
 typedef std::pair<int, int> Point;
 
 class Monster: public Sprite {
   bool seeking;
-  double searchDistance = 2;//Sqaured to not need the sqrt call
+  double searchDistance = 3.5;//Sqaured to not need the sqrt call
+
+  static constexpr double shootingCoolDownConstant = 2;// Allowed to fire every 2secs;
+  double timeUntilNextShot = 0;
+
+  int health;
 
   public:
-    Monster(double posX, double posY, int textureIndex): Sprite(posX, posY, 0, 2, 0, textureIndex) {}
+    Monster(int health, double posX, double posY, int textureIndex): Sprite(posX, posY, 0, 2, 0, textureIndex),
+                                                                     health(health) {}
 
-    virtual void update(World &world, Player *player, std::vector<Entity *> *entities, double timeDiff) ;
+    virtual void update(Game *game, World &world, Player *player, std::vector<Entity *> *entities, double timeDiff);
 
   private:
     Point findNextCellToMoveTo(World &world, Player *player);

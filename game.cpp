@@ -1,11 +1,14 @@
 #include "game.h"
 
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+
+#include "projectile.h"
 
 static int entityProcessingThread(void *ptr) {
   Game *game = (Game *)ptr;
@@ -18,7 +21,9 @@ Game::Game(int width, int height, Camera *camera, World world, Config config): w
                                                                                world(world),
                                                                                renderer(Renderer(camera, world)),
                                                                                config(config),
-                                                                               quit(false) {}
+                                                                               quit(false) {
+  entityLock = SDL_CreateMutex();
+}
 
 void Game::run() {
   if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_JOYSTICK) < 0 || TTF_Init() < 0) {
@@ -40,7 +45,26 @@ void Game::run() {
         currentFrameTime = SDL_GetTicks();
         double frameTime = (currentFrameTime - oldFrameTime) / 1000.0;
         renderer.drawWorld(*player);
-        renderer.drawSprites(*player, sprites);
+
+        SDL_LockMutex(entityLock);
+          std::vector<Sprite *> allDrawables = sprites;
+
+          for (auto const &entity: entities) {
+            Sprite *maybeSprite = dynamic_cast<Sprite *>(entity);
+            if (maybeSprite) {
+              allDrawables.push_back(maybeSprite);
+            }
+
+            Projectile *maybeProjectile = dynamic_cast<Projectile *>(entity);
+
+            if (maybeProjectile && maybeProjectile->isAlive()) {
+              allDrawables.push_back(maybeProjectile);
+            }
+          }
+
+          renderer.drawSprites(*player, allDrawables);
+        SDL_UnlockMutex(entityLock);
+
         renderer.present(debug, (int)(1 / frameTime));
         renderer.clear();
         /*
@@ -76,6 +100,7 @@ void Game::run() {
 
   SDL_Quit();
   TTF_Quit();
+  SDL_DestroyMutex(entityLock);
 }
 
 void Game::processEntities() {
@@ -90,9 +115,11 @@ void Game::processEntities() {
     /*
      * Handle Entities
      */
-    for(const auto &entity: entities) {
-      entity->update(world, player, &entities, processingFrameTime);
-    }
+    SDL_LockMutex(entityLock);
+      for(const auto &entity: entities) {
+        entity->update(this, world, player, &entities, processingFrameTime);
+      }
+    SDL_UnlockMutex(entityLock);
 
     int frameTicks = SDL_GetTicks() - capTime;
     if (frameTicks < processingFpsTicksPerFrame) {
@@ -110,7 +137,19 @@ void Game::addSprite(Sprite *sprite) {
 }
 
 void Game::addEntity(Entity *entity) {
-  entities.push_back(entity);
+  SDL_LockMutex(entityLock);
+    entities.push_back(entity);
+  SDL_UnlockMutex(entityLock);
+}
+
+void Game::removeEntity(Entity *entity) {
+  SDL_LockMutex(entityLock);
+    std::vector<Entity *>::iterator where = std::find(entities.begin(), entities.end(), entity);
+    if (where != entities.end()) {
+      entities.erase(where);
+      delete *where;
+    }
+  SDL_UnlockMutex(entityLock);
 }
 
 void Game::clearKeys() {

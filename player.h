@@ -9,6 +9,7 @@
 class Player: public MovingEntity {
   public:
     Camera *camera;
+    double diameter = 1.0;// This is used for projectile collision.
 
     Player(Camera *camera,
            double posX,
@@ -19,6 +20,7 @@ class Player: public MovingEntity {
     int getMapX();
     int getMapY();
     void handleInputs(InputPacket inputPacket, World world, double frameTime);
+    double getDiameter();
 };
 
 #endif
