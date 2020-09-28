@@ -27,7 +27,7 @@ class Game {
   double capTime;
   double oldCapTime;
 
-  static const int desiredProcessingFps = 35;
+  static const int desiredProcessingFps = 25;
   static const int processingFpsTicksPerFrame = 1000 / desiredProcessingFps;
 
   double fpsCapTime;
@@ -35,7 +35,7 @@ class Game {
   double currentFrameTime;
   double oldFrameTime;
 
-  static const int desiredFps = 35;
+  static const int desiredFps = 60;
   static const int fpsTicksPerFrame = 1000 / desiredFps;
 
   SDL_mutex *entityLock;

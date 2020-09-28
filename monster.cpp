@@ -185,14 +185,10 @@ std::vector<Point> Monster::getNeighbors(World &world, Point point) {
   int boundY = world.height;
   std::vector<Point> potentialNeighbors;
 
-  //potentialNeighbors.push_back(Point(x - 1, y - 1));
   potentialNeighbors.push_back(Point(x,     y - 1));
-  //potentialNeighbors.push_back(Point(x + 1, y - 1));
   potentialNeighbors.push_back(Point(x - 1, y));
   potentialNeighbors.push_back(Point(x + 1, y));
-  //potentialNeighbors.push_back(Point(x - 1, y + 1));
   potentialNeighbors.push_back(Point(x,     y + 1));
-  //potentialNeighbors.push_back(Point(x + 1, y + 1));
 
   std::vector<Point> neighbors;
 
