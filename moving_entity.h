@@ -11,6 +11,11 @@ class MovingEntity: public Entity {
     double maxSpeedClip; 
     double maxRotateSpeedClip;
 
+    MovingEntity(): Entity(),
+                    accelerationConstant(0),
+                    maxSpeedClip(0),
+                    maxRotateSpeedClip(0) {};
+
     MovingEntity(double posX,
                  double posY,
                  double accelerationConstant,

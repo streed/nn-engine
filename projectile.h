@@ -1,15 +1,24 @@
 #ifndef __PROJECTILE__
 #define __PROJECTILE__
 
+#include "entity_factory_registration.h"
 #include "sprite.h"
 
 class Projectile: public Sprite {
+  static Entities::Registration<Projectile> registered;
+
   double dirX;
   double dirY;
   double lifeSpanSeconds;
   bool alive;
 
+
   public:
+  Projectile(): Sprite(0, 0, 0, 0, 0, -1),
+                dirY(0),
+                dirX(0),
+                alive(true),
+                lifeSpanSeconds(lifeSpanSeconds) {};
   Projectile(double posX,
              double posY,
              double dirX,

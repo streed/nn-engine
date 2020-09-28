@@ -10,6 +10,8 @@ using namespace std;
 #include "player.h"
 #include "entity.h"
 
+Entities::Registration<Projectile> Projectile::registered = Entities::Registration<Projectile>("Projectile");
+
 void Projectile::update(Game *game,
                         World &world,
                         Player *player,

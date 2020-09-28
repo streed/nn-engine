@@ -11,6 +11,7 @@
 #include "texture.h"
 #include "sprite.h"
 #include "monster.h"
+#include "entity_factory.h"
 
 using namespace std;
 
@@ -28,6 +29,10 @@ int main(int argc, char **args) {
   game.addSprite(new Sprite(1.5, 17.5, 10));
   Monster monster(100, 3, 20, 11);
   game.addEntity(&monster);
+  cout << "Registered entities:" << endl;
+  for (auto const &name: EntityFactory::get().getEntityNames()) {
+    cout << "\t" << name << endl;
+  }
   game.run();
 
   return 0;
