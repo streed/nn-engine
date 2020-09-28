@@ -7,9 +7,9 @@ using namespace std;
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-static int renderThread(void *ptr) {
+static int entityProcessingThread(void *ptr) {
   Game *game = (Game *)ptr;
-  game->render();
+  game->processEntities();
 }
 
 Game::Game(int width, int height, Camera *camera, World world, Config config): width(width),
@@ -32,7 +32,7 @@ void Game::run() {
       }
 
       cout << "Starting rendering thread!" << endl;
-      SDL_Thread *renderingThread = SDL_CreateThread(renderThread, "RenderThread", (void *)this);
+      SDL_Thread *entityThread = SDL_CreateThread(entityProcessingThread, "RenderThread", (void *)this);
 
       while(!quit) {
         oldFrameTime = currentFrameTime;
@@ -62,7 +62,7 @@ void Game::run() {
         }
       }
 
-      SDL_WaitThread(renderingThread, NULL);
+      SDL_WaitThread(entityThread, NULL);
     }
 
     renderer.cleanup();
@@ -72,7 +72,7 @@ void Game::run() {
   TTF_Quit();
 }
 
-void Game::render() {
+void Game::processEntities() {
   while(!quit) {
     oldProcessingTIme = processingTime;
     processingTime = SDL_GetTicks();

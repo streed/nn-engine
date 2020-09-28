@@ -37,7 +37,7 @@ class Game {
     void addSprite(Sprite *sprite);
     void addEntity(Entity *entity);
 
-    void render();
+    void processEntities();
 
   private:
     void clearKeys();
