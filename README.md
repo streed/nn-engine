@@ -22,19 +22,35 @@ brew install sdl2-ttf
 
 Building
 ========
+
+Prerequisites:
+
+- cmake >= 3.1
+- conan
+
 ```
+sudo apt-get install cmake
+pip install --user conan
+```
+
+Building the code:
+
+```
+cd build
+cmake ..
 make all
 ```
 
 Running
 =======
 ```
-./play
+cd build
+./Wenkenstein
 ```
 
 If you want to run in fullscreen pass a parameter to the executable.
 ```
-./play 1
+./Wenkenstein 1
 ```
 
 Controls

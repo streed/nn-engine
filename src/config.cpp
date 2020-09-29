@@ -2,14 +2,30 @@
 
 using namespace std;
 
+#include <boost/program_options.hpp>
+
+namespace po = boost::program_options;
+
 #include "config.h"
 
 Config::Config(int argc, char **args) {
+  po::options_description description("Allowed Options");
+  description.add_options()
+    ("help", "Show this help message")
+    ("fullscreen", po::value<bool>(&fullscreen)->default_value(false), "Run game in fullscreen?");
 
-  if (argc >= 2) {
-    cout << "Running game in fullscreen\!" << endl;
-    fullscreen = true;
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, args, description), vm);
+  po::notify(vm);
+
+  if (vm.count("help")) {
+    cout << description << endl;
   }
+
+  if (vm.count("fullscreen")) {
+    fullscreen = vm["fullscreen"].as<bool>();
+  }
+
   loadTextures();
 }
 
