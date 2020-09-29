@@ -38,3 +38,4 @@ play
 
 .DS_Store
 *.dSYM
+build/
