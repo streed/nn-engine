@@ -1,5 +1,7 @@
 #include <iostream>
 #include <algorithm>
+#include <utility>
+#include <functional>
 
 using namespace std;
 
@@ -13,7 +15,6 @@ using namespace std;
 
 #include "camera.h"
 #include "config.h"
-#include "entity.h"
 #include "game_objects/player.h"
 #include "world.h"
 #include "renderer.h"
@@ -21,9 +22,9 @@ using namespace std;
 #include "engine.h"
 
 
-static int entityProcessingThread(void *ptr) {
-  Engine *game = (Engine *)ptr;
-  game->processEntities();
+static int gameObjectsProcessingThread(void *ptr) {
+  Engine *engine = (Engine *)ptr;
+  engine->processGameObjects();
 }
 
 Engine::Engine(int width, int height, Camera *camera, World world, Config config): width(width),
@@ -33,7 +34,8 @@ Engine::Engine(int width, int height, Camera *camera, World world, Config config
                                                                                renderer(Renderer(camera, world)),
                                                                                config(config),
                                                                                quit(false) {
-  entityLock = SDL_CreateMutex();
+  gameObjectsLock = SDL_CreateMutex();
+  spritesLock = SDL_CreateMutex();
 }
 
 void Engine::run() {
@@ -46,8 +48,8 @@ void Engine::run() {
         cout << "Window created, starting game." << endl;
       }
 
-      cout << "Starting Entity processing thread!" << endl;
-      SDL_Thread *entityThread = SDL_CreateThread(entityProcessingThread, "RenderThread", (void *)this);
+      //cout << "Starting Entity processing thread!" << endl;
+      //SDL_Thread *gameObjectsThread = SDL_CreateThread(gameObjectsProcessingThread, "RenderThread", (void *)this);
 
       while(!quit) {
         oldFpsCapTime = fpsCapTime;
@@ -55,29 +57,6 @@ void Engine::run() {
         oldFrameTime = currentFrameTime;
         currentFrameTime = SDL_GetTicks();
         double frameTime = (currentFrameTime - oldFrameTime) / 1000.0;
-
-        player->update(*this, world, frameTime);
-
-        // This mutex syncs the two threads.
-        // As the entities are being processed they
-        // hold the entityLock which allows them to
-        // add their sprites to the draw list.
-        SDL_LockMutex(entityLock);
-          renderer.drawWorld(*player);
-          std::vector<Sprite *> allDrawables = sprites;
-
-          for (auto const &entity: entities) {
-            Sprite *maybeSprite = dynamic_cast<Sprite *>(entity);
-            if (maybeSprite) {
-              allDrawables.push_back(maybeSprite);
-            }
-          }
-
-          renderer.drawSprites(*player, allDrawables);
-          renderer.present(debug, (int)(1 / frameTime));
-          renderer.clear();
-          //clearSprites();
-        SDL_UnlockMutex(entityLock);
 
         /*
          * Input logic
@@ -98,13 +77,22 @@ void Engine::run() {
           debug = !debug;
         }
 
+        processGameObjects();
+
+        renderer.drawWorld(*player);
+        renderer.drawSprites(*player, sprites);
+        renderer.present(debug, (int)(1 / frameTime));
+        renderer.clear();
+        clearSprites();
+
+
         int frameTicks = SDL_GetTicks() - fpsCapTime;
         if (frameTicks < fpsTicksPerFrame) {
           SDL_Delay(fpsTicksPerFrame - frameTicks);
         }
       }
 
-      SDL_WaitThread(entityThread, NULL);
+      //SDL_WaitThread(gameObjectsThread, NULL);
     }
 
     renderer.cleanup();
@@ -112,11 +100,12 @@ void Engine::run() {
 
   SDL_Quit();
   TTF_Quit();
-  SDL_DestroyMutex(entityLock);
+  SDL_DestroyMutex(gameObjectsLock);
+  SDL_DestroyMutex(spritesLock);
 }
 
-void Engine::processEntities() {
-  while(!quit) {
+void Engine::processGameObjects() {
+  //while(!quit) {
     oldCapTime = capTime;
     capTime = SDL_GetTicks();
     oldProcessingTIme = processingTime;
@@ -127,17 +116,15 @@ void Engine::processEntities() {
     /*
      * Handle Entities
      */
-    SDL_LockMutex(entityLock);
-      for(const auto &entity: entities) {
-        entity->update(this, world, player, &entities, processingFrameTime);
-      }
-    SDL_UnlockMutex(entityLock);
+    for(const auto &object: gameObjects) {
+      object->update(*this, world, processingFrameTime);
+    }
 
-    int frameTicks = SDL_GetTicks() - capTime;
+    /*int frameTicks = SDL_GetTicks() - capTime;
     if (frameTicks < processingFpsTicksPerFrame) {
       SDL_Delay(processingFpsTicksPerFrame - frameTicks);
-    }
-  }
+    }*/
+  //}
 }
 
 void Engine::addPlayer(Player *player) {
@@ -148,24 +135,20 @@ Player *Engine::getPlayer() {
   return player;
 }
 
-void Engine::addSprite(Sprite *sprite) {
-  sprites.push_back(sprite);
+void Engine::drawSprite(Sprite *sprite, double x, double y) {
+  sprites.push_back(new DrawableSprite(sprite, x, y));
 }
 
-void Engine::addEntity(Entity *entity) {
-  SDL_LockMutex(entityLock);
-    entities.push_back(entity);
-  SDL_UnlockMutex(entityLock);
+void Engine::addGameObject(GameObject *object) {
+  gameObjects.push_back(object);
 }
 
-void Engine::removeEntity(Entity *entity) {
-  SDL_LockMutex(entityLock);
-    std::vector<Entity *>::iterator where = std::find(entities.begin(), entities.end(), entity);
-    if (where != entities.end()) {
-      entities.erase(where);
+void Engine::removeGameObject(GameObject *object) {
+    std::vector<GameObject *>::iterator where = std::find(gameObjects.begin(), gameObjects.end(), object);
+    if (where != gameObjects.end()) {
+      gameObjects.erase(where);
       delete *where;
     }
-  SDL_UnlockMutex(entityLock);
 }
 
 void Engine::processEvents() {
@@ -181,4 +164,8 @@ void Engine::processEvents() {
         break;
     }
   }
+}
+
+void Engine::clearSprites() {
+  sprites.clear();
 }

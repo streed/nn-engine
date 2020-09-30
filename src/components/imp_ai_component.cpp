@@ -165,6 +165,9 @@ void ImpAIComponent::update(GameObject &object, Player &player, World &world, do
     seeking = false;
   }
 
+  imp.velocityX = 0;
+  imp.velocityY = 0;
+
   // Move close to the player!
   if (seeking) {
     double moveSpeed = imp.maxSpeedClip * timeDiff;

@@ -8,7 +8,7 @@ class World;
 
 class BasicMovingObjectPhysicsComponent: public PhysicsComponent {
   public:
-    virtual void update(BasicMovingObject *object, World &world, double frameTime);
+    virtual void update(BasicMovingObject &object, World &world, double frameTime);
 };
 
 #endif

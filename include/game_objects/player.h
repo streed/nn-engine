@@ -6,8 +6,6 @@
 
 #include "game_objects/basic_moving_object.h"
 
-#include "moving_entity.h"
-
 class Camera;
 class Engine;
 class World;

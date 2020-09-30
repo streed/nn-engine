@@ -6,7 +6,7 @@ class World;
 
 class PhysicsComponent {
   public:
-    virtual void update(BasicMovingObject *object, World &world, double frameTime) = 0;
+    virtual void update(BasicMovingObject &object, World &world, double frameTime) = 0;
 };
 
 #endif

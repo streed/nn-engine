@@ -216,27 +216,31 @@ void sortSprites(int *order, double *dist, int amount) {
   }
 }
 
-void Renderer::drawSprites(Player &player, std::vector<Sprite *> &sprites) {
+double distanceFromPlayer(Player &player, DrawableSprite *sprite) {
+  return (player.posX - sprite->x) * (player.posX - sprite->x) +
+         (player.posY - sprite->y) * (player.posY - sprite->y);
+}
+
+void Renderer::drawSprites(Player &player, std::vector<DrawableSprite *> &sprites) {
   if (sprites.size() <= 0) {
     return;
   }
 
   int  *spriteOrder = new int[sprites.size()];
   double *spriteDistance = new double[sprites.size()];
-  /*
 
   for(size_t i = 0; i < sprites.size(); i++) {
     spriteOrder[i] = i;
-    spriteDistance[i] = sprites.at(i)->distanceFromSquared(player);
+    spriteDistance[i] = distanceFromPlayer(player, sprites.at(i));
   }
 
   sortSprites(spriteOrder, spriteDistance, sprites.size());
 
   for(int i = 0; i < sprites.size(); i++) {
-    Sprite *sprite = sprites.at(spriteOrder[i]);
+    DrawableSprite *sprite = sprites.at(spriteOrder[i]);
 
-    double spriteX = sprite->posX - player.posX;
-    double spriteY = sprite->posY - player.posY;
+    double spriteX = sprite->x - player.posX;
+    double spriteY = sprite->y - player.posY;
 
     double invDet = player.camera->getInvDet();
 
@@ -278,7 +282,7 @@ void Renderer::drawSprites(Player &player, std::vector<Sprite *> &sprites) {
         for(int y = drawStartY; y < drawEndY; y++) {
           int d = (y) * 256 - SCREEN_HEIGHT * 128 + spriteHeight * 128;
           int texY = ((d * TEXTURE_HEIGHT) / spriteHeight) / 256;
-          Uint32 color = textures->at(sprite->getTextureIndex())
+          Uint32 color = textures->at(sprite->sprite->textureIndex)
             .getPixels()
             ->at(TEXTURE_WIDTH * texY + texX);
 
@@ -288,7 +292,7 @@ void Renderer::drawSprites(Player &player, std::vector<Sprite *> &sprites) {
         }
       }
     }
-  }*/
+  }
 
   delete spriteOrder;
   delete spriteDistance;

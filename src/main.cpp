@@ -12,7 +12,10 @@
 #include "entity_factory.h"
 #include "components/player_input_component.h"
 #include "components/basic_moving_object_phyiscs_component.h"
+#include "components/imp_ai_component.h"
+#include "components/imp_graphics_component.h"
 #include "game_objects/player.h"
+#include "game_objects/imp.h"
 
 using namespace std;
 
@@ -30,15 +33,14 @@ int main(int argc, char **args) {
                          new BasicMovingObjectPhysicsComponent());
   Engine engine(SCREEN_WIDTH, SCREEN_HEIGHT, &camera, world, config);
   engine.addPlayer(&player);
+  engine.addGameObject(&player);
+  engine.addGameObject(new Imp(3, 20, new ImpAIComponent(),
+                                      new ImpGraphicsComponent(new Sprite(11)),
+                                      new BasicMovingObjectPhysicsComponent()));
   //engine.addSprite(new Sprite(8));
   //engine.addSprite(new Sprite(8));
   //engine.addSprite(new Sprite(10));
   //engine.addSprite(new Sprite(10));
-
-  cout << "Registered entities:" << endl;
-  for (auto const &name: EntityFactory::get().getEntityNames()) {
-    cout << "\t" << name << endl;
-  }
 
   engine.run();
 

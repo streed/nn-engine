@@ -8,6 +8,7 @@
 #include "world.h"
 
 class Camera;
+class DrawableSprite;
 class Player;
 class RayCastHit;
 class Sprite;
@@ -32,7 +33,7 @@ class Renderer {
     bool setup(int width, int height, std::vector<Texture> *textures, bool fullscreen);
     void drawTextureSlice(int x, int bottom, int end, RayCastHit hit);
     void drawWorld(Player &player);
-    void drawSprites(Player &player, std::vector<Sprite *> &sprites);
+    void drawSprites(Player &player, std::vector<DrawableSprite *> &sprites);
     void drawBuffer();
     void clearBuffer();
     void present(bool debug, int fps);
