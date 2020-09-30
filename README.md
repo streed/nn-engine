@@ -30,13 +30,16 @@ Prerequisites:
 
 ```
 sudo apt-get install cmake
-pip install --user conan
+virtualenv -p python3 conan-env
+source conan-env/bin/activate
+pip install conan
 ```
 
 Building the code:
 
 ```
 cd build
+conan install ..
 cmake ..
 make all
 ```

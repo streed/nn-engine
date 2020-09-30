@@ -34,13 +34,12 @@ int main(int argc, char **args) {
   Engine engine(SCREEN_WIDTH, SCREEN_HEIGHT, &camera, world, config);
   engine.addPlayer(&player);
   engine.addGameObject(&player);
-  engine.addGameObject(new Imp(3, 20, new ImpAIComponent(),
+  engine.addGameObject(new Imp(3, 21, new ImpAIComponent(),
                                       new ImpGraphicsComponent(new Sprite(11)),
                                       new BasicMovingObjectPhysicsComponent()));
-  //engine.addSprite(new Sprite(8));
-  //engine.addSprite(new Sprite(8));
-  //engine.addSprite(new Sprite(10));
-  //engine.addSprite(new Sprite(10));
+  engine.addGameObject(new Imp(4, 20, new ImpAIComponent(),
+                                      new ImpGraphicsComponent(new Sprite(11)),
+                                      new BasicMovingObjectPhysicsComponent()));
 
   engine.run();
 
