@@ -6,7 +6,7 @@
 
 #include "sprite.h"
 
-class Game;
+class Engine;
 
 typedef std::pair<int, int> Point;
 
@@ -23,7 +23,7 @@ class Monster: public Sprite {
     Monster(int health, double posX, double posY, int textureIndex): Sprite(posX, posY, 0, 2, 0, textureIndex),
                                                                      health(health) {}
 
-    virtual void update(Game *game, World &world, Player *player, std::vector<Entity *> *entities, double timeDiff);
+    virtual void update(Engine *engine, World &world, Player *player, std::vector<Entity *> *entities, double timeDiff);
 
   private:
     Point findNextCellToMoveTo(World &world, Player *player);

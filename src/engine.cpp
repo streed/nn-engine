@@ -1,21 +1,25 @@
-#include "game.h"
+#include "engine.h"
 
 #include <iostream>
 #include <algorithm>
 
 using namespace std;
 
+#include <boost/scoped_ptr.hpp>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
 #include "projectile.h"
+#include "input/keyboard.h"
+#include "input/input_packet.h"
 
 static int entityProcessingThread(void *ptr) {
-  Game *game = (Game *)ptr;
+  Engine *game = (Engine *)ptr;
   game->processEntities();
 }
 
-Game::Game(int width, int height, Camera *camera, World world, Config config): width(width),
+Engine::Engine(int width, int height, Camera *camera, World world, Config config): width(width),
                                                                                height(height),
                                                                                camera(camera),
                                                                                world(world),
@@ -25,7 +29,7 @@ Game::Game(int width, int height, Camera *camera, World world, Config config): w
   entityLock = SDL_CreateMutex();
 }
 
-void Game::run() {
+void Engine::run() {
   if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_JOYSTICK) < 0 || TTF_Init() < 0) {
     cout << "SDL Could not initialize! SDL_Error: " << SDL_GetError() << "\n";
     cout << "TTF Could not inituialize! TTF_Error: " << TTF_GetError() << "\n";
@@ -70,19 +74,20 @@ void Game::run() {
         /*
          * Input logic
          */
-        handleKeyboard();
-        InputPacket inputPacket = handleInput();
+        processEvents();
 
-        player->handleInputs(inputPacket, world, frameTime);
+        player->handleInputs(world, frameTime);
 
-        if (inputPacket.quit) {
+        boost::scoped_ptr<InputPacket> inputPacket(Keyboard::get().getInput());
+
+        if (inputPacket.get()->quit) {
           if (debug) {
             cout << "Quitting the game" << endl;
           }
           quit = true;
         }
 
-        if (inputPacket.debug) {
+        if (inputPacket.get()->debug) {
           debug = !debug;
         }
 
@@ -103,7 +108,7 @@ void Game::run() {
   SDL_DestroyMutex(entityLock);
 }
 
-void Game::processEntities() {
+void Engine::processEntities() {
   while(!quit) {
     oldCapTime = capTime;
     capTime = SDL_GetTicks();
@@ -128,21 +133,21 @@ void Game::processEntities() {
   }
 }
 
-void Game::addPlayer(Player *player) {
+void Engine::addPlayer(Player *player) {
   this->player = player;
 }
 
-void Game::addSprite(Sprite *sprite) {
+void Engine::addSprite(Sprite *sprite) {
   sprites.push_back(sprite);
 }
 
-void Game::addEntity(Entity *entity) {
+void Engine::addEntity(Entity *entity) {
   SDL_LockMutex(entityLock);
     entities.push_back(entity);
   SDL_UnlockMutex(entityLock);
 }
 
-void Game::removeEntity(Entity *entity) {
+void Engine::removeEntity(Entity *entity) {
   SDL_LockMutex(entityLock);
     std::vector<Entity *>::iterator where = std::find(entities.begin(), entities.end(), entity);
     if (where != entities.end()) {
@@ -152,13 +157,7 @@ void Game::removeEntity(Entity *entity) {
   SDL_UnlockMutex(entityLock);
 }
 
-void Game::clearKeys() {
-  for(int i = 0; i < 322; i++) {
-    KEY_PRESSES[i] = false;
-  }
-}
-
-void Game::handleKeyboard() {
+void Engine::processEvents() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
@@ -166,23 +165,9 @@ void Game::handleKeyboard() {
         quit = true;
         break;
       case SDL_KEYDOWN:
-        KEY_PRESSES[event.key.keysym.sym] = true;
-        break;
       case SDL_KEYUP:
-        KEY_PRESSES[event.key.keysym.sym] = false;
+        Keyboard::get().update(event);
         break;
     }
   }
-}
-
-InputPacket Game::handleInput () {
-  InputPacket packet = InputPacket(KEY_PRESSES[SDLK_w],
-                                   KEY_PRESSES[SDLK_s],
-                                   KEY_PRESSES[SDLK_a],
-                                   KEY_PRESSES[SDLK_d],
-                                   KEY_PRESSES[SDLK_k],
-                                   KEY_PRESSES[SDLK_l],
-                                   KEY_PRESSES[SDLK_q],
-                                   KEY_PRESSES[SDLK_p]);
-  return packet;
 }

@@ -1,5 +1,4 @@
-#include "globals.h"
-#include "input_packet.h"
+#include "input/input_packet.h"
 
 InputPacket::InputPacket(bool f,
                          bool b,

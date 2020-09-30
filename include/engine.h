@@ -10,11 +10,7 @@
 #include "world.h"
 #include "sprite.h"
 
-static bool KEY_PRESSES[322];
-static int mouseXRel = 0;
-static int mouseYRel = 0;
-
-class Game {
+class Engine {
   Config config;
   bool quit;
   bool debug;
@@ -48,7 +44,7 @@ class Game {
   std::vector<Entity *> entities;
 
   public:
-    Game(int width, int height, Camera *camera, World world, Config config);
+    Engine(int width, int height, Camera *camera, World world, Config config);
     void run();
     void addPlayer(Player *player);
     void addSprite(Sprite *sprite);
@@ -58,9 +54,7 @@ class Game {
     void processEntities();
 
   private:
-    void clearKeys();
-    void handleKeyboard();
-    InputPacket handleInput();
+    void processEvents();
 };
 
 #endif

@@ -9,7 +9,7 @@ project(
 add_definitions("-std=c++11")
 
 include_directories(include)
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(COPY font DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY textures DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 

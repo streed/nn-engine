@@ -6,13 +6,13 @@ using namespace std;
 
 #include "projectile.h"
 #include "world.h"
-#include "game.h"
+#include "engine.h"
 #include "player.h"
 #include "entity.h"
 
 Entities::Registration<Projectile> Projectile::registered = Entities::Registration<Projectile>("Projectile");
 
-void Projectile::update(Game *game,
+void Projectile::update(Engine *engine,
                         World &world,
                         Player *player,
                         std::vector<Entity *> *entities,
@@ -28,7 +28,7 @@ void Projectile::update(Game *game,
     posY = posY + dirY * speed;
   } else {
     alive = false;
-    game->removeEntity(this);
+    engine->removeEntity(this);
   }
 }
 

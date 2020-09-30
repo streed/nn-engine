@@ -1,6 +1,14 @@
+#include <iostream>
+using namespace std;
+
 #include <math.h>
+#include <boost/smart_ptr.hpp>
 
 #include "player.h"
+#include "input/keyboard.h"
+#include "input/input_packet.h"
+#include "camera.h"
+#include "world.h"
 
 Player::Player(Camera *camera,
                double posX,
@@ -26,11 +34,13 @@ double Player::getDiameter() {
   return diameter;
 }
 
-void Player::handleInputs(InputPacket inputPacket, World world, double frameTime) {
+void Player::handleInputs(World world, double frameTime) {
+  boost::scoped_ptr<InputPacket> inputPacket(Keyboard::get().getInput());
+
   double moveSpeed = this->maxSpeedClip * frameTime;
   double rotateSpeed = this->maxRotateSpeedClip * frameTime;
 
-  if (inputPacket.forward) {
+  if (inputPacket.get()->forward) {
     double newX = this->posX + this->camera->dirX * moveSpeed;
     double newY = this->posY + this->camera->dirY * moveSpeed;
 
@@ -43,7 +53,7 @@ void Player::handleInputs(InputPacket inputPacket, World world, double frameTime
     }
   }
 
-  if (inputPacket.backward) {
+  if (inputPacket.get()->backward) {
     double newX = this->posX - this->camera->dirX * moveSpeed;
     double newY = this->posY - this->camera->dirY * moveSpeed;
 
@@ -56,7 +66,7 @@ void Player::handleInputs(InputPacket inputPacket, World world, double frameTime
     }
   }
 
-  if (inputPacket.strafeLeft) {
+  if (inputPacket.get()->strafeLeft) {
     double perpDirX = this->camera->dirY;
     double perpDirY = -this->camera->dirX;
 
@@ -72,7 +82,7 @@ void Player::handleInputs(InputPacket inputPacket, World world, double frameTime
     }
   }
 
-  if (inputPacket.strafeRight) {
+  if (inputPacket.get()->strafeRight) {
     double perpDirX = this->camera->dirY;
     double perpDirY = -this->camera->dirX;
 
@@ -88,7 +98,7 @@ void Player::handleInputs(InputPacket inputPacket, World world, double frameTime
     }
   }
 
-  if (inputPacket.rotateRight) {
+  if (inputPacket.get()->rotateRight) {
     double oldDirX = this->camera->dirX;
     this->camera->dirX = this->camera->dirX * cos(-rotateSpeed) - this->camera->dirY * sin(-rotateSpeed);
     this->camera->dirY = oldDirX * sin(-rotateSpeed) + this->camera->dirY * cos(-rotateSpeed);
@@ -97,7 +107,7 @@ void Player::handleInputs(InputPacket inputPacket, World world, double frameTime
     this->camera->planeY = oldPlaneX * sin(-rotateSpeed) + this->camera->planeY * cos(-rotateSpeed);
   }
 
-  if (inputPacket.rotateLeft) {
+  if (inputPacket.get()->rotateLeft) {
     double oldDirX = this->camera->dirX;
     this->camera->dirX = this->camera->dirX * cos(rotateSpeed) - this->camera->dirY * sin(rotateSpeed);
     this->camera->dirY = oldDirX * sin(rotateSpeed) + this->camera->dirY * cos(rotateSpeed);

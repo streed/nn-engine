@@ -1,10 +1,10 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "camera.h"
-#include "input_packet.h"
-#include "world.h"
 #include "moving_entity.h"
+
+class Camera;
+class Wordl;
 
 class Player: public MovingEntity {
   public:
@@ -19,7 +19,7 @@ class Player: public MovingEntity {
            double maxRotateSpeedClip);
     int getMapX();
     int getMapY();
-    void handleInputs(InputPacket inputPacket, World world, double frameTime);
+    void handleInputs(World world, double frameTime);
     double getDiameter();
 };
 

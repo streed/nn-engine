@@ -12,12 +12,12 @@ using namespace std;
 #include "monster.h"
 #include "player.h"
 #include "projectile.h"
-#include "game.h"
+#include "engine.h"
 #include "utils.h"
 #include "raycast.h"
 
 
-void Monster::update(Game *game,
+void Monster::update(Engine *engine,
                      World &world,
                      Player *player,
                      std::vector<Entity *> *entities,
@@ -73,7 +73,7 @@ void Monster::update(Game *game,
 
       if (distanceToPlayer < distanceToWall) {
         Projectile *projectile = new Projectile(posX, posY, projectileDirX, projectileDirY, 2, 3.5, 12);
-        game->addEntity(projectile);
+        engine->addEntity(projectile);
       } else {
         cout << "A wall is in the way!!!!" << endl;
       }
