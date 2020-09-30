@@ -5,7 +5,7 @@
 
 #include <vector>
 
-#include "renderer.h"
+#include "graphics/renderer.h"
 #include "world.h"
 #include "config.h"
 

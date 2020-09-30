@@ -8,6 +8,8 @@ namespace po = boost::program_options;
 
 #include "config.h"
 
+#include "graphics/texture.h"
+
 Config::Config(int argc, char **args) {
   po::options_description description("Allowed Options");
   description.add_options()

@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "graphics/texture.h"
 #include "world.h"
 
 class Camera;
@@ -12,7 +13,6 @@ class DrawableSprite;
 class Player;
 class RayCastHit;
 class Sprite;
-class Texture;
 
 #include "globals.h"
 

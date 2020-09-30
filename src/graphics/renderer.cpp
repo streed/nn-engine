@@ -1,4 +1,4 @@
-#include "renderer.h"
+#include "graphics/renderer.h"
 
 #include <iostream>
 #include <vector>
@@ -11,13 +11,14 @@ using namespace std;
 #include <SDL2/SDL_ttf.h>
 
 #include "globals.h"
-#include "color_rgb.h"
-#include "raycast.h"
-#include "texture.h"
-#include "world.h"
-#include "sprite.h"
-#include "camera.h"
+
+#include "graphics/color_rgb.h"
+#include "graphics/texture.h"
+#include "graphics/sprite.h"
+#include "graphics/camera.h"
 #include "game_objects/player.h"
+#include "raycast.h"
+#include "world.h"
 
 bool Renderer::setup(int width, int height, vector<Texture> *textures, bool fullscreen) {
   Uint32 flags = SDL_WINDOW_SHOWN;

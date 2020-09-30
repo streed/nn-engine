@@ -5,11 +5,9 @@
 
 #include "globals.h"
 #include "world.h"
-#include "camera.h"
 #include "engine.h"
-#include "texture.h"
-#include "sprite.h"
-#include "entity_factory.h"
+#include "graphics/camera.h"
+#include "graphics/sprite.h"
 #include "components/player_input_component.h"
 #include "components/basic_moving_object_phyiscs_component.h"
 #include "components/imp_ai_component.h"

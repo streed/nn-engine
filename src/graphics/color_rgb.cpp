@@ -1,4 +1,4 @@
-#include "color_rgb.h"
+#include "graphics/color_rgb.h"
 
 ColorRGB::ColorRGB(int r, int g, int b) {
   this->r = r;

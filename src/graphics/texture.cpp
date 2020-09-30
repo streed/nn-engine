@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "texture.h"
-#include "png.h"
+#include "graphics/texture.h"
+#include "graphics/png.h"
 
 Texture::Texture(std::string filename): filename(filename) {
   std::cout << "Loading texture: " << filename << std::endl;

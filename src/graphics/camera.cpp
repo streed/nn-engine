@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 
 #include "globals.h"
-#include "camera.h"
+#include "graphics/camera.h"
 
 double Camera::getCameraX(int x) {
   return  2 * x / double(SCREEN_WIDTH) - 1;

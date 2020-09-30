@@ -3,7 +3,7 @@
 
 #include "components/graphics_component.h"
 
-#include "sprite.h"
+#include "graphics/sprite.h"
 
 class SpriteGraphicsComponent: public GraphicsComponent {
   public:

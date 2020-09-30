@@ -10,15 +10,15 @@ using namespace std;
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "graphics/camera.h"
+#include "graphics/renderer.h"
+#include "graphics/sprite.h"
+#include "game_objects/player.h"
 #include "input/keyboard.h"
 #include "input/input_packet.h"
 
-#include "camera.h"
 #include "config.h"
-#include "game_objects/player.h"
 #include "world.h"
-#include "renderer.h"
-#include "sprite.h"
 #include "engine.h"
 
 

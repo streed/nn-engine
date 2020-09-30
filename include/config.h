@@ -2,9 +2,9 @@
 #define __CONFIG__
 
 #include <vector>
-//#include "boost/program_options.hpp"
 
-#include "texture.h"
+class Texture;
+
 
 class Config {
   std::vector<Texture> textures;

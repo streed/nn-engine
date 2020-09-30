@@ -5,7 +5,7 @@
 
 #include "game_objects/game_object.h"
 #include "game_objects/player.h"
-#include "camera.h"
+#include "graphics/camera.h"
 #include "input/keyboard.h"
 #include "input/input_packet.h"
 #include "utils.h"
