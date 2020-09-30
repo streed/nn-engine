@@ -1,8 +1,11 @@
 #ifndef __INPUT_COMPONENT__
 #define __INPUT_COMPONENT__
 
-class InputComponent {
+class Player;
 
+class InputComponent {
+  public:
+    void update(Player &player, double frameTime);
 };
 
-#endif;
+#endif

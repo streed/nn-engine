@@ -20,7 +20,7 @@ World world = World(MAP_WIDTH,  MAP_HEIGHT, (int *)&worldMap);
 int main(int argc, char **args) {
   Config config(argc, args);
   Camera camera = Camera(-1, 0, 0, 0.66);
-  Player player = Player(&camera, 4, 10, 3, MOVE_SPEED, ROTATE_SPEED);
+  Player player = Player(&camera, 4, 10);
   Engine engine(SCREEN_WIDTH, SCREEN_HEIGHT, &camera, world, config);
   engine.addPlayer(&player);
   engine.addSprite(new Sprite(4.5, 15.5, 8));

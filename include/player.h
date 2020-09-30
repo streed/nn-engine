@@ -1,26 +1,41 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include "components/input_component.h"
+#include "components/physics_component.h"
+
 #include "moving_entity.h"
 
 class Camera;
-class Wordl;
+class World;
 
-class Player: public MovingEntity {
+
+class Player {
   public:
     Camera *camera;
-    double diameter = 1.0;// This is used for projectile collision.
 
     Player(Camera *camera,
            double posX,
-           double posY,
-           double accelerationConstant,
-           double maxSpeedClip,
-           double maxRotateSpeedClip);
-    int getMapX();
-    int getMapY();
+           double posY): camera(camera),
+                         posX(posX),
+                         posY(posY),
+                         velocityX(0),
+                         velocityY(0),
+                         maxSpeedClip(5),
+                         maxRotateSpeedClip(3) {}
+
     void handleInputs(World world, double frameTime);
-    double getDiameter();
+
+    double posX;
+    double posY;
+    double velocityX;
+    double velocityY;
+    double maxSpeedClip;
+    double maxRotateSpeedClip;
+
+  private:
+    InputComponent inputComponent;
+    PhysicsComponent physicsComponent;
 };
 
 #endif
