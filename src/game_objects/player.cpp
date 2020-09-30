@@ -5,5 +5,5 @@ using namespace std;
 
 void Player::update(Engine &engine, World &world, double frameTime) {
   inputComponent->update(this, frameTime);
-  physicsComponent->update(*this, world, frameTime);
+  physicsComponent->update(this, engine, world, frameTime);
 }

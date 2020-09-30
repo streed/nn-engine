@@ -3,12 +3,12 @@
 
 #include "components/physics_component.h"
 
-class BasicMovingObject;
+class GameObject;
 class World;
 
 class BasicMovingObjectPhysicsComponent: public PhysicsComponent {
   public:
-    virtual void update(BasicMovingObject &object, World &world, double frameTime);
+    virtual void update(GameObject *object, Engine &engine, World &world, double frameTime);
 };
 
 #endif

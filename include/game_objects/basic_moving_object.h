@@ -1,12 +1,11 @@
 #ifndef __BASIC_MOVING_OBJECT__
 #define __BASIC_MOVING_OBJECT__
 
-#include "game_objects/game_object.h"
+#include "game_objects/positional_object.h"
 
-class BasicMovingObject: public GameObject {
+class BasicMovingObject: public PositionalObject {
   public:
-    BasicMovingObject(): posX(0),
-                         posY(0),
+    BasicMovingObject(): PositionalObject(0, 0),
                          velocityX(0),
                          velocityY(0),
                          maxSpeedClip(0),
@@ -15,8 +14,7 @@ class BasicMovingObject: public GameObject {
     BasicMovingObject(double posX,
                       double posY,
                       double maxSpeedClip,
-                      double maxRotateSpeedClip): posX(posX),
-                                                  posY(posY),
+                      double maxRotateSpeedClip): PositionalObject(posX, posY),
                                                   velocityX(0),
                                                   velocityY(0),
                                                   maxSpeedClip(maxSpeedClip),
@@ -31,8 +29,6 @@ class BasicMovingObject: public GameObject {
        maxRotateSpeedClip = b.maxRotateSpeedClip;
     }
 
-    double posX;
-    double posY;
     double velocityX;
     double velocityY;
     double maxSpeedClip;

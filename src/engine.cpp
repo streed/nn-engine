@@ -22,11 +22,6 @@ using namespace std;
 #include "engine.h"
 
 
-static int gameObjectsProcessingThread(void *ptr) {
-  Engine *engine = (Engine *)ptr;
-  engine->processGameObjects();
-}
-
 Engine::Engine(int width, int height, Camera *camera, World world, Config config): width(width),
                                                                                height(height),
                                                                                camera(camera),
@@ -47,9 +42,6 @@ void Engine::run() {
       if (debug) {
         cout << "Window created, starting game." << endl;
       }
-
-      //cout << "Starting Entity processing thread!" << endl;
-      //SDL_Thread *gameObjectsThread = SDL_CreateThread(gameObjectsProcessingThread, "RenderThread", (void *)this);
 
       while(!quit) {
         oldFpsCapTime = fpsCapTime;
@@ -85,14 +77,11 @@ void Engine::run() {
         renderer.clear();
         clearSprites();
 
-
         int frameTicks = SDL_GetTicks() - fpsCapTime;
         if (frameTicks < fpsTicksPerFrame) {
           SDL_Delay(fpsTicksPerFrame - frameTicks);
         }
       }
-
-      //SDL_WaitThread(gameObjectsThread, NULL);
     }
 
     renderer.cleanup();
@@ -105,26 +94,21 @@ void Engine::run() {
 }
 
 void Engine::processGameObjects() {
-  //while(!quit) {
-    oldCapTime = capTime;
-    capTime = SDL_GetTicks();
-    oldProcessingTIme = processingTime;
-    processingTime = SDL_GetTicks();
-    double diff = processingTime - oldProcessingTIme;
-    processingFrameTime = (processingTime - oldProcessingTIme) / 1000.0;
+  oldCapTime = capTime;
+  capTime = SDL_GetTicks();
+  oldProcessingTIme = processingTime;
+  processingTime = SDL_GetTicks();
+  double diff = processingTime - oldProcessingTIme;
+  processingFrameTime = (processingTime - oldProcessingTIme) / 1000.0;
 
-    /*
-     * Handle Entities
-     */
-    for(const auto &object: gameObjects) {
+  /*
+   * Handle Entities
+   */
+  for(const auto &object: gameObjects) {
+    if (object) {
       object->update(*this, world, processingFrameTime);
     }
-
-    /*int frameTicks = SDL_GetTicks() - capTime;
-    if (frameTicks < processingFpsTicksPerFrame) {
-      SDL_Delay(processingFpsTicksPerFrame - frameTicks);
-    }*/
-  //}
+  }
 }
 
 void Engine::addPlayer(Player *player) {
@@ -144,11 +128,10 @@ void Engine::addGameObject(GameObject *object) {
 }
 
 void Engine::removeGameObject(GameObject *object) {
-    std::vector<GameObject *>::iterator where = std::find(gameObjects.begin(), gameObjects.end(), object);
-    if (where != gameObjects.end()) {
-      gameObjects.erase(where);
-      delete *where;
-    }
+  std::vector<GameObject *>::iterator where = std::find(gameObjects.begin(), gameObjects.end(), object);
+  if (where != gameObjects.end()) {
+    gameObjects.erase(where);
+  }
 }
 
 void Engine::processEvents() {

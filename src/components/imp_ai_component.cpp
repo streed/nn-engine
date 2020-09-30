@@ -14,12 +14,16 @@ typedef std::pair<int, int> Point;
 using namespace std;
 
 #include "components/imp_ai_component.h"
+#include "components/projectile_physics_component.h"
+#include "components/sprite_graphics_component.h"
 
 #include "game_objects/player.h"
 #include "game_objects/imp.h"
+#include "game_objects/projectile_object.h"
 #include "world.h"
 #include "raycast.h"
 #include "utils.h"
+#include "engine.h"
 
 int distance(Point a, Point b);
 int h(Point p, Point d);
@@ -27,6 +31,72 @@ Point getNextFromOpenSet(std::map<Point, Point> openSet, std::map<Point, int> fS
 std::vector<Point> reconstructPath(std::map<Point, Point> cameFrom, Point start, Point end);
 Point findNextCellToMoveTo(Imp &imp, Player &player, World &world);
 std::vector<Point> getNeighbors(World &world, Point point);
+
+void ImpAIComponent::update(GameObject &object, Engine &engine, World &world, double timeDiff) {
+  Imp &imp = dynamic_cast<Imp &>(object);
+  Player &player = *engine.getPlayer();
+  float distanceToPlayer = (imp.posX - player.posX) * (imp.posX - player.posX) +
+                            (imp.posY - player.posY) * (imp.posY - player.posY);
+  distanceToPlayer *= inverseSqrt(distanceToPlayer);
+
+  if (distanceToPlayer > searchDistance) {
+    seeking = true;
+  } else {
+    seeking = false;
+  }
+
+  imp.velocityX = 0;
+  imp.velocityY = 0;
+
+  // Move close to the player!
+  if (seeking) {
+    double moveSpeed = imp.maxSpeedClip * timeDiff;
+    Point nextCellToMoveTo = findNextCellToMoveTo(imp, player, world);
+    float diffX = 1.0 * (nextCellToMoveTo.first + 0.5 - imp.posX);
+    float diffY = 1.0 * (nextCellToMoveTo.second + 0.5 - imp.posY);
+    float length = diffX * diffX + diffY * diffY;
+    float fiSqrt = inverseSqrt(length);
+
+    double dirX = diffX * fiSqrt;
+    double dirY = diffY * fiSqrt;
+
+    double velocityX = dirX * moveSpeed;
+    double velocityY = dirY * moveSpeed;
+    imp.velocityX = velocityX;
+    imp.velocityY = velocityY;
+  } else { // Shoot at the player
+    if (timeUntilNextShot <= 0.0) {
+      timeUntilNextShot = shootingCoolDownConstant;
+      float diffX = imp.posX - player.posX;
+      float diffY = imp.posY - player.posY;
+      float length = (diffX * diffX) + (diffY * diffY);
+      float fiSqrt = inverseSqrt(length);
+
+      double projectileDirX = -diffX * fiSqrt;
+      double projectileDirY = -diffY * fiSqrt;
+
+      RayCast ray(imp.posX, imp.posY, projectileDirX, projectileDirY);
+      RayCastHit hit = ray.collideWorld(world);
+      float distanceToWall = (imp.posX - hit.mapX) * (imp.posX - hit.mapX) +
+                             (imp.posY - hit.mapY) * (imp.posY - hit.mapY);
+      distanceToWall *= inverseSqrt(distanceToWall);
+
+      if (distanceToPlayer < distanceToWall) {
+        ProjectileObject *projectile = new ProjectileObject(imp.posX,
+                                                            imp.posY,
+                                                            projectileDirX,
+                                                            projectileDirY,
+                                                            2,
+                                                            3.5,
+                                                            new ProjectilePhysicsComponent(),
+                                                            new SpriteGraphicsComponent(new Sprite(12)));
+        engine.addGameObject(projectile);
+      }
+    } else {
+      timeUntilNextShot -= timeDiff;
+    }
+  }
+}
 
 int distance(Point a, Point b) {
   return (a.first - b.first) * (a.first - b.first) +
@@ -153,63 +223,3 @@ std::vector<Point> getNeighbors(World &world, Point point) {
   return neighbors;
 }
 
-void ImpAIComponent::update(GameObject &object, Player &player, World &world, double timeDiff) {
-  Imp &imp = dynamic_cast<Imp &>(object);
-  float distanceToPlayer = (imp.posX - player.posX) * (imp.posX - player.posX) +
-                            (imp.posY - player.posY) * (imp.posY - player.posY);
-  distanceToPlayer *= inverseSqrt(distanceToPlayer);
-
-  if (distanceToPlayer > searchDistance) {
-    seeking = true;
-  } else {
-    seeking = false;
-  }
-
-  imp.velocityX = 0;
-  imp.velocityY = 0;
-
-  // Move close to the player!
-  if (seeking) {
-    double moveSpeed = imp.maxSpeedClip * timeDiff;
-    Point nextCellToMoveTo = findNextCellToMoveTo(imp, player, world);
-    float diffX = 1.0 * (nextCellToMoveTo.first + 0.5 - imp.posX);
-    float diffY = 1.0 * (nextCellToMoveTo.second + 0.5 - imp.posY);
-    float length = diffX * diffX + diffY * diffY;
-    float fiSqrt = inverseSqrt(length);
-
-    double dirX = diffX * fiSqrt;
-    double dirY = diffY * fiSqrt;
-
-    double velocityX = dirX * moveSpeed;
-    double velocityY = dirY * moveSpeed;
-    imp.velocityX = velocityX;
-    imp.velocityY = velocityY;
-  } else { // Shoot at the player
-    if (timeUntilNextShot <= 0.0) {
-      timeUntilNextShot = shootingCoolDownConstant;
-      float diffX = imp.posX - player.posX;
-      float diffY = imp.posY - player.posY;
-      float length = (diffX * diffX) + (diffY * diffY);
-      float fiSqrt = inverseSqrt(length);
-
-      double projectileDirX = -diffX * fiSqrt;
-      double projectileDirY = -diffY * fiSqrt;
-
-      RayCast ray(imp.posX, imp.posY, projectileDirX, projectileDirY);
-      RayCastHit hit = ray.collideWorld(world);
-      float distanceToWall = (imp.posX - hit.mapX) * (imp.posX - hit.mapX) +
-                             (imp.posY - hit.mapY) * (imp.posY - hit.mapY);
-      distanceToWall *= inverseSqrt(distanceToWall);
-
-      if (distanceToPlayer < distanceToWall) {
-        //Projectile *projectile = new Projectile(posX, posY, projectileDirX, projectileDirY, 2, 3.5, 12);
-        //engine->addEntity(projectile);
-        cout << "Shooting!" << endl;
-      } else {
-        cout << "A wall is in the way!!!!" << endl;
-      }
-    } else {
-      timeUntilNextShot -= timeDiff;
-    }
-  }
-}
