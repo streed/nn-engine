@@ -29,14 +29,14 @@ int distance(Point a, Point b);
 int h(Point p, Point d);
 Point getNextFromOpenSet(std::map<Point, Point> openSet, std::map<Point, int> fScore);
 std::vector<Point> reconstructPath(std::map<Point, Point> cameFrom, Point start, Point end);
-Point findNextCellToMoveTo(Imp &imp, Player &player, World &world);
-std::vector<Point> getNeighbors(World &world, Point point);
+Point findNextCellToMoveTo(Imp *imp, Player &player, World &world, Engine &engine);
+std::vector<Point> getNeighbors(World &world, Engine &engine, GameObject *object, Point point);
 
-void ImpAIComponent::update(GameObject &object, Engine &engine, World &world, double timeDiff) {
-  Imp &imp = dynamic_cast<Imp &>(object);
+void ImpAIComponent::update(GameObject *object, Engine &engine, World &world, double timeDiff) {
+  Imp *imp = dynamic_cast<Imp *>(object);
   Player &player = *engine.getPlayer();
-  float distanceToPlayer = (imp.posX - player.posX) * (imp.posX - player.posX) +
-                            (imp.posY - player.posY) * (imp.posY - player.posY);
+  float distanceToPlayer = (imp->posX - player.posX) * (imp->posX - player.posX) +
+                            (imp->posY - player.posY) * (imp->posY - player.posY);
   distanceToPlayer *= inverseSqrt(distanceToPlayer);
 
   if (distanceToPlayer > searchDistance) {
@@ -45,15 +45,15 @@ void ImpAIComponent::update(GameObject &object, Engine &engine, World &world, do
     seeking = false;
   }
 
-  imp.velocityX = 0;
-  imp.velocityY = 0;
+  imp->velocityX = 0;
+  imp->velocityY = 0;
 
   // Move close to the player!
   if (seeking) {
-    double moveSpeed = imp.maxSpeedClip * timeDiff;
-    Point nextCellToMoveTo = findNextCellToMoveTo(imp, player, world);
-    float diffX = 1.0 * (nextCellToMoveTo.first + 0.5 - imp.posX);
-    float diffY = 1.0 * (nextCellToMoveTo.second + 0.5 - imp.posY);
+    double moveSpeed = imp->maxSpeedClip * timeDiff;
+    Point nextCellToMoveTo = findNextCellToMoveTo(imp, player, world, engine);
+    float diffX = 1.0 * (nextCellToMoveTo.first + 0.5 - imp->posX);
+    float diffY = 1.0 * (nextCellToMoveTo.second + 0.5 - imp->posY);
     float length = diffX * diffX + diffY * diffY;
     float fiSqrt = inverseSqrt(length);
 
@@ -62,28 +62,28 @@ void ImpAIComponent::update(GameObject &object, Engine &engine, World &world, do
 
     double velocityX = dirX * moveSpeed;
     double velocityY = dirY * moveSpeed;
-    imp.velocityX = velocityX;
-    imp.velocityY = velocityY;
+    imp->velocityX = velocityX;
+    imp->velocityY = velocityY;
   } else { // Shoot at the player
     if (timeUntilNextShot <= 0.0) {
       timeUntilNextShot = shootingCoolDownConstant;
-      float diffX = imp.posX - player.posX;
-      float diffY = imp.posY - player.posY;
+      float diffX = imp->posX - player.posX;
+      float diffY = imp->posY - player.posY;
       float length = (diffX * diffX) + (diffY * diffY);
       float fiSqrt = inverseSqrt(length);
 
       double projectileDirX = -diffX * fiSqrt;
       double projectileDirY = -diffY * fiSqrt;
 
-      RayCast ray(imp.posX, imp.posY, projectileDirX, projectileDirY);
+      RayCast ray(imp->posX, imp->posY, projectileDirX, projectileDirY);
       RayCastHit hit = ray.collideWorld(world);
-      float distanceToWall = (imp.posX - hit.mapX) * (imp.posX - hit.mapX) +
-                             (imp.posY - hit.mapY) * (imp.posY - hit.mapY);
+      float distanceToWall = (imp->posX - hit.mapX) * (imp->posX - hit.mapX) +
+                             (imp->posY - hit.mapY) * (imp->posY - hit.mapY);
       distanceToWall *= inverseSqrt(distanceToWall);
 
       if (distanceToPlayer < distanceToWall) {
-        ProjectileObject *projectile = new ProjectileObject(imp.posX,
-                                                            imp.posY,
+        ProjectileObject *projectile = new ProjectileObject(imp->posX,
+                                                            imp->posY,
                                                             projectileDirX,
                                                             projectileDirY,
                                                             2,
@@ -132,9 +132,9 @@ std::vector<Point> reconstructPath(std::map<Point, Point> cameFrom, Point start,
   return path;
 }
 
-Point findNextCellToMoveTo(Imp &imp, Player &player, World &world) {
-  int myX = int(imp.posX);
-  int myY = int(imp.posY);
+Point findNextCellToMoveTo(Imp *imp, Player &player, World &world, Engine &engine) {
+  int myX = int(imp->posX);
+  int myY = int(imp->posY);
   int cellX = int(player.posX);
   int cellY = int(player.posY);
 
@@ -170,7 +170,7 @@ Point findNextCellToMoveTo(Imp &imp, Player &player, World &world) {
 
     openSet.erase(current);
 
-    for (auto const &neighbor: getNeighbors(world, current)) {
+    for (auto const &neighbor: getNeighbors(world, engine, imp, current)) {
       int tentativeGScore = gScore[current] + distance(current, neighbor);
 
       if (tentativeGScore < gScore[neighbor]) {
@@ -193,7 +193,27 @@ Point findNextCellToMoveTo(Imp &imp, Player &player, World &world) {
   }
 }
 
-std::vector<Point> getNeighbors(World &world, Point point) {
+bool collidedWithOtherObject(std::vector<GameObject *> objects, GameObject *object, Point potentialPoint) {
+  int x = potentialPoint.first;
+  int y = potentialPoint.second;
+
+  for (auto *object: objects) {
+    PositionalObject *positionalObject = dynamic_cast<PositionalObject *>(object);
+
+    if (positionalObject && positionalObject != object) {
+      int mapX = positionalObject->posX;
+      int mapY = positionalObject->posY;
+
+      if (x == mapX && y == mapY) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+std::vector<Point> getNeighbors(World &world, Engine &engine, GameObject *object, Point point) {
   int x = point.first;
   int y= point.second;
   int boundX = world.width;
@@ -201,20 +221,23 @@ std::vector<Point> getNeighbors(World &world, Point point) {
   std::vector<Point> potentialNeighbors;
 
   potentialNeighbors.push_back(Point(x,     y - 1));
-  potentialNeighbors.push_back(Point(x - 1, y));
-  potentialNeighbors.push_back(Point(x + 1, y));
+  potentialNeighbors.push_back(Point(x - 1, y    ));
+  potentialNeighbors.push_back(Point(x + 1, y    ));
   potentialNeighbors.push_back(Point(x,     y + 1));
 
   std::vector<Point> neighbors;
+  std::vector<GameObject *> objects = engine.getGameObjects();
 
-  for(auto const &point: potentialNeighbors) {
-    int px = point.first;
-    int py = point.second;
+  for(auto const &potentialPoint: potentialNeighbors) {
+    int px = potentialPoint.first;
+    int py = potentialPoint.second;
 
-    if (px < 0 || py < 0 || px >= boundX || py >= boundY) {
+    bool collision = collidedWithOtherObject(objects, object, potentialPoint);
+    cout << collision << endl;
+    if ((px < 0 || py < 0 || px >= boundX || py >= boundY)) {
       continue;
     } else {
-      if(world.getMapPoint(px, py) == 0) {
+      if(world.getMapPoint(px, py) == 0 && !collision) {
         neighbors.push_back(point);
       }
     }
@@ -222,4 +245,5 @@ std::vector<Point> getNeighbors(World &world, Point point) {
 
   return neighbors;
 }
+
 

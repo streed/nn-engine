@@ -7,7 +7,7 @@
 #include "world.h"
 
 void Imp::update(Engine &engine, World &world, double frameTime) {
-  impAIComponent->update(*this, engine, world, frameTime);
+  impAIComponent->update(this, engine, world, frameTime);
   physicsComponent->update(this, engine, world, frameTime);
   graphicsComponent->update(*this, engine);
 }

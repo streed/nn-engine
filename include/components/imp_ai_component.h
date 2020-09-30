@@ -9,7 +9,7 @@ class Imp;
 
 class ImpAIComponent: public AIComponent {
   public:
-    void update(GameObject &object, Engine &engine, World &world, double frameTime);
+    void update(GameObject *object, Engine &engine, World &world, double frameTime);
 
     bool seeking;
     double searchDistance = 2.0;

@@ -134,6 +134,10 @@ void Engine::removeGameObject(GameObject *object) {
   }
 }
 
+std::vector<GameObject *> &Engine::getGameObjects() {
+  return gameObjects;
+}
+
 void Engine::processEvents() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {

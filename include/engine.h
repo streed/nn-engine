@@ -60,6 +60,7 @@ class Engine {
 
     void addGameObject(GameObject *object);
     void removeGameObject(GameObject *object);
+    std::vector<GameObject *> &getGameObjects();
 
     void processGameObjects();
 

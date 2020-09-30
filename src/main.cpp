@@ -36,9 +36,10 @@ int main(int argc, char **args) {
   engine.addGameObject(new Imp(3, 21, new ImpAIComponent(),
                                       new SpriteGraphicsComponent(new Sprite(11)),
                                       new BasicMovingObjectPhysicsComponent()));
-  engine.addGameObject(new Imp(4, 20, new ImpAIComponent(),
+  /*engine.addGameObject(new Imp(4, 20, new ImpAIComponent(),
                                       new SpriteGraphicsComponent(new Sprite(11)),
                                       new BasicMovingObjectPhysicsComponent()));
+  */
   engine.addGameObject(new StaticSprite(4.5, 15.5, new SpriteGraphicsComponent(new Sprite(8))));
   engine.addGameObject(new StaticSprite(1.5, 15.5, new SpriteGraphicsComponent(new Sprite(8))));
   engine.addGameObject(new StaticSprite(4.5, 17.5, new SpriteGraphicsComponent(new Sprite(10))));

@@ -8,7 +8,7 @@ class World;
 class AIComponent {
   public:
     virtual ~AIComponent() {}
-    virtual void update(GameObject &object, Engine &engine, World &world, double frameTime) = 0;
+    virtual void update(GameObject *object, Engine &engine, World &world, double frameTime) = 0;
 };
 
 #endif
