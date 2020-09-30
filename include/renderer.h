@@ -5,13 +5,15 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "camera.h"
 #include "world.h"
-#include "player.h"
+
+class Camera;
+class Player;
+class RayCastHit;
+class Sprite;
+class Texture;
+
 #include "globals.h"
-#include "texture.h"
-#include "raycast.h"
-#include "sprite.h"
 
 class Renderer {
   Camera *camera;

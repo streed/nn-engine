@@ -1,14 +1,16 @@
-#ifndef GAME_H
-#define GAME_H
+#ifndef __ENGINE__
+#define __ENGINE__
 
 #include <vector>
 
-#include "camera.h"
-#include "config.h"
-#include "player.h"
 #include "renderer.h"
 #include "world.h"
-#include "sprite.h"
+#include "config.h"
+
+class Camera;
+class Entity;
+class Sprite;
+struct SDL_mutex;
 
 class Engine {
   Config config;
@@ -47,6 +49,7 @@ class Engine {
     Engine(int width, int height, Camera *camera, World world, Config config);
     void run();
     void addPlayer(Player *player);
+    Player *getPlayer();
     void addSprite(Sprite *sprite);
     void addEntity(Entity *entity);
     void removeEntity(Entity *entity);

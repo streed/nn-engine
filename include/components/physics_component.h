@@ -1,15 +1,12 @@
 #ifndef __PHYSICS_COMPONENT__
 #define __PHYSICS_COMPONENT__
 
-class Player;
+class BasicMovingObject;
 class World;
 
 class PhysicsComponent {
   public:
-    void update(Player &player, World &world, double frameTime);
-
-  private:
-    double collisionDistance = 1;
+    virtual void update(BasicMovingObject *object, World &world, double frameTime) = 0;
 };
 
 #endif

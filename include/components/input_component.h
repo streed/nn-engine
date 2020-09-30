@@ -1,11 +1,12 @@
 #ifndef __INPUT_COMPONENT__
 #define __INPUT_COMPONENT__
 
-class Player;
+class GameObject;
 
 class InputComponent {
   public:
-    void update(Player &player, double frameTime);
+    virtual ~InputComponent() {}
+    virtual void update(GameObject *object, double frameTime) = 0;
 };
 
 #endif

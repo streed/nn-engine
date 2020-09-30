@@ -14,6 +14,10 @@ using namespace std;
 #include "color_rgb.h"
 #include "raycast.h"
 #include "texture.h"
+#include "world.h"
+#include "sprite.h"
+#include "camera.h"
+#include "game_objects/player.h"
 
 bool Renderer::setup(int width, int height, vector<Texture> *textures, bool fullscreen) {
   Uint32 flags = SDL_WINDOW_SHOWN;
@@ -219,6 +223,7 @@ void Renderer::drawSprites(Player &player, std::vector<Sprite *> &sprites) {
 
   int  *spriteOrder = new int[sprites.size()];
   double *spriteDistance = new double[sprites.size()];
+  /*
 
   for(size_t i = 0; i < sprites.size(); i++) {
     spriteOrder[i] = i;
@@ -283,7 +288,7 @@ void Renderer::drawSprites(Player &player, std::vector<Sprite *> &sprites) {
         }
       }
     }
-  }
+  }*/
 
   delete spriteOrder;
   delete spriteDistance;

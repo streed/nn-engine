@@ -1,5 +1,3 @@
-#include "engine.h"
-
 #include <iostream>
 #include <algorithm>
 
@@ -10,9 +8,18 @@ using namespace std;
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "projectile.h"
 #include "input/keyboard.h"
 #include "input/input_packet.h"
+
+#include "camera.h"
+#include "config.h"
+#include "entity.h"
+#include "game_objects/player.h"
+#include "world.h"
+#include "renderer.h"
+#include "sprite.h"
+#include "engine.h"
+
 
 static int entityProcessingThread(void *ptr) {
   Engine *game = (Engine *)ptr;
@@ -48,9 +55,15 @@ void Engine::run() {
         oldFrameTime = currentFrameTime;
         currentFrameTime = SDL_GetTicks();
         double frameTime = (currentFrameTime - oldFrameTime) / 1000.0;
-        renderer.drawWorld(*player);
 
+        player->update(*this, world, frameTime);
+
+        // This mutex syncs the two threads.
+        // As the entities are being processed they
+        // hold the entityLock which allows them to
+        // add their sprites to the draw list.
         SDL_LockMutex(entityLock);
+          renderer.drawWorld(*player);
           std::vector<Sprite *> allDrawables = sprites;
 
           for (auto const &entity: entities) {
@@ -58,25 +71,19 @@ void Engine::run() {
             if (maybeSprite) {
               allDrawables.push_back(maybeSprite);
             }
-
-            Projectile *maybeProjectile = dynamic_cast<Projectile *>(entity);
-
-            if (maybeProjectile && maybeProjectile->isAlive()) {
-              allDrawables.push_back(maybeProjectile);
-            }
           }
 
           renderer.drawSprites(*player, allDrawables);
+          renderer.present(debug, (int)(1 / frameTime));
+          renderer.clear();
+          //clearSprites();
         SDL_UnlockMutex(entityLock);
 
-        renderer.present(debug, (int)(1 / frameTime));
-        renderer.clear();
         /*
          * Input logic
          */
         processEvents();
 
-        player->handleInputs(world, frameTime);
 
         boost::scoped_ptr<InputPacket> inputPacket(Keyboard::get().getInput());
 
@@ -135,6 +142,10 @@ void Engine::processEntities() {
 
 void Engine::addPlayer(Player *player) {
   this->player = player;
+}
+
+Player *Engine::getPlayer() {
+  return player;
 }
 
 void Engine::addSprite(Sprite *sprite) {
