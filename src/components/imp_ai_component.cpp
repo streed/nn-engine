@@ -29,6 +29,8 @@ using namespace std;
 #include "utils.h"
 #include "engine.h"
 
+Components::Registration<ImpAIComponent> ImpAIComponent::registered = Components::Registration<ImpAIComponent>("ImpAIComponent");
+
 int distance(Point a, Point b);
 int h(Point p, Point d);
 Point getNextFromOpenSet(std::map<Point, Point> openSet, std::map<Point, int> fScore);

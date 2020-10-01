@@ -10,6 +10,8 @@
 #include "input/input_packet.h"
 #include "utils.h"
 
+Components::Registration<PlayerInputComponent> PlayerInputComponent::registered = Components::Registration<PlayerInputComponent>("PlayerInputComponent");
+
 void PlayerInputComponent::update(GameObject *object, double frameTime) {
   Player *player = dynamic_cast<Player *>(object);
   boost::scoped_ptr<InputPacket> inputPacket(Keyboard::get().getInput());

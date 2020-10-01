@@ -7,6 +7,8 @@ using namespace std;
 #include "engine.h"
 #include "world.h"
 
+Components::Registration<ProjectilePhysicsComponent> ProjectilePhysicsComponent::registered = Components::Registration<ProjectilePhysicsComponent>("ProjectilePhysicsComponent");
+
 void ProjectilePhysicsComponent::update(GameObject *object, Engine &engine, World &world, double frameTime) {
   ProjectileObject *projectile = dynamic_cast<ProjectileObject *>(object);
 

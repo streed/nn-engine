@@ -6,6 +6,8 @@ using namespace std;
 #include "game_objects/basic_moving_object.h"
 #include "world.h"
 
+Components::Registration<BasicMovingObjectPhysicsComponent> BasicMovingObjectPhysicsComponent::registered = Components::Registration<BasicMovingObjectPhysicsComponent>("BasicMovingObjectPhysicsComponent");
+
 void BasicMovingObjectPhysicsComponent::update(GameObject *gameObject,
                                                Engine &engine,
                                                World &world,

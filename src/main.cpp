@@ -17,6 +17,8 @@
 #include "scenes/starter_scene.h"
 #include "scenes/movement_test_scene.h"
 
+#include "managers/components_manager.h"
+
 using namespace std;
 
 int main(int argc, char **args) {
@@ -34,6 +36,14 @@ int main(int argc, char **args) {
   } else {
     sceneMachine.add(starterScene);
   }
+
+  auto names = ComponentsManager::get().getComponentNames();
+
+  cout << "Registered Components:" << endl;
+  for (auto &it: names) {
+    cout << "\t" << it << endl;
+  }
+  cout << "Done listing registered Components." << endl;
 
   try {
     engine.run();
