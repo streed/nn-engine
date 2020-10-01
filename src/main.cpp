@@ -10,21 +10,25 @@
 
 #include "scene/scene_state_machine.h"
 #include "scenes/starter_scene.h"
+#include "scenes/movement_test_scene.h"
 
 using namespace std;
-
-World world = World(MAP_WIDTH,  MAP_HEIGHT, (int *)&worldMap);
 
 int main(int argc, char **args) {
   Config config(argc, args);
   Engine engine(SCREEN_WIDTH, SCREEN_HEIGHT, config);
 
-
   SceneStateMachine sceneMachine;
   engine.setSceneStateMachine(&sceneMachine);
 
+  boost::shared_ptr<MovementTestScene> movementTestScene(new MovementTestScene(engine));
   boost::shared_ptr<StarterScene> starterScene(new StarterScene(engine, 0));
-  sceneMachine.add(starterScene);
+
+  if (argc >= 2) {
+    sceneMachine.add(movementTestScene);
+  } else {
+    sceneMachine.add(starterScene);
+  }
 
   try {
     engine.run();

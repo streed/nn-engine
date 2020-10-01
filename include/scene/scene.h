@@ -6,14 +6,15 @@ using namespace std;
 
 #include <vector>
 
-class GameObject;
-class World;
-class Player;
 class Camera;
+class Engine;
+class GameObject;
+class Player;
+class World;
 
 class Scene {
   public:
-    Scene() {
+    Scene(Engine &engine): engine(engine) {
       gameObjects = new std::vector<GameObject *>(1024);
     }
     virtual void onCreate() = 0;
@@ -23,6 +24,7 @@ class Scene {
     virtual void update(double frameTime) {};
 
   protected:
+    Engine &engine;
     World *world;
     Player *player;
     Camera *camera;
