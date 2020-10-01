@@ -5,15 +5,17 @@
 
 #include <vector>
 
+#include "scene/scene_state_machine.h"
 #include "graphics/renderer.h"
 #include "world.h"
 #include "config.h"
 
 class Camera;
-class Entity;
-class Sprite;
-class GameObject;
 class DrawableSprite;
+class Entity;
+class GameObject;
+class SceneStateMachine;
+class Sprite;
 struct SDL_mutex;
 
 class Engine {
@@ -46,21 +48,21 @@ class Engine {
 
     Renderer renderer;
     Player *player;
-    World world;
+
+    SceneStateMachine *sceneStateMachine;
 
     std::vector<DrawableSprite *> sprites;
-    std::vector<GameObject *> gameObjects;
 
   public:
-    Engine(int width, int height, World world, Config config);
+    Engine(int width, int height, Config config);
+    void setSceneStateMachine(SceneStateMachine *sceneStateMachine);
     void run();
-    void addPlayer(Player *player);
     Player *getPlayer();
     void drawSprite(Sprite *sprite, double x, double y);
 
     void addGameObject(GameObject *object);
     void removeGameObject(GameObject *object);
-    std::vector<GameObject *> &getGameObjects();
+    std::vector<GameObject *> *getGameObjects();
 
     void processGameObjects();
 

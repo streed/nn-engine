@@ -1,13 +1,14 @@
+#include <iostream>
+using namespace std;
+
 #include "scene/scene_state_machine.h"
 #include "scene/scene.h"
 
-SceneStateMachine::SceneStateMachine(): scenes(0), currentScene(0) {}
+#include "game_objects/player.h"
+#include "graphics/camera.h"
+#include "world.h"
 
-void SceneStateMachine::processInput() {
-  if (currentScene) {
-    currentScene->processInput();
-  }
-}
+SceneStateMachine::SceneStateMachine(): scenes(0), currentScene(0) {}
 
 void SceneStateMachine::update(double frameTime) {
   if (currentScene) {
@@ -15,21 +16,13 @@ void SceneStateMachine::update(double frameTime) {
   }
 }
 
-void SceneStateMachine::lastUpdate(double frameTime) {
-  if (currentScene) {
-    currentScene->lastUpdate(frameTime);
-  }
-}
-
-void SceneStateMachine::draw() {
-  if (currentScene) {
-    currentScene->draw();
-  }
-}
-
 int SceneStateMachine::add(boost::shared_ptr<Scene> scene) {
   auto inserted = scenes.insert(std::make_pair(insertedSceneId, scene));
   insertedSceneId++;
+
+  if (!currentScene) {
+    currentScene = scene;
+  }
 
   inserted.first->second->onCreate();
 
@@ -59,4 +52,36 @@ void SceneStateMachine::switchTo(int id) {
     currentScene = it->second;
     currentScene->onActivate();
   }
+}
+
+std::vector<GameObject *> *SceneStateMachine::getGameObjects() {
+  if(currentScene) {
+    return currentScene->gameObjects;
+  }
+
+  return NULL;
+}
+
+World *SceneStateMachine::getWorld() {
+  if (currentScene) {
+    return currentScene->world;
+  }
+
+  return NULL;
+}
+
+Player *SceneStateMachine::getPlayer() {
+  if (currentScene) {
+    return currentScene->player;
+  }
+
+  return NULL;
+}
+
+Camera *SceneStateMachine::getCamera() {
+  if (currentScene) {
+    return currentScene->camera;
+  }
+
+  return NULL;
 }

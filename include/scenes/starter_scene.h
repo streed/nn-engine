@@ -1,11 +1,21 @@
 #ifndef __STARTER_SCENE__
 #define __STARTER_SCENE__
 
+#include <vector>
+
 #include "scene/scene.h"
+
+class Camera;
+class Engine;
+class GameObject;
+class Player;
+class World;
 
 class StarterScene: public Scene {
   public:
-    StarterScene(int nextScene): nextScene(nextScene) {}
+    StarterScene(Engine &engine, int nextScene): Scene(),
+                                                 engine(engine),
+                                                 nextScene(nextScene) {}
 
     void onCreate() override;
     void onDestroy() override;
@@ -13,11 +23,11 @@ class StarterScene: public Scene {
     void onDeactivate() override;
 
     void update(double frameTime) override;
-    void lastUpdate(double frameTime) override;
-    void draw() override;
 
   private:
     int nextScene;
+    Engine &engine;
+    Camera *camera;
 };
 
 #endif

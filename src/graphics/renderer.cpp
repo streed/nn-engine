@@ -33,6 +33,7 @@ bool Renderer::setup(int width, int height, vector<Texture> *textures, bool full
       SCREEN_WIDTH,
       SCREEN_HEIGHT,
       flags);
+
   this->renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
   this->screen = SDL_CreateTexture(renderer,
@@ -128,7 +129,7 @@ void Renderer::cleanup() {
   SDL_DestroyWindow(window);
 }
 
-void Renderer::drawWorld(Player &player) {
+void Renderer::drawWorld(Player &player, World &world) {
   // Ceiling and floor
   for(int y = 0; y < SCREEN_HEIGHT; y++) {
     double rayDirX0 = player.camera->dirX - player.camera->planeX;

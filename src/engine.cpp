@@ -22,14 +22,19 @@ using namespace std;
 #include "engine.h"
 
 
-Engine::Engine(int width, int height, World world, Config config): width(width),
-                                                                   height(height),
-                                                                   world(world),
-                                                                   renderer(Renderer(world)),
-                                                                   config(config),
-                                                                   quit(false) {
+Engine::Engine(int width,
+               int height,
+               Config config): width(width),
+                               height(height),
+                               renderer(Renderer()),
+                               config(config),
+                               sceneStateMachine(sceneStateMachine),
+                               quit(false) {
   sprites.reserve(1024);
-  gameObjects.reserve(1024);
+}
+
+void Engine::setSceneStateMachine(SceneStateMachine *sceneStateMachine) {
+  this->sceneStateMachine = sceneStateMachine;
 }
 
 void Engine::run() {
@@ -67,10 +72,11 @@ void Engine::run() {
           debug = !debug;
         }
 
+        sceneStateMachine->update(frameTime);
         processGameObjects();
 
-        renderer.drawWorld(*player);
-        renderer.drawSprites(*player, sprites);
+        renderer.drawWorld(*sceneStateMachine->getPlayer(), *sceneStateMachine->getWorld());
+        renderer.drawSprites(*sceneStateMachine->getPlayer(), sprites);
         renderer.present(debug, (int)(1 / frameTime));
         renderer.clear();
         clearSprites();
@@ -100,21 +106,17 @@ void Engine::processGameObjects() {
   processingFrameTime = (processingTime - oldProcessingTIme) / 1000.0;
 
   /*
-   * Handle Entities
+   * Handle GameObjects
    */
-  for(auto *object: gameObjects) {
+  for(auto *object: *getGameObjects()) {
     if (object != NULL) {
-      object->update(*this, world, processingFrameTime);
+      object->update(*this, *sceneStateMachine->getWorld(), processingFrameTime);
     }
   }
 }
 
-void Engine::addPlayer(Player *player) {
-  this->player = player;
-}
-
 Player *Engine::getPlayer() {
-  return player;
+  return sceneStateMachine->getPlayer();
 }
 
 void Engine::drawSprite(Sprite *sprite, double x, double y) {
@@ -122,18 +124,19 @@ void Engine::drawSprite(Sprite *sprite, double x, double y) {
 }
 
 void Engine::addGameObject(GameObject *object) {
-  gameObjects.push_back(object);
+  getGameObjects()->push_back(object);
 }
 
 void Engine::removeGameObject(GameObject *object) {
-  std::vector<GameObject *>::iterator where = std::find(gameObjects.begin(), gameObjects.end(), object);
-  if (where != gameObjects.end()) {
-    gameObjects.erase(where);
+  std::vector<GameObject *> *gameObjects = getGameObjects();
+  std::vector<GameObject *>::iterator where = std::find(gameObjects->begin(), gameObjects->end(), object);
+  if (where != gameObjects->end()) {
+    gameObjects->erase(where);
   }
 }
 
-std::vector<GameObject *> &Engine::getGameObjects() {
-  return gameObjects;
+std::vector<GameObject *> *Engine::getGameObjects() {
+  return sceneStateMachine->getGameObjects();
 }
 
 void Engine::processEvents() {
@@ -154,3 +157,4 @@ void Engine::processEvents() {
 void Engine::clearSprites() {
   sprites.clear();
 }
+

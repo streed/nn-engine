@@ -193,12 +193,12 @@ Point findNextCellToMoveTo(Imp *imp, Player &player, World &world, Engine &engin
   }
 }
 
-bool collidedWithOtherObject(std::vector<GameObject *> objects, Point potentialPoint) {
+bool collidedWithOtherObject(std::vector<GameObject *> *objects, Point potentialPoint) {
   int x = potentialPoint.first;
   int y = potentialPoint.second;
   bool collision = false;
 
-  for (auto *object: objects) {
+  for (auto *object: *objects) {
     PositionalObject *positionalObject = dynamic_cast<PositionalObject *>(object);
 
     if (positionalObject) {
@@ -228,7 +228,7 @@ std::vector<Point> getNeighbors(World &world, Engine &engine, Point point) {
   potentialNeighbors.push_back(Point(x,     y + 1));
 
   std::vector<Point> neighbors;
-  std::vector<GameObject *> objects = engine.getGameObjects();
+  std::vector<GameObject *> *objects = engine.getGameObjects();
 
   for(auto const &potentialPoint: potentialNeighbors) {
     int px = potentialPoint.first;
