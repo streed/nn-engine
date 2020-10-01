@@ -22,15 +22,14 @@ using namespace std;
 #include "engine.h"
 
 
-Engine::Engine(int width, int height, Camera *camera, World world, Config config): width(width),
-                                                                               height(height),
-                                                                               camera(camera),
-                                                                               world(world),
-                                                                               renderer(Renderer(camera, world)),
-                                                                               config(config),
-                                                                               quit(false) {
-  gameObjectsLock = SDL_CreateMutex();
-  spritesLock = SDL_CreateMutex();
+Engine::Engine(int width, int height, World world, Config config): width(width),
+                                                                   height(height),
+                                                                   world(world),
+                                                                   renderer(Renderer(world)),
+                                                                   config(config),
+                                                                   quit(false) {
+  sprites.reserve(1024);
+  gameObjects.reserve(1024);
 }
 
 void Engine::run() {
@@ -54,7 +53,6 @@ void Engine::run() {
          * Input logic
          */
         processEvents();
-
 
         boost::scoped_ptr<InputPacket> inputPacket(Keyboard::get().getInput());
 
@@ -104,8 +102,8 @@ void Engine::processGameObjects() {
   /*
    * Handle Entities
    */
-  for(const auto &object: gameObjects) {
-    if (object) {
+  for(auto *object: gameObjects) {
+    if (object != NULL) {
       object->update(*this, world, processingFrameTime);
     }
   }

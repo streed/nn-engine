@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 #include <math.h>
 #include <SDL2/SDL.h>
@@ -30,22 +31,28 @@ int main(int argc, char **args) {
                          3,
                          new PlayerInputComponent(),
                          new BasicMovingObjectPhysicsComponent());
-  Engine engine(SCREEN_WIDTH, SCREEN_HEIGHT, &camera, world, config);
+  Engine engine(SCREEN_WIDTH, SCREEN_HEIGHT, world, config);
   engine.addPlayer(&player);
   engine.addGameObject(&player);
   engine.addGameObject(new Imp(3, 21, new ImpAIComponent(),
                                       new SpriteGraphicsComponent(new Sprite(11)),
                                       new BasicMovingObjectPhysicsComponent()));
-  /*engine.addGameObject(new Imp(4, 20, new ImpAIComponent(),
+  engine.addGameObject(new Imp(4, 20, new ImpAIComponent(),
                                       new SpriteGraphicsComponent(new Sprite(11)),
                                       new BasicMovingObjectPhysicsComponent()));
-  */
+  
+  engine.addGameObject(new StaticSprite(3.5, 10.5, new SpriteGraphicsComponent(new Sprite(8))));
   engine.addGameObject(new StaticSprite(4.5, 15.5, new SpriteGraphicsComponent(new Sprite(8))));
   engine.addGameObject(new StaticSprite(1.5, 15.5, new SpriteGraphicsComponent(new Sprite(8))));
   engine.addGameObject(new StaticSprite(4.5, 17.5, new SpriteGraphicsComponent(new Sprite(10))));
   engine.addGameObject(new StaticSprite(1.5, 17.5, new SpriteGraphicsComponent(new Sprite(10))));
 
-  engine.run();
+  try {
+    engine.run();
+  } catch (const std::exception &e) {
+    std::cerr << e.what() << endl;
+    throw;
+  }
 
   return 0;
 }

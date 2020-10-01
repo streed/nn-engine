@@ -17,7 +17,6 @@ class Sprite;
 #include "globals.h"
 
 class Renderer {
-  Camera *camera;
   World world;
   SDL_Renderer *renderer = NULL;
   SDL_Window *window = NULL;
@@ -29,7 +28,7 @@ class Renderer {
   double zBuffer[SCREEN_WIDTH];
 
   public:
-    Renderer(Camera *camera, World world): camera(camera), world(world) {};
+    Renderer(World world): world(world) {};
     bool setup(int width, int height, std::vector<Texture> *textures, bool fullscreen);
     void drawTextureSlice(int x, int bottom, int end, RayCastHit hit);
     void drawWorld(Player &player);

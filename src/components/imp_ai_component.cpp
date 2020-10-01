@@ -30,7 +30,7 @@ int h(Point p, Point d);
 Point getNextFromOpenSet(std::map<Point, Point> openSet, std::map<Point, int> fScore);
 std::vector<Point> reconstructPath(std::map<Point, Point> cameFrom, Point start, Point end);
 Point findNextCellToMoveTo(Imp *imp, Player &player, World &world, Engine &engine);
-std::vector<Point> getNeighbors(World &world, Engine &engine, GameObject *object, Point point);
+std::vector<Point> getNeighbors(World &world, Engine &engine, Point point);
 
 void ImpAIComponent::update(GameObject *object, Engine &engine, World &world, double timeDiff) {
   Imp *imp = dynamic_cast<Imp *>(object);
@@ -170,7 +170,7 @@ Point findNextCellToMoveTo(Imp *imp, Player &player, World &world, Engine &engin
 
     openSet.erase(current);
 
-    for (auto const &neighbor: getNeighbors(world, engine, imp, current)) {
+    for (auto const &neighbor: getNeighbors(world, engine, current)) {
       int tentativeGScore = gScore[current] + distance(current, neighbor);
 
       if (tentativeGScore < gScore[neighbor]) {
@@ -193,27 +193,29 @@ Point findNextCellToMoveTo(Imp *imp, Player &player, World &world, Engine &engin
   }
 }
 
-bool collidedWithOtherObject(std::vector<GameObject *> objects, GameObject *object, Point potentialPoint) {
+bool collidedWithOtherObject(std::vector<GameObject *> objects, Point potentialPoint) {
   int x = potentialPoint.first;
   int y = potentialPoint.second;
+  bool collision = false;
 
   for (auto *object: objects) {
     PositionalObject *positionalObject = dynamic_cast<PositionalObject *>(object);
 
-    if (positionalObject && positionalObject != object) {
-      int mapX = positionalObject->posX;
-      int mapY = positionalObject->posY;
+    if (positionalObject) {
+      int mapX = int(positionalObject->posX);
+      int mapY = int(positionalObject->posY);
 
       if (x == mapX && y == mapY) {
-        return true;
+        collision = true;
+        break;
       }
     }
   }
 
-  return false;
+  return collision;
 }
 
-std::vector<Point> getNeighbors(World &world, Engine &engine, GameObject *object, Point point) {
+std::vector<Point> getNeighbors(World &world, Engine &engine, Point point) {
   int x = point.first;
   int y= point.second;
   int boundX = world.width;
@@ -232,14 +234,13 @@ std::vector<Point> getNeighbors(World &world, Engine &engine, GameObject *object
     int px = potentialPoint.first;
     int py = potentialPoint.second;
 
-    bool collision = collidedWithOtherObject(objects, object, potentialPoint);
-    cout << collision << endl;
-    if ((px < 0 || py < 0 || px >= boundX || py >= boundY)) {
+    // TODO: Fix collision
+    //bool collision = collidedWithOtherObject(objects, potentialPoint);
+    int worldIndex = world.getMapPoint(px, py);
+    if ((px < 0 || py < 0 || px >= boundX || py >= boundY) || worldIndex != 0 /*|| collison*/) {
       continue;
     } else {
-      if(world.getMapPoint(px, py) == 0 && !collision) {
-        neighbors.push_back(point);
-      }
+      neighbors.push_back(Point(px, py));
     }
   }
 
