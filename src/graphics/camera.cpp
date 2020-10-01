@@ -1,4 +1,8 @@
+#ifdef __APPLE__
+#include <SDL.h>
+#elif
 #include <SDL2/SDL.h>
+#endif
 
 #include "globals.h"
 #include "graphics/camera.h"

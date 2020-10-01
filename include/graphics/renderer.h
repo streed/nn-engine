@@ -2,8 +2,13 @@
 #define RENDERER_H
 
 #include <vector>
+#ifdef __APPLE__
+#include <SDL.h>
+#include <SDL_ttf.h>
+#elif
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#endif
 
 #include "graphics/texture.h"
 #include "world.h"

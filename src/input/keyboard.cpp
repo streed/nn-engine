@@ -1,6 +1,10 @@
 #include "input/keyboard.h"
 
+#ifdef __APPLE__
+#include <SDL.h>
+#elif
 #include <SDL2/SDL.h>
+#endif
 
 #include "input/input_packet.h"
 

@@ -8,7 +8,11 @@
 #include <map>
 #include <queue>
 
+#ifdef __APPLE__
+#include <SDL.h>
+#elif
 #include <SDL2/SDL.h>
+#endif
 
 typedef std::pair<int, int> Point;
 using namespace std;

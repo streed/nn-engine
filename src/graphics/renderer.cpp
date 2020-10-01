@@ -8,7 +8,11 @@
 
 using namespace std;
 
+#ifdef __APPLE__
+#include <SDL_ttf.h>
+#elif
 #include <SDL2/SDL_ttf.h>
+#endif
 
 #include "globals.h"
 

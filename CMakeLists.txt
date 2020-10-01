@@ -15,6 +15,7 @@ file(COPY textures DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl2)
 
 macro(run_conan)
   # Download automatically, you can also just copy the conan.cmake file
@@ -59,15 +60,16 @@ conan_basic_setup()
 Set(Boost_INSTALL_DIR ${CONAN_BOOST_ROOT})
 find_package(Boost 1.74.0 COMPONENTS REQUIRED program_options)
 
-find_library(SDL2_LIBRARY NAME SDL2)
-find_library(SDL2TTF_LIBRARY NAME SDL2_ttf)
+find_package(SDL2 REQUIRED)
+
+find_package(SDL2_ttf REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${CONAN_INCLUDE_DIRS_NLOHMANN_JSON})
+include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS})
 
-include_directories(${SDL2_INCLUDE_DIRS} ${SDL2TTF_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL2
-                                              SDL2_ttf
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL2::Main
+                                              SDL2::TTF
                                               Boost::program_options
                                               CONAN_PKG::fmt
                                               CONAN_PKG::spdlog)

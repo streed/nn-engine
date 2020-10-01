@@ -2,7 +2,12 @@
 #include <stdexcept>
 #include <vector>
 #include <math.h>
+
+#ifdef __APPLE__
+#include <SDL.h>
+#elif
 #include <SDL2/SDL.h>
+#endif
 
 #include "globals.h"
 #include "world.h"

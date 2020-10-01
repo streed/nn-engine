@@ -7,8 +7,13 @@ using namespace std;
 
 #include <boost/scoped_ptr.hpp>
 
+#ifdef __APPLE__
+#include <SDL.h>
+#include <SDL_ttf.h>
+#elif
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#endif
 
 #include "graphics/camera.h"
 #include "graphics/renderer.h"

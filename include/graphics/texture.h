@@ -1,7 +1,11 @@
 #ifndef __TEXTURE__
 #define __TEXTURE__
 
+#ifdef __APPLE__
+#include <SDL.h>
+#elif
 #include <SDL2/SDL.h>
+#endif
 
 #include <fstream>
 #include <string>
