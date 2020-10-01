@@ -10,7 +10,8 @@ class StaticSprite: public PositionalObject {
                  double posY,
                  GraphicsComponent *graphicsComponent): PositionalObject(posX, posY),
                                                         graphicsComponent(graphicsComponent) {}
-    void update(Engine &engine, World &world, double frameTime);
+    void update(Engine &engine, World &world, double frameTime) override {};
+    void draw(Engine &engine) override;
 
   private:
     GraphicsComponent *graphicsComponent;

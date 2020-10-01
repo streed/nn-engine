@@ -40,8 +40,8 @@ class Engine {
     double currentFrameTime;
     double oldFrameTime;
 
-    static const int desiredFps = 60;
-    static const int fpsTicksPerFrame = 1000 / desiredFps;
+    static const int desiredFps = 30;
+    static const int ticksPerFrame = 1000 / desiredFps;
 
     SDL_mutex *gameObjectsLock;
     SDL_mutex *spritesLock;
@@ -65,6 +65,7 @@ class Engine {
     std::vector<GameObject *> *getGameObjects();
 
     void processGameObjects();
+    void renderGameObjects();
 
     static Engine *get();
 

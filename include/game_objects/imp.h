@@ -16,12 +16,13 @@ class Imp: public BasicMovingObject {
                                              impAIComponent(aiComponent),
                                              graphicsComponent(graphicsComponent),
                                              physicsComponent(physicsComponent) {}
-    void update(Engine &engine, World &world, double frameTime);
+    void update(Engine &engine, World &world, double frameTime) override;
+    void draw(Engine &engine) override;
 
   private:
     AIComponent *impAIComponent;
-    GraphicsComponent *graphicsComponent;
     PhysicsComponent *physicsComponent;
+    GraphicsComponent *graphicsComponent;
 };
 
 #endif

@@ -52,12 +52,12 @@ void Engine::run() {
         cout << "Window created, starting game." << endl;
       }
 
+      double lag = 0.0;
       while(!quit) {
-        oldFpsCapTime = fpsCapTime;
-        fpsCapTime = SDL_GetTicks();
-        oldFrameTime = currentFrameTime;
         currentFrameTime = SDL_GetTicks();
-        double frameTime = (currentFrameTime - oldFrameTime) / 1000.0;
+        double elapsed = currentFrameTime - oldFrameTime;
+        double frameTime = elapsed / 1000.0;
+        lag += elapsed;
 
         /*
          * Input logic
@@ -77,19 +77,20 @@ void Engine::run() {
           debug = !debug;
         }
 
-        sceneStateMachine->update(frameTime);
-        processGameObjects();
 
+        while (lag >= ticksPerFrame) {
+          sceneStateMachine->update(ticksPerFrame / 1000.0);
+          processGameObjects();
+          lag -= ticksPerFrame;
+        }
+
+        renderGameObjects();
         renderer.drawWorld(*sceneStateMachine->getPlayer(), *sceneStateMachine->getWorld());
         renderer.drawSprites(*sceneStateMachine->getPlayer(), sprites);
         renderer.present(debug, (int)(1 / frameTime));
         renderer.clear();
         clearSprites();
-
-        int frameTicks = SDL_GetTicks() - fpsCapTime;
-        if (frameTicks < fpsTicksPerFrame) {
-          SDL_Delay(fpsTicksPerFrame - frameTicks);
-        }
+        oldFrameTime = currentFrameTime;
       }
     }
 
@@ -103,19 +104,20 @@ void Engine::run() {
 }
 
 void Engine::processGameObjects() {
-  oldCapTime = capTime;
-  capTime = SDL_GetTicks();
-  oldProcessingTIme = processingTime;
-  processingTime = SDL_GetTicks();
-  double diff = processingTime - oldProcessingTIme;
-  processingFrameTime = (processingTime - oldProcessingTIme) / 1000.0;
-
   /*
    * Handle GameObjects
    */
   for(auto *object: *getGameObjects()) {
     if (object != NULL) {
-      object->update(*this, *sceneStateMachine->getWorld(), processingFrameTime);
+      object->update(*this, *sceneStateMachine->getWorld(), ticksPerFrame / 1000.0);
+    }
+  }
+}
+
+void Engine::renderGameObjects() {
+  for (auto *object: *getGameObjects()) {
+    if (object != NULL) {
+      object->draw(*this);
     }
   }
 }

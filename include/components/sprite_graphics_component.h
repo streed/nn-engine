@@ -8,7 +8,7 @@
 class SpriteGraphicsComponent: public GraphicsComponent {
   public:
     SpriteGraphicsComponent(Sprite *sprite): sprite(sprite) {}
-    void update(GameObject &object, Engine &engine);
+    void update(GameObject *object, Engine &engine);
 
     Sprite *sprite;
 };

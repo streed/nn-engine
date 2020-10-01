@@ -66,12 +66,11 @@ void StarterScene::onCreate() {
   engine.addGameObject(new Imp(4, 20, new ImpAIComponent(),
                                       new SpriteGraphicsComponent(new Sprite(11)),
                                       new BasicMovingObjectPhysicsComponent()));
-  
-  engine.addGameObject(new StaticSprite(3.5, 10.5, new SpriteGraphicsComponent(new Sprite(8))));
   engine.addGameObject(new StaticSprite(4.5, 15.5, new SpriteGraphicsComponent(new Sprite(8))));
   engine.addGameObject(new StaticSprite(1.5, 15.5, new SpriteGraphicsComponent(new Sprite(8))));
   engine.addGameObject(new StaticSprite(4.5, 17.5, new SpriteGraphicsComponent(new Sprite(10))));
   engine.addGameObject(new StaticSprite(1.5, 17.5, new SpriteGraphicsComponent(new Sprite(10))));
+  engine.addGameObject(new StaticSprite(3.5, 10.5, new SpriteGraphicsComponent(new Sprite(8))));
 }
 
 void StarterScene::onDestroy() {

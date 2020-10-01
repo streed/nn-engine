@@ -25,6 +25,7 @@ class ProjectileObject: public PositionalObject {
     ~ProjectileObject();
 
     void update(Engine &engine, World &world, double frameTime);
+    void draw(Engine &engine);
 
     double dirX;
     double dirY;

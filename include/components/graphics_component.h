@@ -7,7 +7,7 @@ class GameObject;
 class GraphicsComponent {
   public:
     virtual ~GraphicsComponent() {}
-    virtual void update(GameObject &object, Engine &engine) = 0;
+    virtual void update(GameObject *object, Engine &engine) = 0;
 };
 
 #endif

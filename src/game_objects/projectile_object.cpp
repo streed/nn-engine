@@ -10,5 +10,8 @@ ProjectileObject::~ProjectileObject() {
 
 void ProjectileObject::update(Engine &engine, World &world, double frameTime) {
   physicsComponent->update(this, engine, world, frameTime);
-  graphicsComponent->update(*this, engine);
+}
+
+void ProjectileObject::draw(Engine &engine) {
+  graphicsComponent->update(this, engine);
 }
