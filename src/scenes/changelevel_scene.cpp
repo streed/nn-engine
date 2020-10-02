@@ -2,11 +2,14 @@
 
 #include "components/input_component.h"
 #include "components/physics_component.h"
-#include "managers/components_manager.h"
 #include "game_objects/player.h"
+#include "graphics/camera.h"
+#include "managers/components_manager.h"
+
+#include "engine.h"
 
 
-static int worldMap[5][3] = {
+const int worldMap[3][5] = {
   {4,4,4,4,4},
   {4,0,0,0,4},
   {4,4,4,4,4}
@@ -14,15 +17,15 @@ static int worldMap[5][3] = {
 
 void ChangeLevelScene::onCreate() {
   world = new World(5, 3, (int *)&worldMap);
-  camera = new Camera(-1, 0, 0, 0.66);
+  camera = new Camera(0, 1);
   player = new Player(camera,
-                      2,
-                      2,
+                      1.5,
+                      3.1,
                       5,
                       3,
                       static_cast<InputComponent *>(ComponentsManager::get().createComponent("PlayerInputComponent")),
                       static_cast<PhysicsComponent *>(ComponentsManager::get().createComponent("BasicMovingObjectPhysicsComponent")));
-  engine.addGameObject(player);
+  addGameObject(player);
 }
 
 void ChangeLevelScene::onDestroy() {

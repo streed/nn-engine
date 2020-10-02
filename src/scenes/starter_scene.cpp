@@ -19,7 +19,7 @@ using namespace std;
 #include "game_objects/player.h"
 #include "game_objects/static_sprite.h"
 
-static int worldMap[MAP_WIDTH][MAP_HEIGHT]=
+const int worldMap[MAP_WIDTH][MAP_HEIGHT]=
 {
   {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,7,7,7,7,7,7,7,7},
   {4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,7},
@@ -59,18 +59,18 @@ void StarterScene::onCreate() {
                   new PlayerInputComponent(),
                   new BasicMovingObjectPhysicsComponent());
 
-  engine.addGameObject(player);
-  engine.addGameObject(new Imp(3, 21, new ImpAIComponent(),
-                                      new SpriteGraphicsComponent(new Sprite(11)),
-                                      new BasicMovingObjectPhysicsComponent()));
-  engine.addGameObject(new Imp(4, 20, new ImpAIComponent(),
-                                      new SpriteGraphicsComponent(new Sprite(11)),
-                                      new BasicMovingObjectPhysicsComponent()));
-  engine.addGameObject(new StaticSprite(4.5, 15.5, new SpriteGraphicsComponent(new Sprite(8))));
-  engine.addGameObject(new StaticSprite(1.5, 15.5, new SpriteGraphicsComponent(new Sprite(8))));
-  engine.addGameObject(new StaticSprite(4.5, 17.5, new SpriteGraphicsComponent(new Sprite(10))));
-  engine.addGameObject(new StaticSprite(1.5, 17.5, new SpriteGraphicsComponent(new Sprite(10))));
-  engine.addGameObject(new StaticSprite(3.5, 10.5, new SpriteGraphicsComponent(new Sprite(8))));
+  addGameObject(player);
+  addGameObject(new Imp(3, 21, new ImpAIComponent(),
+                               new SpriteGraphicsComponent(new Sprite(11)),
+                               new BasicMovingObjectPhysicsComponent()));
+  addGameObject(new Imp(4, 20, new ImpAIComponent(),
+                               new SpriteGraphicsComponent(new Sprite(11)),
+                               new BasicMovingObjectPhysicsComponent()));
+  addGameObject(new StaticSprite(4.5, 15.5, new SpriteGraphicsComponent(new Sprite(8))));
+  addGameObject(new StaticSprite(1.5, 15.5, new SpriteGraphicsComponent(new Sprite(8))));
+  addGameObject(new StaticSprite(4.5, 17.5, new SpriteGraphicsComponent(new Sprite(10))));
+  addGameObject(new StaticSprite(1.5, 17.5, new SpriteGraphicsComponent(new Sprite(10))));
+  addGameObject(new StaticSprite(3.5, 10.5, new SpriteGraphicsComponent(new Sprite(8))));
 }
 
 void StarterScene::onDestroy() {

@@ -23,6 +23,10 @@ class Scene {
     virtual void onDeactivate() {};
     virtual void update(double frameTime) {};
 
+    void addGameObject(GameObject *gameObject) {
+      gameObjects->push_back(gameObject);
+    };
+
   protected:
     Engine &engine;
     World *world;

@@ -18,14 +18,8 @@ void SceneStateMachine::update(double frameTime) {
 
 int SceneStateMachine::add(boost::shared_ptr<Scene> scene) {
   auto inserted = scenes.insert(std::make_pair(insertedSceneId, scene));
+  scene->onCreate();
   insertedSceneId++;
-
-  /*if (!currentScene) {
-    currentScene = scene;
-  }*/
-
-  inserted.first->second->onCreate();
-
   return insertedSceneId - 1;
 }
 

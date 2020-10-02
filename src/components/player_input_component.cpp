@@ -51,20 +51,10 @@ void PlayerInputComponent::update(GameObject *object, double frameTime) {
   player->velocityY = velocityY;
 
   if (inputPacket.get()->rotateRight) {
-    double oldDirX = player->camera->dirX;
-    player->camera->dirX = player->camera->dirX * cos(-rotateSpeed) - player->camera->dirY * sin(-rotateSpeed);
-    player->camera->dirY = oldDirX * sin(-rotateSpeed) + player->camera->dirY * cos(-rotateSpeed);
-    double oldPlaneX = player->camera->planeX;
-    player->camera->planeX = player->camera->planeX * cos(-rotateSpeed) - player->camera->planeY * sin(-rotateSpeed);
-    player->camera->planeY = oldPlaneX * sin(-rotateSpeed) + player->camera->planeY * cos(-rotateSpeed);
+    player->camera->rotate(-rotateSpeed);
   }
 
   if (inputPacket.get()->rotateLeft) {
-    double oldDirX = player->camera->dirX;
-    player->camera->dirX = player->camera->dirX * cos(rotateSpeed) - player->camera->dirY * sin(rotateSpeed);
-    player->camera->dirY = oldDirX * sin(rotateSpeed) + player->camera->dirY * cos(rotateSpeed);
-    double oldPlaneX = player->camera->planeX;
-    player->camera->planeX = player->camera->planeX * cos(rotateSpeed) - player->camera->planeY * sin(rotateSpeed);
-    player->camera->planeY = oldPlaneX * sin(rotateSpeed) + player->camera->planeY * cos(rotateSpeed);
+    player->camera->rotate(rotateSpeed);
   }
 }

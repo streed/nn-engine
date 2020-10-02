@@ -11,7 +11,7 @@
 
 #include "engine.h"
 
-static int worldMap[10][10] = {
+const int worldMap[10][10] = {
   {1,1,4,4,4,4,4,4,2,2},
   {1,0,0,0,0,0,0,0,0,2},
   {4,0,0,0,0,0,2,2,0,4},
@@ -34,10 +34,10 @@ void MovementTestScene::onCreate() {
                       3,
                       static_cast<InputComponent *>(ComponentsManager::get().createComponent("PlayerInputComponent")),
                       static_cast<PhysicsComponent *>(ComponentsManager::get().createComponent("BasicMovingObjectPhysicsComponent")));
-  engine.addGameObject(player);
-  engine.addGameObject(new Imp(8, 8, static_cast<AIComponent *>(ComponentsManager::get().createComponent("ImpAIComponent")),
-                                     new SpriteGraphicsComponent(new Sprite(11)),
-                                     static_cast<PhysicsComponent *>(ComponentsManager::get().createComponent("BasicMovingObjectPhysicsComponent"))));
+  addGameObject(player);
+  addGameObject(new Imp(8, 8, static_cast<AIComponent *>(ComponentsManager::get().createComponent("ImpAIComponent")),
+                              new SpriteGraphicsComponent(new Sprite(11)),
+                              static_cast<PhysicsComponent *>(ComponentsManager::get().createComponent("BasicMovingObjectPhysicsComponent"))));
 }
 
 void MovementTestScene::onDestroy() {
