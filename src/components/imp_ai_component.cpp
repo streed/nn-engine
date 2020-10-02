@@ -267,11 +267,11 @@ std::vector<Point> getNeighbors(World &world, Engine &engine, Point point) {
   potentialNeighbors.push_back(Point(x - 1, y    ));
   potentialNeighbors.push_back(Point(x + 1, y    ));
 
-  potentialNeighbors.push_back(Point(x - 1, y + 1));
-  potentialNeighbors.push_back(Point(x + 1, y + 1));
+  //potentialNeighbors.push_back(Point(x - 1, y + 1));
+  //potentialNeighbors.push_back(Point(x + 1, y + 1));
 
-  potentialNeighbors.push_back(Point(x - 1, y - 1));
-  potentialNeighbors.push_back(Point(x + 1, y - 1));
+  //potentialNeighbors.push_back(Point(x - 1, y - 1));
+  //potentialNeighbors.push_back(Point(x + 1, y - 1));
 
   std::vector<Point> neighbors;
 
