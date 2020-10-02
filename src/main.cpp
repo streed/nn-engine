@@ -30,9 +30,14 @@ int main(int argc, char **args) {
 
   boost::shared_ptr<MovementTestScene> movementTestScene(new MovementTestScene(engine));
   boost::shared_ptr<StarterScene> starterScene(new StarterScene(engine, 0));
+boost:shared_ptr<ChangeLevelScene> changeLevelTestScene(new ChangeLevelScene());
 
-  if (argc >= 2) {
+  if (argc == 2) {
     sceneMachine.add(movementTestScene);
+  } else if(argc == 3) {
+    sceneMachine.add(changeLevelTestScene);
+    int id = sceneMachine.add(movementTestScene);
+    changeLevelTestScene.setNextId(id);
   } else {
     sceneMachine.add(starterScene);
   }

@@ -38,9 +38,6 @@ void MovementTestScene::onCreate() {
   engine.addGameObject(new Imp(8, 8, static_cast<AIComponent *>(ComponentsManager::get().createComponent("ImpAIComponent")),
                                      new SpriteGraphicsComponent(new Sprite(11)),
                                      static_cast<PhysicsComponent *>(ComponentsManager::get().createComponent("BasicMovingObjectPhysicsComponent"))));
-  //engine.addGameObject(new StaticSprite(2.5, 2.5, new SpriteGraphicsComponent(new Sprite(10))));
-  //engine.addGameObject(new StaticSprite(3.5, 3.5, new SpriteGraphicsComponent(new Sprite(10))));
-  //engine.addGameObject(new StaticSprite(5, 1, new SpriteGraphicsComponent(new Sprite(10))));
 }
 
 void MovementTestScene::onDestroy() {
