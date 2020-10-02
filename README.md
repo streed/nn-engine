@@ -1,6 +1,8 @@
 # nn-engine
 Let's make a game...with raycasting and pain
 
+![Example Rendering](https://i.imgur.com/vP9CuwG.jpg)
+
 Dependencies
 ============
 
