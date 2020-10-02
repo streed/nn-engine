@@ -81,6 +81,7 @@ void Engine::run() {
         while (lag >= ticksPerFrame) {
           sceneStateMachine->update(ticksPerFrame / 1000.0);
           processGameObjects();
+          sceneStateMachine->getWorld()->resetNavMesh();
           lag -= ticksPerFrame;
         }
 
@@ -107,7 +108,15 @@ void Engine::processGameObjects() {
   /*
    * Handle GameObjects
    */
-  for(auto *object: *getGameObjects()) {
+  for (auto *object: *getGameObjects()) {
+    PositionalObject *positionalObject = dynamic_cast<PositionalObject *>(object);
+
+    if (positionalObject) {
+      sceneStateMachine->getWorld()->markNotTraversable(int(positionalObject->posX), int(positionalObject->posY));
+    }
+  }
+
+  for (auto *object: *getGameObjects()) {
     if (object != NULL) {
       object->update(*this, *sceneStateMachine->getWorld(), ticksPerFrame / 1000.0);
     }
@@ -165,3 +174,6 @@ void Engine::clearSprites() {
   sprites.clear();
 }
 
+bool Engine::getDebug() {
+  return debug;
+}

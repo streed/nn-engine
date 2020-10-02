@@ -12,7 +12,7 @@ class Imp: public BasicMovingObject {
         double posY,
         AIComponent *aiComponent,
         GraphicsComponent *graphicsComponent,
-        PhysicsComponent *physicsComponent): BasicMovingObject(posX, posY, 3, 3),
+        PhysicsComponent *physicsComponent): BasicMovingObject(posX, posY, 2, 3),
                                              impAIComponent(aiComponent),
                                              graphicsComponent(graphicsComponent),
                                              physicsComponent(physicsComponent) {}

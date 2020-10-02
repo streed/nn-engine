@@ -66,6 +66,7 @@ class Engine {
 
     void processGameObjects();
     void renderGameObjects();
+    bool getDebug();
 
     static Engine *get();
 

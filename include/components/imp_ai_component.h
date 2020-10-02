@@ -14,7 +14,7 @@ class ImpAIComponent: public AIComponent {
     void update(GameObject *object, Engine &engine, World &world, double frameTime);
 
     bool seeking;
-    double searchDistance = 2.0;
+    double searchDistance = 1.0;
     double timeUntilNextShot;
     static constexpr double shootingCoolDownConstant = 2.5;
 };

@@ -56,8 +56,15 @@ void ImpAIComponent::update(GameObject *object, Engine &engine, World &world, do
 
   // Move close to the player!
   if (seeking) {
-    double moveSpeed = imp->maxSpeedClip * timeDiff;
     Point nextCellToMoveTo = findNextCellToMoveTo(imp, player, world, engine);
+
+    if (nextCellToMoveTo.first == int(player.posX) && nextCellToMoveTo.second == int(player.posY)) {
+      imp->velocityX = 0;
+      imp->velocityY = 0;
+      return;
+    }
+
+    double moveSpeed = imp->maxSpeedClip * timeDiff;
     float diffX = 1.0 * (nextCellToMoveTo.first + 0.5 - imp->posX);
     float diffY = 1.0 * (nextCellToMoveTo.second + 0.5 - imp->posY);
     float length = diffX * diffX + diffY * diffY;
@@ -105,16 +112,17 @@ void ImpAIComponent::update(GameObject *object, Engine &engine, World &world, do
 }
 
 int distance(Point a, Point b) {
-  return (a.first - b.first) * (a.first - b.first) +
-         (a.second - b.second) * (a.second - b.second);
+  int diffX = a.first - b.first;
+  int diffY = a.second - b.second;
+  return diffX * diffX + diffY * diffY;
 }
 
 int h(Point p, Point d) {
   return distance(p, d);
 }
 
-Point getNextFromOpenSet(std::map<Point, Point> openSet, std::map<Point, int> fScore) {
-  std::vector<std::pair<int, Point> > fScorePointTuples;
+Point getNextFromOpenSet(std::map<Point, Point> openSet, std::map<Point, unsigned int> fScore) {
+  std::vector<std::pair<unsigned int, Point> > fScorePointTuples;
 
   for (auto const &point: openSet) {
     int f = fScore[point.first];
@@ -144,24 +152,29 @@ Point findNextCellToMoveTo(Imp *imp, Player &player, World &world, Engine &engin
   int cellX = int(player.posX);
   int cellY = int(player.posY);
 
+  world.markTraversable(cellX, cellY);
+
   Point source(myX, myY);
   Point destination(cellX, cellY);
 
   std::map<Point, Point> openSet;
   std::map<Point, Point> cameFrom;
 
-  std::map<Point, int> gScore;
-  std::map<Point, int> fScore;
+  std::map<Point, unsigned int> gScore;
+  std::map<Point, unsigned int> fScore;
 
   for(int x = 0; x < world.width; x++) {
     for(int y = 0; y < world.height; y++) {
-      if(world.getMapPoint(x,y) == 0) {
-        Point point(x,y);
-        gScore[point] = std::numeric_limits<int>::max();
-        fScore[point] = std::numeric_limits<int>::max();
+      if(world.isTraversable(x,y)) {
+        Point point(x, y);
+        gScore[point] = std::numeric_limits<unsigned int>::max();
+        fScore[point] = std::numeric_limits<unsigned int>::max();
       }
     }
   }
+
+  gScore[source] = 0;
+  fScore[source] = h(source, destination);
 
   bool foundPath = false;
   openSet[source] = source;
@@ -177,7 +190,7 @@ Point findNextCellToMoveTo(Imp *imp, Player &player, World &world, Engine &engin
     openSet.erase(current);
 
     for (auto const &neighbor: getNeighbors(world, engine, current)) {
-      int tentativeGScore = gScore[current] + distance(current, neighbor);
+      unsigned int tentativeGScore = gScore[current] + 1;
 
       if (tentativeGScore < gScore[neighbor]) {
         cameFrom[neighbor] = current;
@@ -193,59 +206,81 @@ Point findNextCellToMoveTo(Imp *imp, Player &player, World &world, Engine &engin
 
   if (foundPath) {
     std::vector<Point> path = reconstructPath(cameFrom, source, current);
-    return path.at(1);
+    if (engine.getDebug()) {
+      char **pathMap = new char*[world.height];
+      for (int i = 0; i < world.height; i++) {
+        pathMap[i] = new char[world.width];
+        for (int j = 0; j < world.width; j++) {
+          pathMap[i][j] = '*';
+          pathMap[i][j] = world.navMesh[i][j] ? '_' : '%';
+        }
+      }
+
+      for (auto &p: path) {
+        pathMap[p.first][p.second] = '+';
+      }
+
+      pathMap[path.front().first][path.front().second] = 'O';
+      pathMap[path.back().first][path.back().second] = 'X';
+
+
+      cout << "Path: " << endl;
+      for (int i =  0; i < world.height; i++) {
+        for (int j = 0; j < world.width; j++) {
+          cout << pathMap[i][j] << ",";
+        }
+
+        for (int j = 0; j < world.width; j++) {
+          cout << world.navMesh[i][j] << ",";
+        }
+
+        for (int j = 0; j < world.width; j++) {
+          cout << world.map[j + world.height * i] << ",";
+        }
+
+        cout << endl;
+      }
+
+      delete [] pathMap;
+    }
+
+    if (path.size() >= 2) {
+      return path.at(1);
+    } else {
+      return path.at(0);
+    }
   } else {
     return source;
   }
 }
 
-bool collidedWithOtherObject(std::vector<GameObject *> *objects, Point potentialPoint) {
-  int x = potentialPoint.first;
-  int y = potentialPoint.second;
-  bool collision = false;
-
-  for (auto *object: *objects) {
-    PositionalObject *positionalObject = dynamic_cast<PositionalObject *>(object);
-
-    if (positionalObject) {
-      int mapX = int(positionalObject->posX);
-      int mapY = int(positionalObject->posY);
-
-      if (x == mapX && y == mapY) {
-        collision = true;
-        break;
-      }
-    }
-  }
-
-  return collision;
-}
-
 std::vector<Point> getNeighbors(World &world, Engine &engine, Point point) {
   int x = point.first;
-  int y= point.second;
+  int y = point.second;
   int boundX = world.width;
   int boundY = world.height;
   std::vector<Point> potentialNeighbors;
 
   potentialNeighbors.push_back(Point(x,     y - 1));
-  potentialNeighbors.push_back(Point(x - 1, y    ));
-  potentialNeighbors.push_back(Point(x + 1, y    ));
   potentialNeighbors.push_back(Point(x,     y + 1));
 
+  potentialNeighbors.push_back(Point(x - 1, y    ));
+  potentialNeighbors.push_back(Point(x + 1, y    ));
+
+  potentialNeighbors.push_back(Point(x - 1, y + 1));
+  potentialNeighbors.push_back(Point(x + 1, y + 1));
+
+  potentialNeighbors.push_back(Point(x - 1, y - 1));
+  potentialNeighbors.push_back(Point(x + 1, y - 1));
+
   std::vector<Point> neighbors;
-  std::vector<GameObject *> *objects = engine.getGameObjects();
 
   for(auto const &potentialPoint: potentialNeighbors) {
     int px = potentialPoint.first;
     int py = potentialPoint.second;
 
-    // TODO: Fix collision
-    //bool collision = collidedWithOtherObject(objects, potentialPoint);
-    int worldIndex = world.getMapPoint(px, py);
-    if ((px < 0 || py < 0 || px >= boundX || py >= boundY) || worldIndex != 0 /*|| collison*/) {
-      continue;
-    } else {
+    bool traversable = world.isTraversable(px, py);
+    if (!((px < 0 || py < 0 || px >= boundX || py >= boundY) && !traversable)) {
       neighbors.push_back(Point(px, py));
     }
   }
