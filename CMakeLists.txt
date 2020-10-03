@@ -6,7 +6,7 @@ project(
   DESCRIPTION "A game engine made with raycasts and pain"
   LANGUAGES CXX)
 
-add_definitions("-std=c++11")
+add_definitions("-std=c++1y")
 
 include_directories(include)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
