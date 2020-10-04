@@ -49,7 +49,7 @@ namespace NN {
       Coordinator *coordinator;
       World *world;
 
-      static const int DESIRED_FPS = 60;
+      static const int DESIRED_FPS = 35;
       static const int GAME_LOOP_TICKS = 1000 / DESIRED_FPS;
 
       double currentFrameTime;

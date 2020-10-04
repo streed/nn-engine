@@ -125,7 +125,6 @@ namespace NN {
         lag -= GAME_LOOP_TICKS;
       }
 
-      debug = true;
       renderSystem->update(*this, frameTime);
       renderSystem->present(debug, (int)(1.0 / frameTime));
       renderSystem->clear();
