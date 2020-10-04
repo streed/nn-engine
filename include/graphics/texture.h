@@ -13,20 +13,21 @@
 
 #include "color_rgb.h"
 
-class Texture {
-  unsigned long width;
-  unsigned long height;
+namespace NN::Graphics {
+  class Texture {
+    unsigned long width;
+    unsigned long height;
 
-  std::string filename;
-  std::vector<ColorRGB> colors;
-  std::vector<Uint32> pixels;
+    std::string filename;
+    std::vector<ColorRGB> colors;
+    std::vector<Uint32> pixels;
 
-  void loadFile(std::vector<unsigned char> &buffer);
-  void loadImage();
+    void loadFile(std::vector<unsigned char> &buffer);
+    void loadImage();
 
-  public:
+    public:
     Texture(std::string filename);
     std::vector<unsigned int> *getPixels();
-};
-
+  };
+}
 #endif

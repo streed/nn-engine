@@ -6,31 +6,28 @@ using namespace std;
 
 #include <vector>
 
-class Camera;
-class Engine;
-class GameObject;
-class Player;
 class World;
 
-class Scene {
-  public:
-    Scene(Engine &engine): engine(engine) {
-      gameObjects = new std::vector<GameObject *>(1024);
-    }
-    virtual void onCreate() = 0;
-    virtual void onDestroy() = 0;
-    virtual void onActivate() {};
-    virtual void onDeactivate() {};
-    virtual void update(double frameTime) {};
+namespace NN {
+  class Engine;
 
-  protected:
-    Engine &engine;
-    World *world;
-    Player *player;
-    Camera *camera;
-    std::vector<GameObject *> *gameObjects;
+  namespace Scenes {
+    class Scene {
+      public:
+        Scene(Engine &engine): engine(engine) {}
+        virtual void onCreate() = 0;
+        virtual void onDestroy() = 0;
+        virtual void update(double frameTime) {};
+        virtual void onActivate() {};
+        virtual void onDeactivate() {};
 
-    friend class SceneStateMachine;
-};
+      protected:
+        Engine engine;
+        Entities::Entity player;
+        World *world;
 
+        friend class SceneStateMachine;
+    };
+  }
+}
 #endif

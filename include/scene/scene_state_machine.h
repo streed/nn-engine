@@ -4,36 +4,38 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
-#include <boost/shared_ptr.hpp>
 
-class Camera;
-class GameObject;
-class Player;
-class Scene;
+#include "entities.h"
+
 class World;
 
-class SceneStateMachine {
-  public:
-    SceneStateMachine();
+namespace NN {
+  class Engine;
+  namespace Scenes {
 
-    void update(double frameTime);
+    class Scene;
 
-    int add(boost::shared_ptr<Scene> scene);
-    void switchTo(int id);
-    void remove(int id);
+    class SceneStateMachine {
+      public:
+        SceneStateMachine();
+
+        void update(double frameTime);
+
+        int add(std::shared_ptr<Scene> scene);
+        void switchTo(int id);
+        void remove(int id);
 
 
-  private:
-    std::vector<GameObject *> *getGameObjects();
-    World *getWorld();
-    Player *getPlayer();
-    Camera *getCamera();
+      private:
+        std::unordered_map<int, std::shared_ptr<Scene>> scenes;
+        std::shared_ptr<Scene> currentScene;
+        int insertedSceneId;
 
-    std::unordered_map<int, boost::shared_ptr<Scene>> scenes;
-    boost::shared_ptr<Scene> currentScene;
-    int insertedSceneId;
+        World *getWorld();
 
-    friend class Engine;
-};
+        friend class NN::Engine;
+    };
+  }
+}
 
 #endif

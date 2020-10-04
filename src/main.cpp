@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <vector>
 #include <math.h>
+#include <memory>
 
 #ifdef __APPLE__
 #include <SDL.h>
@@ -9,48 +10,31 @@
 #include <SDL2/SDL.h>
 #endif
 
-#include "globals.h"
-#include "world.h"
-#include "engine.h"
-
+#include "engine/engine.h"
+#include "engine/config.h"
+#include "entities.h"
+#include "systems/system.h"
+#include "systems/physics_system.h"
 #include "scene/scene_state_machine.h"
-#include "scenes/starter_scene.h"
-#include "scenes/movement_test_scene.h"
-
-#include "managers/components_manager.h"
+#include "scenes/basic_example_scene.h"
+#include "coordinator.h"
+#include "world.h"
 
 using namespace std;
 
 int main(int argc, char **args) {
-  Config config(argc, args);
-  Engine engine(SCREEN_WIDTH, SCREEN_HEIGHT, config);
+  NN::Config config(argc, args);
+  NN::Engine engine(&config);
 
-  SceneStateMachine sceneMachine;
-  engine.setSceneStateMachine(&sceneMachine);
+  NN::Scenes::SceneStateMachine sceneStateMachine;
+  sceneStateMachine
+    .add(std::shared_ptr<NN::Scenes::Examples::BasicExampleScene>(
+          new NN::Scenes::Examples::BasicExampleScene(engine)));
 
-  boost::shared_ptr<MovementTestScene> movementTestScene(new MovementTestScene(engine));
-  boost::shared_ptr<StarterScene> starterScene(new StarterScene(engine, 0));
+  engine.setSceneStateMachine(&sceneStateMachine);
 
-  if (argc >= 2) {
-    sceneMachine.add(movementTestScene);
-  } else {
-    sceneMachine.add(starterScene);
-  }
-
-  auto names = ComponentsManager::get().getComponentNames();
-
-  cout << "Registered Components:" << endl;
-  for (auto &it: names) {
-    cout << "\t" << it << endl;
-  }
-  cout << "Done listing registered Components." << endl;
-
-  try {
-    engine.run();
-  } catch (const std::exception &e) {
-    std::cerr << e.what() << endl;
-    throw;
-  }
+  engine.setup();
+  engine.run();
 
   return 0;
 }
