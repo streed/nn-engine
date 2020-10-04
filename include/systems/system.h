@@ -9,13 +9,12 @@
 
 
 namespace NN {
-  class Coordinator;
+  class Engine;
   namespace Systems {
     class System {
       public:
-        virtual void update(NN::Coordinator &coordinator, double frameTime) = 0;
+        virtual void update(NN::Engine &engine, double frameTime) = 0;
         std::set<Entities::Entity> entities;
-      private:
     };
 
     class SystemManager {

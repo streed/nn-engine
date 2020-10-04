@@ -2,12 +2,12 @@
 
 
 namespace NN {
-  class Coordinator;
+  class Engine;
   namespace Systems {
     namespace BuiltIns {
       class PhysicsSystem: public NN::Systems::System {
         public:
-          void update(Coordinator &coordinator, double frameTime) override;
+          void update(Engine &engine, double frameTime) override;
       };
     }
   }

@@ -13,6 +13,29 @@ namespace NN {
     using ComponentType = std::uint8_t;
     const ComponentType MAX_COMPONENTS = 32;
 
+    typedef struct _Camera {
+      double dirX;
+      double dirY;
+      double planeX;
+      double planeY;
+
+      double getCameraX(int x, int screenWidth) {
+        return 2 * x / double(screenWidth) - 1;
+      }
+
+      double getRayDirX(double cameraX) {
+        return dirX + planeX * cameraX;
+      }
+
+      double getRayDirY(double cameraX) {
+        return dirY + planeY * cameraX;
+      }
+
+      double getInvDet() {
+        return 1.0 / (planeX * dirY - dirX * planeY);
+      }
+    } Camera;
+
     typedef struct _Position {
       double posX;
       double posY;
@@ -34,6 +57,12 @@ namespace NN {
       double timeUntilNextShot;
       double shootingCoolDown;
     } ImpAiComponent;
+
+    typedef struct _Sprite {
+      int textureIndex;
+      int spriteWidth;
+      int spriteHeight;
+    } Sprite;
 
 
     class ComponentArrayInterface {

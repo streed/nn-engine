@@ -3,30 +3,31 @@
 
 #include "world.h"
 
-struct RayCastHit {
-  int mapX;
-  int mapY;
-  double wallX;
-  int texX;
-  int side;
-  double perpWallDist;
-  int colorIndex;
-  int textureIndex;
-};
+namespace NN::Utils {
+  struct RayCastHit {
+    int mapX;
+    int mapY;
+    double wallX;
+    int texX;
+    int side;
+    double perpWallDist;
+    int colorIndex;
+    int textureIndex;
+  };
 
-class RayCast {
-  double startX;
-  double startY;
-  double dirX;
-  double dirY;
+  class RayCast {
+    double startX;
+    double startY;
+    double dirX;
+    double dirY;
 
-  public:
-    RayCast(double startX, double startY, double dirX, double dirY): startX(startX),
-                                                                     startY(startY),
-                                                                     dirX(dirX),
-                                                                     dirY(dirY) {};
+    public:
+      RayCast(double startX, double startY, double dirX, double dirY): startX(startX),
+                                                                       startY(startY),
+                                                                       dirX(dirX),
+                                                                       dirY(dirY) {};
 
-    RayCastHit collideWorld(World &world);
-};
-
+      RayCastHit collideWorld(World *world);
+  };
+}
 #endif

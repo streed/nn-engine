@@ -4,84 +4,57 @@ using namespace std;
 #include "scene/scene_state_machine.h"
 #include "scene/scene.h"
 
-#include "game_objects/player.h"
 #include "graphics/camera.h"
 #include "world.h"
 
-SceneStateMachine::SceneStateMachine(): scenes(0), currentScene(0) {}
+namespace NN::Scenes {
+  SceneStateMachine::SceneStateMachine(): scenes(0), currentScene(0) {}
 
-void SceneStateMachine::update(double frameTime) {
-  if (currentScene) {
-    currentScene->update(frameTime);
-  }
-}
-
-int SceneStateMachine::add(boost::shared_ptr<Scene> scene) {
-  auto inserted = scenes.insert(std::make_pair(insertedSceneId, scene));
-  insertedSceneId++;
-
-  if (!currentScene) {
-    currentScene = scene;
-  }
-
-  inserted.first->second->onCreate();
-
-  return insertedSceneId - 1;
-}
-
-void SceneStateMachine::remove(int id) {
-  auto it = scenes.find(id);
-  if (it != scenes.end()) {
-    if (currentScene == it->second) {
-      currentScene = NULL;
-    }
-
-    it->second->onDestroy();
-
-    scenes.erase(it);
-  }
-}
-
-void SceneStateMachine::switchTo(int id) {
-  auto it = scenes.find(id);
-  if (it != scenes.end()) {
+  void SceneStateMachine::update(double frameTime) {
     if (currentScene) {
-      currentScene->onDeactivate();
+      currentScene->update(frameTime);
+    }
+  }
+
+  int SceneStateMachine::add(boost::shared_ptr<Scene> scene) {
+    auto inserted = scenes.insert(std::make_pair(insertedSceneId, scene));
+    insertedSceneId++;
+
+    if (!currentScene) {
+      currentScene = scene;
     }
 
-    currentScene = it->second;
-    currentScene->onActivate();
-  }
-}
+    inserted.first->second->onCreate();
 
-std::vector<GameObject *> *SceneStateMachine::getGameObjects() {
-  if(currentScene) {
-    return currentScene->gameObjects;
+    return insertedSceneId - 1;
   }
 
-  return NULL;
-}
+  void SceneStateMachine::remove(int id) {
+    auto it = scenes.find(id);
+    if (it != scenes.end()) {
+      if (currentScene == it->second) {
+        currentScene = NULL;
+      }
 
-World *SceneStateMachine::getWorld() {
-  if (currentScene) {
-    return currentScene->world;
+      it->second->onDestroy();
+
+      scenes.erase(it);
+    }
   }
 
-  return NULL;
-}
+  void SceneStateMachine::switchTo(int id) {
+    auto it = scenes.find(id);
+    if (it != scenes.end()) {
+      if (currentScene) {
+        currentScene->onDeactivate();
+      }
 
-Player *SceneStateMachine::getPlayer() {
-  if (currentScene) {
+      currentScene = it->second;
+      currentScene->onActivate();
+    }
+  }
+
+  Entities::Entity SceneStateMachine::getPlayer() {
     return currentScene->player;
   }
-
-  return NULL;
-}
-
-Camera *SceneStateMachine::getCamera() {
-  if (currentScene) {
-    return currentScene->camera;
-  }
-
-  return NULL;
 }
