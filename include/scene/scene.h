@@ -17,12 +17,12 @@ namespace NN {
         Scene(Engine &engine): engine(engine) {}
         virtual void onCreate() = 0;
         virtual void onDestroy() = 0;
+        virtual void update(double frameTime) {};
         virtual void onActivate() {};
         virtual void onDeactivate() {};
-        virtual void update(double frameTime) {};
 
       protected:
-        NN::Engine &engine;
+        Engine engine;
         Entities::Entity player;
         World *world;
 

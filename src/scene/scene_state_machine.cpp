@@ -1,7 +1,10 @@
 #include <iostream>
 using namespace std;
 
+#include <memory>
+
 #include "scene/scene_state_machine.h"
+#include "engine/engine.h"
 #include "scene/scene.h"
 
 #include "graphics/camera.h"
@@ -16,15 +19,15 @@ namespace NN::Scenes {
     }
   }
 
-  int SceneStateMachine::add(boost::shared_ptr<Scene> scene) {
+  int SceneStateMachine::add(std::shared_ptr<Scene> scene) {
     auto inserted = scenes.insert(std::make_pair(insertedSceneId, scene));
     insertedSceneId++;
+
+    scene->onCreate();
 
     if (!currentScene) {
       currentScene = scene;
     }
-
-    inserted.first->second->onCreate();
 
     return insertedSceneId - 1;
   }
@@ -54,7 +57,7 @@ namespace NN::Scenes {
     }
   }
 
-  Entities::Entity SceneStateMachine::getPlayer() {
-    return currentScene->player;
+  World *SceneStateMachine::getWorld() {
+    return currentScene->world;
   }
 }

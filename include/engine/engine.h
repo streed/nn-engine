@@ -22,7 +22,10 @@ namespace NN {
     }
   }
 
-  class SceneStateMachine;
+  namespace Scenes {
+    class SceneStateMachine;
+  }
+
   class Coordinator;
   class Config;
 
@@ -34,10 +37,14 @@ namespace NN {
       void run();
 
       Coordinator *getCoordinator();
+      void setCurrentPlayer(Entities::Entity entity);
       Entities::Entity getCurrentPlayer();
       Config *getConfig();
       std::shared_ptr<Systems::Graphics::RenderSystem> getRenderSystem();
       World *getWorld();
+
+      void setSceneStateMachine(Scenes::SceneStateMachine *sceneStateMachine);
+      Scenes::SceneStateMachine *getSceneStateMachine();
 
     private:
       void render();
@@ -48,7 +55,6 @@ namespace NN {
 
       Config *config;
       Coordinator *coordinator;
-      World *world;
 
       static const int DESIRED_FPS = 35;
       static const int GAME_LOOP_TICKS = 1000 / DESIRED_FPS;
@@ -57,6 +63,8 @@ namespace NN {
       double oldFrameTime;
 
       Entities::Entity currentPlayer;
+
+      Scenes::SceneStateMachine *sceneStateMachine;
 
       std::shared_ptr<Systems::Graphics::RenderSystem> renderSystem;
       std::shared_ptr<Systems::BuiltIns::InputSystem> inputSystem;

@@ -9,6 +9,7 @@ using namespace std;
 #include "entities.h"
 #include "input/input_packet.h"
 #include "input/keyboard.h"
+#include "scene/scene_state_machine.h"
 #include "systems/render_system.h"
 #include "systems/input_system.h"
 #include "systems/player_movement_system.h"
@@ -16,33 +17,12 @@ using namespace std;
 #include "systems/sprite_system.h"
 #include "world.h"
 
-static int worldMap[10][10] = {
-  {1,1,4,4,4,4,4,4,2,2},
-  {1,0,0,0,0,0,0,0,0,2},
-  {4,0,0,0,0,0,0,0,0,4},
-  {4,0,0,0,0,0,0,0,0,4},
-  {4,0,0,0,0,0,0,0,0,4},
-  {4,0,0,0,0,0,0,0,0,4},
-  {4,0,0,0,0,0,0,0,0,4},
-  {4,0,0,0,0,0,0,0,0,4},
-  {3,0,0,0,0,0,0,0,0,5},
-  {3,3,4,4,4,4,4,4,5,5}
-};
-
-
 namespace NN {
   Engine::Engine(Config *config): config(config) {
     quit = false;
     debug = false;
     coordinator = new Coordinator();
     coordinator->init();
-
-    /*
-     * TODO: Refactor this out to the Scene class.
-     *
-     * All of the below should be moved into the Scene
-     * class and setup when onCreated is called.
-     */
 
     renderSystem = coordinator->registerSystem<Systems::Graphics::RenderSystem>();
     inputSystem = coordinator->registerSystem<Systems::BuiltIns::InputSystem>();
@@ -80,8 +60,6 @@ namespace NN {
     spriteSignature.set(coordinator->getComponentType<Components::Position>());
     spriteSignature.set(coordinator->getComponentType<Components::Sprite>());
     coordinator->setSystemSignature<Systems::BuiltIns::SpriteSystem>(spriteSignature);
-
-    world = new World(10, 10, (int *)&worldMap);
   }
 
   Engine::~Engine() {}
@@ -95,25 +73,6 @@ namespace NN {
         cout << "Window created, starting game." << endl;
       }
     }
-
-    // Temp setup to get a camera inplace.
-    currentPlayer = coordinator->createEntity();
-    coordinator->addComponent<Components::Position>(currentPlayer, Components::Position{2, 2});
-    coordinator->addComponent<Components::Camera>(currentPlayer, Components::Camera{-1, 0, 0, 0.66});
-    coordinator->addComponent<Components::Input>(currentPlayer, Components::Input{false,
-                                                                                  false,
-                                                                                  false,
-                                                                                  false,
-                                                                                  false,
-                                                                                  false,
-                                                                                  false,
-                                                                                  false});
-    coordinator->addComponent<Components::Velocity>(currentPlayer, Components::Velocity{0, 0, 5, 3});
-
-    Entities::Entity penguin = coordinator->createEntity();
-    coordinator->addComponent<Components::Position>(penguin, Components::Position{5.5, 5.5});
-    coordinator->addComponent<Components::Sprite>(penguin, Components::Sprite{11, 64, 64});
-
   }
 
   void Engine::run() {
@@ -142,6 +101,7 @@ namespace NN {
       while (lag >= GAME_LOOP_TICKS) {
         playerMovementSystem->update(*this, GAME_LOOP_TICKS / 1000.0);
         physicsSystem->update(*this, GAME_LOOP_TICKS / 1000.0);
+        sceneStateMachine->update(GAME_LOOP_TICKS / 1000.0);
         lag -= GAME_LOOP_TICKS;
       }
 
@@ -176,6 +136,10 @@ namespace NN {
     return coordinator;
   }
 
+  void Engine::setCurrentPlayer(Entities::Entity entity) {
+    currentPlayer = entity;
+  }
+
   Entities::Entity Engine::getCurrentPlayer() {
     return currentPlayer;
   }
@@ -189,6 +153,14 @@ namespace NN {
   }
 
   World *Engine::getWorld() {
-    return world;
+    return sceneStateMachine->getWorld();
+  }
+
+  void Engine::setSceneStateMachine(Scenes::SceneStateMachine *sceneStateMachine) {
+    this->sceneStateMachine = sceneStateMachine;
+  }
+  
+  Scenes::SceneStateMachine *Engine::getSceneStateMachine() {
+    return sceneStateMachine;
   }
 }
