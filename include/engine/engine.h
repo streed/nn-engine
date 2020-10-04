@@ -18,6 +18,7 @@ namespace NN {
       class InputSystem;
       class PlayerMovementSystem;
       class PhysicsSystem;
+      class SpriteSystem;
     }
   }
 
@@ -61,6 +62,7 @@ namespace NN {
       std::shared_ptr<Systems::BuiltIns::InputSystem> inputSystem;
       std::shared_ptr<Systems::BuiltIns::PlayerMovementSystem> playerMovementSystem;
       std::shared_ptr<Systems::BuiltIns::PhysicsSystem> physicsSystem;
+      std::shared_ptr<Systems::BuiltIns::SpriteSystem> spriteSystem;
   };
 }
 

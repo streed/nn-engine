@@ -1,3 +1,5 @@
+#include <iostream>
+using namespace std;
 #include <memory>
 #include <algorithm>
 #include <cmath>
@@ -61,14 +63,13 @@ namespace NN::Systems::BuiltIns {
       double invDet = playerCamera.getInvDet();
 
       double transformX = invDet * (playerCamera.dirY * spriteX - playerCamera.dirX * spriteY);
-      double transformY = invDet * (playerCamera.planeY * spriteX + playerCamera.planeX * spriteY);
+      double transformY = invDet * (-playerCamera.planeY * spriteX + playerCamera.planeX * spriteY);
 
       int screenWidth = engine.getConfig()->getScreenWidth();
       int screenHeight = engine.getConfig()->getScreenHeight();
 
       int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
       int spriteHeight = abs(int(screenHeight / transformY));
-
 
       int drawStartY = -spriteHeight / 2 + screenHeight / 2;
       if (drawStartY < 0) {
@@ -95,7 +96,6 @@ namespace NN::Systems::BuiltIns {
 
       for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
         int texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * sprite.spriteWidth / spriteWidth) / 256;
-
         if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < engine.getRenderSystem()->getZBuffer()[stripe]) {
           for(int y = drawStartY; y < drawEndY; y++) {
             int d = (y) * 256 - screenHeight * 128 + spriteHeight * 128;

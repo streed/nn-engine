@@ -1,3 +1,6 @@
+#include <iostream>
+using namespace std;
+
 #include <boost/scoped_ptr.hpp>
 
 #include "systems/input_system.h"

@@ -13,18 +13,19 @@ using namespace std;
 #include "systems/input_system.h"
 #include "systems/player_movement_system.h"
 #include "systems/physics_system.h"
+#include "systems/sprite_system.h"
 #include "world.h"
 
 static int worldMap[10][10] = {
   {1,1,4,4,4,4,4,4,2,2},
   {1,0,0,0,0,0,0,0,0,2},
-  {4,0,0,0,0,0,2,2,0,4},
-  {4,0,5,5,5,0,2,0,0,4},
-  {4,0,0,0,1,1,2,0,2,4},
-  {4,3,0,3,1,1,0,0,0,4},
-  {4,0,0,0,0,0,0,1,0,4},
-  {4,4,0,3,3,3,3,1,0,4},
-  {3,0,0,0,0,0,0,1,0,5},
+  {4,0,0,0,0,0,0,0,0,4},
+  {4,0,0,0,0,0,0,0,0,4},
+  {4,0,0,0,0,0,0,0,0,4},
+  {4,0,0,0,0,0,0,0,0,4},
+  {4,0,0,0,0,0,0,0,0,4},
+  {4,0,0,0,0,0,0,0,0,4},
+  {3,0,0,0,0,0,0,0,0,5},
   {3,3,4,4,4,4,4,4,5,5}
 };
 
@@ -47,11 +48,13 @@ namespace NN {
     inputSystem = coordinator->registerSystem<Systems::BuiltIns::InputSystem>();
     playerMovementSystem = coordinator->registerSystem<Systems::BuiltIns::PlayerMovementSystem>();
     physicsSystem = coordinator->registerSystem<Systems::BuiltIns::PhysicsSystem>();
+    spriteSystem = coordinator->registerSystem<Systems::BuiltIns::SpriteSystem>();
 
     coordinator->registerComponent<Components::Position>();
     coordinator->registerComponent<Components::Velocity>();
     coordinator->registerComponent<Components::Camera>();
     coordinator->registerComponent<Components::Input>();
+    coordinator->registerComponent<Components::Sprite>();
 
     Entities::Signature renderSignature;
     renderSignature.set(coordinator->getComponentType<Components::Position>());
@@ -73,6 +76,11 @@ namespace NN {
     physicsSignature.set(coordinator->getComponentType<Components::Velocity>());
     coordinator->setSystemSignature<Systems::BuiltIns::PhysicsSystem>(physicsSignature);
 
+    Entities::Signature spriteSignature;
+    spriteSignature.set(coordinator->getComponentType<Components::Position>());
+    spriteSignature.set(coordinator->getComponentType<Components::Sprite>());
+    coordinator->setSystemSignature<Systems::BuiltIns::SpriteSystem>(spriteSignature);
+
     world = new World(10, 10, (int *)&worldMap);
   }
 
@@ -92,8 +100,20 @@ namespace NN {
     currentPlayer = coordinator->createEntity();
     coordinator->addComponent<Components::Position>(currentPlayer, Components::Position{2, 2});
     coordinator->addComponent<Components::Camera>(currentPlayer, Components::Camera{-1, 0, 0, 0.66});
-    coordinator->addComponent<Components::Input>(currentPlayer, Components::Input{false, false, false, false, false, false, false, false});
+    coordinator->addComponent<Components::Input>(currentPlayer, Components::Input{false,
+                                                                                  false,
+                                                                                  false,
+                                                                                  false,
+                                                                                  false,
+                                                                                  false,
+                                                                                  false,
+                                                                                  false});
     coordinator->addComponent<Components::Velocity>(currentPlayer, Components::Velocity{0, 0, 5, 3});
+
+    Entities::Entity penguin = coordinator->createEntity();
+    coordinator->addComponent<Components::Position>(penguin, Components::Position{5.5, 5.5});
+    coordinator->addComponent<Components::Sprite>(penguin, Components::Sprite{11, 64, 64});
+
   }
 
   void Engine::run() {
@@ -126,6 +146,7 @@ namespace NN {
       }
 
       renderSystem->update(*this, frameTime);
+      spriteSystem->update(*this, frameTime);
       renderSystem->present(debug, (int)(1.0 / frameTime));
       renderSystem->clear();
 
