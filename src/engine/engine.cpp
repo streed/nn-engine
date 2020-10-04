@@ -93,7 +93,7 @@ namespace NN {
       }
 
       if (inputPacket.get()->debug) {
-        debug != debug;
+        debug = !debug;
       }
 
       inputSystem->update(*this, frameTime);
