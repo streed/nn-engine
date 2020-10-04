@@ -1,9 +1,10 @@
 #ifndef __COMPONENTS__
 #define __COMPONENTS__
 
-#include <memory>
 #include <bitset>
+#include <cmath>
 #include <cstdlib>
+#include <memory>
 #include <unordered_map>
 
 #include "entities.h"
@@ -34,6 +35,15 @@ namespace NN {
       double getInvDet() {
         return 1.0 / (planeX * dirY - dirX * planeY);
       }
+
+      void rotate(double rotateSpeed) {
+        double oldDirX = dirX;
+        dirX = dirX * cos(rotateSpeed) - dirY * sin(rotateSpeed);
+        dirY = oldDirX * sin(rotateSpeed) + dirY * cos(rotateSpeed);
+        double oldPlaneX = planeX;
+        planeX = planeX * cos(rotateSpeed) - planeY * sin(rotateSpeed);
+        planeY = oldPlaneX * sin(rotateSpeed) + planeY * cos(rotateSpeed);
+      }
     } Camera;
 
     typedef struct _Position {
@@ -45,6 +55,7 @@ namespace NN {
       double velocityX;
       double velocityY;
       double maxSpeed;
+      double maxRotateSpeed;
     } Velocity;
 
     typedef struct _Rotation {
@@ -63,6 +74,17 @@ namespace NN {
       int spriteWidth;
       int spriteHeight;
     } Sprite;
+
+    typedef struct _Input {
+      bool forward;
+      bool backward;
+      bool strafeLeft;
+      bool strafeRight;
+      bool rotateLeft;
+      bool rotateRight;
+      bool quit;
+      bool debug;
+    } Input;
 
 
     class ComponentArrayInterface {

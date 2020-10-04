@@ -6,6 +6,8 @@ using namespace std;
 
 #include <vector>
 
+class World;
+
 namespace NN {
   class Engine;
 
@@ -22,6 +24,7 @@ namespace NN {
       protected:
         NN::Engine &engine;
         Entities::Entity player;
+        World *world;
 
         friend class SceneStateMachine;
     };

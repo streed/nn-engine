@@ -1,14 +1,16 @@
-#include "systems/system.h"
+#ifndef __PHYSICS_SYSTEM__
+#define __PHYSICS_SYSTEM__
 
+#include "systems/system.h"
 
 namespace NN {
   class Engine;
-  namespace Systems {
-    namespace BuiltIns {
-      class PhysicsSystem: public NN::Systems::System {
-        public:
-          void update(Engine &engine, double frameTime) override;
-      };
-    }
+  namespace Systems::BuiltIns {
+    class PhysicsSystem: public Systems::System {
+      public:
+        void update(Engine &engine, double frameTime) override;
+    };
   }
 }
+
+#endif
