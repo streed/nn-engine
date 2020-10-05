@@ -9,6 +9,7 @@ namespace NN {
   class Config {
     std::vector<Graphics::Texture> textures;
     bool fullscreen;
+    std::string baseGameDir;
 
     public:
     Config(int argc, char **args);
@@ -20,6 +21,7 @@ namespace NN {
     int getScreenHeight();
 
     private:
+    void loadJsonConfig();
     void loadTextures();
     void loadSprites();
   };

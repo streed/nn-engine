@@ -12,6 +12,7 @@ include_directories(include)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(COPY ../font DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY ../textures DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
+file(COPY ../game.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

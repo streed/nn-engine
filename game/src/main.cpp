@@ -24,7 +24,7 @@ using namespace std;
 
 int main(int argc, char **args) {
   NN::Config config(argc, args);
-  NN::Engine engine(&config);
+  /*NN::Engine engine(&config);
 
   NN::Scenes::SceneStateMachine sceneStateMachine;
   sceneStateMachine
@@ -34,7 +34,7 @@ int main(int argc, char **args) {
   engine.setSceneStateMachine(&sceneStateMachine);
 
   engine.setup();
-  engine.run();
+  engine.run();*/
 
   return 0;
 }

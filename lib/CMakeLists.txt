@@ -10,8 +10,6 @@ add_definitions("-std=c++17")
 
 include_directories(include)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
-file(COPY ../font DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY ../textures DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(${PROJECT_NAME} ${SOURCES})
 
