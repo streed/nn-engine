@@ -53,7 +53,7 @@ endmacro()
 
 run_conan()
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+include(${CMAKE_BINARY_DIR}/lib/conanbuildinfo.cmake)
 conan_basic_setup()
 
 #Set(Boost_DEBUG 1)
@@ -74,3 +74,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE SDL2::Main
                                               CONAN_PKG::fmt
                                               CONAN_PKG::spdlog)
 
+install(TARGETS nnEngine LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)

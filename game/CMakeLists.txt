@@ -53,7 +53,7 @@ endmacro()
 
 run_conan()
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+include(${CMAKE_BINARY_DIR}/game/conanbuildinfo.cmake)
 conan_basic_setup()
 
 #Set(Boost_DEBUG 1)
@@ -67,10 +67,12 @@ find_package(SDL2_ttf REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${CONAN_INCLUDE_DIRS_NLOHMANN_JSON})
 include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR}/lib/include)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL2::Main
                                               SDL2::TTF
                                               Boost::program_options
                                               CONAN_PKG::fmt
-                                              CONAN_PKG::spdlog)
+                                              CONAN_PKG::spdlog
+                                              nnEngine)
 
