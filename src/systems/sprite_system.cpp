@@ -13,7 +13,7 @@ using namespace std;
 #include "coordinator.h"
 
 namespace NN::Systems::BuiltIns {
-  void sortSprites(std::shared_ptr<int[]> order, std::shared_ptr<double []> dist, int amount) {
+  void sortSprites(std::shared_ptr<int[]> order, std::shared_ptr<int []> dist, int amount) {
     std::vector<std::pair<double, int> > sprites(amount);
     for(int i = 0; i < amount; i++) {
       sprites[i].first = dist[i];
@@ -28,9 +28,9 @@ namespace NN::Systems::BuiltIns {
     }
   }
 
-  double distanceFromPlayer(Components::Position &player,  Components::Position &sprite) {
-    return (player.posX - sprite.posX) * (player.posX - sprite.posX) +
-      (player.posY - sprite.posY) * (player.posY - sprite.posY);
+  int distanceFromPlayer(Components::Position &player,  Components::Position &sprite) {
+    return int((player.posX - sprite.posX) * (player.posX - sprite.posX) +
+      (player.posY - sprite.posY) * (player.posY - sprite.posY));
   }
 
   void SpriteSystem::update(Engine &engine, double frameTime) {
@@ -38,7 +38,7 @@ namespace NN::Systems::BuiltIns {
     std::vector<Entities::Entity> entitiesVector(entities.begin(), entities.end());
 
     std::shared_ptr<int []> spriteOrder(new int[entitiesVector.size()]);
-    std::shared_ptr<double []> spriteDistance(new double[entitiesVector.size()]);
+    std::shared_ptr<int []> spriteDistance(new int[entitiesVector.size()]);
 
     auto &playerPosition = coordinator->getComponent<Components::Position>(engine.getCurrentPlayer());
     auto &playerCamera = coordinator->getComponent<Components::Camera>(engine.getCurrentPlayer());
