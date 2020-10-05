@@ -6,7 +6,7 @@ Let's make a game...with raycasting and pain
 Dependencies
 ============
 
-Built using `c++11` ontop of `SDL2`.
+Built using `c++17` ontop of `SDL2`.
 
 Linux
 =====
@@ -43,19 +43,14 @@ Building the code:
 cd build
 conan install ..
 cmake ..
-make all
+make
 ```
 
 Running
 =======
 ```
-cd build
+cd build/game
 ./Wenkenstein
-```
-
-If you want to run in fullscreen pass a parameter to the executable.
-```
-./Wenkenstein 1
 ```
 
 Controls

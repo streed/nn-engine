@@ -6,6 +6,9 @@ using namespace std;
 
 namespace po = boost::program_options;
 
+#include <boost/property_tree/ptree.hpp>
+namespace pt = boost::property_tree;
+
 #include "engine/config.h"
 
 #include "graphics/texture.h"
@@ -15,7 +18,8 @@ namespace NN {
     po::options_description description("Allowed Options");
     description.add_options()
       ("help", "Show this help message")
-      ("fullscreen", po::value<bool>(&fullscreen)->default_value(false), "Run game in fullscreen?");
+      ("fullscreen", po::value<bool>(&fullscreen)->default_value(false), "Run game in fullscreen?")
+      ("base-game-dir", po::value<std::string>(&baseGameDir)->default_value("./"), "Base directory that contains game data");
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, args, description), vm);
@@ -28,6 +32,12 @@ namespace NN {
     if (vm.count("fullscreen")) {
       fullscreen = vm["fullscreen"].as<bool>();
     }
+
+    if (vm.count("base-game-dir")) {
+      cout << "Loading game data from: " << baseGameDir << endl;
+    }
+
+    loadJsonConfig();
 
     loadTextures();
   }
@@ -46,6 +56,9 @@ namespace NN {
     textures.push_back(Graphics::Texture("./textures/pillar.png"));
     textures.push_back(Graphics::Texture("./textures/penguin.png"));
     textures.push_back(Graphics::Texture("./textures/fireball.png"));
+  }
+
+  void Config::loadJsonConfig() {
   }
 
   std::vector<Graphics::Texture> *Config::getTextures() {

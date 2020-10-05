@@ -1,0 +1,10 @@
+{
+  "settings": {
+    "baseGameDirectory": "./game",
+    "fullscreen": false,
+    "screen": {
+      "width": 720,
+      "height": 480
+    }
+  }
+}
