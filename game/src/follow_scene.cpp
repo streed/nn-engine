@@ -42,6 +42,9 @@ void FollowScene::onCreate() {
 	world = new World(18, 10, (int*)&worldMap);
 
 	NN::Entities::Entity currentPlayer = coordinator->createEntity();
+	
+    // We're creating a few things here...first a controllable player and then two penguins. The first
+    // penguin follows the player and the second penguin follows the first penguin.
     engine->setCurrentPlayer(currentPlayer);
     coordinator->addComponent<NN::Components::Position>(currentPlayer, NN::Components::Position{ 2, 2 });
     coordinator->addComponent<NN::Components::Camera>(currentPlayer, NN::Components::Camera{ -1, 0, 0, 0.66 });
