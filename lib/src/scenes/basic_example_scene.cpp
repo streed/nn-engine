@@ -20,12 +20,12 @@ static int worldMap[10][10] = {
 
 namespace NN::Scenes::Examples {
   void BasicExampleScene::onCreate() {
-    Coordinator *coordinator = engine.getCoordinator();
+    Coordinator *coordinator = engine->getCoordinator();
 
     world = new World(10, 10, (int *)&worldMap);
 
     Entities::Entity currentPlayer = coordinator->createEntity();
-    engine.setCurrentPlayer(currentPlayer);
+    engine->setCurrentPlayer(currentPlayer);
     coordinator->addComponent<Components::Position>(currentPlayer, Components::Position{2, 2});
     coordinator->addComponent<Components::Camera>(currentPlayer, Components::Camera{-1, 0, 0, 0.66});
     coordinator->addComponent<Components::Input>(currentPlayer, Components::Input{false,
@@ -38,9 +38,13 @@ namespace NN::Scenes::Examples {
                                                                                   false});
     coordinator->addComponent<Components::Velocity>(currentPlayer, Components::Velocity{0, 0, 5, 3});
 
-    Entities::Entity penguin = coordinator->createEntity();
-    coordinator->addComponent<Components::Position>(penguin, Components::Position{5.5, 5.5});
-    coordinator->addComponent<Components::Sprite>(penguin, Components::Sprite{11, 64, 64});
+    for (int i = 1; i < 10; i++) {
+        for (int j = 1; j < 10; j++) {
+            Entities::Entity penguin = coordinator->createEntity();
+            coordinator->addComponent<Components::Position>(penguin, Components::Position{ i + 0.5, j + 0.5 });
+            coordinator->addComponent<Components::Sprite>(penguin, Components::Sprite{ 11, 64, 64 });
+        }
+    }
   }
 
   void BasicExampleScene::onDestroy() {

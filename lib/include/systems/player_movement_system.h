@@ -8,7 +8,7 @@ namespace NN {
   namespace Systems::BuiltIns {
     class PlayerMovementSystem: public System {
       public:
-        void update(NN::Engine &engine, double frameTime) override;
+        void update(NN::Engine *engine, double frameTime) override;
     };
   }
 }

@@ -4,37 +4,30 @@
 #include <math.h>
 #include <memory>
 
-#ifdef __APPLE__
+#if (defined __APPLE__ || defined _MSC_VER)
 #include <SDL.h>
 #else
 #include <SDL2/SDL.h>
 #endif
 
-#include <engine/engine.h>
+#include "engine/engine.h"
 #include "engine/config.h"
-#include "entities.h"
-#include "systems/system.h"
-#include "systems/physics_system.h"
 #include "scene/scene_state_machine.h"
-#include "scenes/basic_example_scene.h"
-#include "coordinator.h"
-#include "world.h"
+#include "follow_scene.h"
 
 using namespace std;
 
-int main(int argc, char **args) {
+int main(int argc, char *args[]) {
   NN::Config config(argc, args);
-  /*NN::Engine engine(&config);
-
-  NN::Scenes::SceneStateMachine sceneStateMachine;
-  sceneStateMachine
-    .add(std::shared_ptr<NN::Scenes::Examples::BasicExampleScene>(
-          new NN::Scenes::Examples::BasicExampleScene(engine)));
-
-  engine.setSceneStateMachine(&sceneStateMachine);
-
+  NN::Engine engine(&config);
   engine.setup();
-  engine.run();*/
+
+  NN::Scenes::SceneStateMachine *sceneStateMachine = new NN::Scenes::SceneStateMachine();
+  sceneStateMachine->add(std::shared_ptr<FollowScene>(new FollowScene(&engine)));
+  engine.setSceneStateMachine(std::shared_ptr<NN::Scenes::SceneStateMachine>(sceneStateMachine));
+
+  cout << "nnEngine - Running!" << endl;
+  engine.run();
 
   return 0;
 }

@@ -13,7 +13,7 @@ namespace NN {
   namespace Systems {
     class System {
       public:
-        virtual void update(NN::Engine &engine, double frameTime) = 0;
+        virtual void update(NN::Engine *engine, double frameTime) = 0;
         std::set<Entities::Entity> entities;
     };
 

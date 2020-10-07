@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#ifdef __APPLE__
+#if defined __APPLE__ || _MSC_VER
 #include <SDL.h>
 #include <SDL_ttf.h>
 #else
@@ -27,7 +27,7 @@ namespace NN {
   }
   
   namespace Utils {
-    class RayCastHit;
+    struct RayCastHit;
   }
 
   namespace Systems::Graphics {
@@ -38,7 +38,7 @@ namespace NN {
         RenderSystem();
         RenderSystem(NN::Config *config);
         bool setup(NN::Config *config);
-        void update(NN::Engine &engine, double frameTime) override;
+        void update(NN::Engine *engine, double frameTime) override;
 
         void present(bool debug, int fps);
         void clear();

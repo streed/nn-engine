@@ -11,7 +11,7 @@ using namespace std;
 #include "world.h"
 
 namespace NN::Scenes {
-  SceneStateMachine::SceneStateMachine(): scenes(0), currentScene(0) {}
+  SceneStateMachine::SceneStateMachine(): scenes(0), currentScene(0), insertedSceneId(0) {}
 
   void SceneStateMachine::update(double frameTime) {
     if (currentScene) {

@@ -76,12 +76,12 @@ namespace NN {
   }
 
   void Engine::run() {
+    oldFrameTime = SDL_GetTicks();
     double lag = 0.0;
     while(!quit) {
       currentFrameTime = SDL_GetTicks();
       double elapsed = currentFrameTime - oldFrameTime;
       lag += elapsed;
-
       double frameTime = elapsed / 1000.0;
 
       processEvents();
@@ -96,17 +96,17 @@ namespace NN {
         debug = !debug;
       }
 
-      inputSystem->update(*this, frameTime);
+      inputSystem->update(this, frameTime);
 
       while (lag >= GAME_LOOP_TICKS) {
-        playerMovementSystem->update(*this, GAME_LOOP_TICKS / 1000.0);
-        physicsSystem->update(*this, GAME_LOOP_TICKS / 1000.0);
+        playerMovementSystem->update(this, GAME_LOOP_TICKS / 1000.0);
         sceneStateMachine->update(GAME_LOOP_TICKS / 1000.0);
+        physicsSystem->update(this, GAME_LOOP_TICKS / 1000.0);
         lag -= GAME_LOOP_TICKS;
       }
 
-      renderSystem->update(*this, frameTime);
-      spriteSystem->update(*this, frameTime);
+      renderSystem->update(this, frameTime);
+      spriteSystem->update(this, frameTime);
       renderSystem->present(debug, (int)(1.0 / frameTime));
       renderSystem->clear();
 
@@ -156,11 +156,11 @@ namespace NN {
     return sceneStateMachine->getWorld();
   }
 
-  void Engine::setSceneStateMachine(Scenes::SceneStateMachine *sceneStateMachine) {
+  void Engine::setSceneStateMachine(std::shared_ptr<Scenes::SceneStateMachine> sceneStateMachine) {
     this->sceneStateMachine = sceneStateMachine;
   }
   
-  Scenes::SceneStateMachine *Engine::getSceneStateMachine() {
+  std::shared_ptr<Scenes::SceneStateMachine> Engine::getSceneStateMachine() {
     return sceneStateMachine;
   }
 }

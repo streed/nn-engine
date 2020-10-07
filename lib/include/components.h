@@ -21,7 +21,7 @@ namespace NN {
       double planeY;
 
       double getCameraX(int x, int screenWidth) {
-        return 2 * x / double(screenWidth) - 1;
+        return 2.0 * x / double(screenWidth) - 1;
       }
 
       double getRayDirX(double cameraX) {
@@ -49,6 +49,30 @@ namespace NN {
     typedef struct _Position {
       double posX;
       double posY;
+
+      bool operator<(struct _Position& pos) const {
+          return posX < pos.posX && posY < pos.posY;
+      }
+
+      bool operator<(const struct _Position& pos) const {
+          if (posX < pos.posX) {
+              return true;
+          } else if (posX > pos.posX) {
+              return false;
+          } else {
+              return posY < pos.posY;
+          }
+      }
+
+      bool operator!=(const struct _Position& pos) {
+          return !(*this == pos);
+      }
+
+      bool operator==(const struct _Position& pos) {
+          return fabs(posX - pos.posX) < std::numeric_limits<double>::epsilon() &&
+				 fabs(posY - pos.posY) < std::numeric_limits<double>::epsilon();
+      }
+
     } Position;
 
     typedef struct _Velocity {
@@ -117,7 +141,7 @@ namespace NN {
         }
 
         T &get(Entities::Entity entity) {
-          componentArray[entityToIndex[entity]];
+          return componentArray[entityToIndex[entity]];
         }
 
         void destroyedEntity(Entities::Entity entity) override {
@@ -176,5 +200,4 @@ namespace NN {
     };
   };
 };
-
 #endif
