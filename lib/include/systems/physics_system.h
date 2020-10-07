@@ -8,7 +8,7 @@ namespace NN {
   namespace Systems::BuiltIns {
     class PhysicsSystem: public Systems::System {
       public:
-        void update(Engine &engine, double frameTime) override;
+        void update(Engine *engine, double frameTime) override;
     };
   }
 }

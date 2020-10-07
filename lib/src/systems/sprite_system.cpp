@@ -23,7 +23,7 @@ namespace NN::Systems::BuiltIns {
     std::sort(sprites.begin(), sprites.end());
 
     for(int i = 0; i < amount; i++) {
-      dist[i] = sprites[amount - i - 1].first;
+      dist[i] = int(sprites[amount - i - 1].first);
       order[i] = sprites[amount - i - 1].second;
     }
   }
@@ -33,17 +33,17 @@ namespace NN::Systems::BuiltIns {
       (player.posY - sprite.posY) * (player.posY - sprite.posY));
   }
 
-  void SpriteSystem::update(Engine &engine, double frameTime) {
-    Coordinator *coordinator = engine.getCoordinator();
+  void SpriteSystem::update(Engine *engine, double frameTime) {
+    Coordinator *coordinator = engine->getCoordinator();
     std::vector<Entities::Entity> entitiesVector(entities.begin(), entities.end());
 
     std::shared_ptr<int []> spriteOrder(new int[entitiesVector.size()]);
     std::shared_ptr<int []> spriteDistance(new int[entitiesVector.size()]);
 
-    auto &playerPosition = coordinator->getComponent<Components::Position>(engine.getCurrentPlayer());
-    auto &playerCamera = coordinator->getComponent<Components::Camera>(engine.getCurrentPlayer());
+    auto &playerPosition = coordinator->getComponent<Components::Position>(engine->getCurrentPlayer());
+    auto &playerCamera = coordinator->getComponent<Components::Camera>(engine->getCurrentPlayer());
 
-    for (int i = 0; i < entitiesVector.size(); i++) {
+    for (size_t i = 0; i < entitiesVector.size(); i++) {
       Entities::Entity entity = entitiesVector.at(i);
       auto &spritePosition = coordinator->getComponent<Components::Position>(entity);
       spriteOrder[i] = i;
@@ -52,7 +52,7 @@ namespace NN::Systems::BuiltIns {
 
     sortSprites(spriteOrder, spriteDistance, entitiesVector.size());
 
-    for (int i = 0; i < entitiesVector.size(); i++) {
+    for (size_t i = 0; i < entitiesVector.size(); i++) {
       NN::Entities::Entity actualSpriteEntity = entitiesVector.at(spriteOrder[i]);
       auto &sprite = coordinator->getComponent<NN::Components::Sprite>(actualSpriteEntity);
       auto &position = coordinator->getComponent<NN::Components::Position>(actualSpriteEntity);
@@ -65,8 +65,8 @@ namespace NN::Systems::BuiltIns {
       double transformX = invDet * (playerCamera.dirY * spriteX - playerCamera.dirX * spriteY);
       double transformY = invDet * (-playerCamera.planeY * spriteX + playerCamera.planeX * spriteY);
 
-      int screenWidth = engine.getConfig()->getScreenWidth();
-      int screenHeight = engine.getConfig()->getScreenHeight();
+      int screenWidth = engine->getConfig()->getScreenWidth();
+      int screenHeight = engine->getConfig()->getScreenHeight();
 
       int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
       int spriteHeight = abs(int(screenHeight / transformY));
@@ -96,16 +96,16 @@ namespace NN::Systems::BuiltIns {
 
       for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
         int texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * sprite.spriteWidth / spriteWidth) / 256;
-        if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < engine.getRenderSystem()->getZBuffer()[stripe]) {
+        if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < engine->getRenderSystem()->getZBuffer()[stripe]) {
           for(int y = drawStartY; y < drawEndY; y++) {
             int d = (y) * 256 - screenHeight * 128 + spriteHeight * 128;
             int texY = ((d * sprite.spriteHeight) / spriteHeight) / 256;
-            Uint32 color = engine.getConfig()->getTextures()->at(sprite.textureIndex)
+            Uint32 color = engine->getConfig()->getTextures()->at(sprite.textureIndex)
               .getPixels()
               ->at(sprite.spriteWidth * texY + texX);
 
             if ((color & 0x00FFFFFF) != 0) {
-              engine.getRenderSystem()->setBufferPixel(stripe, y, color);
+              engine->getRenderSystem()->setBufferPixel(stripe, y, color);
             }
           }
         }

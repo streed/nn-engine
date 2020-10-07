@@ -8,7 +8,7 @@
 
 using namespace std;
 
-#ifdef __APPLE__
+#if defined __APPLE__ || _MSC_VER
 #include <SDL_ttf.h>
 #else
 #include <SDL2/SDL_ttf.h>
@@ -73,12 +73,12 @@ namespace NN::Systems::Graphics {
     }
   }
 
-  void RenderSystem::update(NN::Engine &engine, double frameTime) {
-    NN::Coordinator *coordinator = engine.getCoordinator();
-    Components::Position player = coordinator->getComponent<Components::Position>(engine.getCurrentPlayer());
-    Components::Camera camera = coordinator->getComponent<Components::Camera>(engine.getCurrentPlayer());
+  void RenderSystem::update(NN::Engine *engine, double frameTime) {
+    NN::Coordinator *coordinator = engine->getCoordinator();
+    Components::Position player = coordinator->getComponent<Components::Position>(engine->getCurrentPlayer());
+    Components::Camera camera = coordinator->getComponent<Components::Camera>(engine->getCurrentPlayer());
 
-    drawWorld(player, camera, engine.getWorld(), engine.getConfig()->getTextures());
+    drawWorld(player, camera, engine->getWorld(), engine->getConfig()->getTextures());
   }
 
 

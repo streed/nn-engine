@@ -6,8 +6,8 @@
 #include "coordinator.h"
 
 namespace NN::Systems::BuiltIns {
-  void PlayerMovementSystem::update(NN::Engine &engine, double frameTime) {
-    NN::Coordinator *coordinator = engine.getCoordinator();
+  void PlayerMovementSystem::update(NN::Engine *engine, double frameTime) {
+    NN::Coordinator *coordinator = engine->getCoordinator();
 
     for (auto const &entity: entities) {
       auto &camera = coordinator->getComponent<Components::Camera>(entity);

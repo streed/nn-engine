@@ -1,4 +1,4 @@
-#ifdef __APPLE__
+#if defined __APPLE__ || _MSC_VER
 #include <SDL.h>
 #else
 #include <SDL2/SDL.h>

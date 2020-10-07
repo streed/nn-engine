@@ -6,7 +6,7 @@ class World {
     int width;
     int height;
     int *map;
-    bool **navMesh;
+    bool *navMesh;
 
     World(int width, int height, int *map);
     ~World();

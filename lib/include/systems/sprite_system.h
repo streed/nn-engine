@@ -1,7 +1,7 @@
 #ifndef __SPRITE_SYSTEM__
 #define __SPRITE_SYSTEM__
 
-#ifdef __APPLE__
+#if defined __APPLE__ || _MSC_VER
 #include <SDL.h>
 #include <SDL_ttf.h>
 #else
@@ -14,7 +14,7 @@
 namespace NN::Systems::BuiltIns {
   class SpriteSystem: public NN::Systems::System {
     public:
-      void update(Engine &engine, double frameTime) override;
+      void update(Engine *engine, double frameTime) override;
   };
 }
 

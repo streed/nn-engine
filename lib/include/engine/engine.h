@@ -43,8 +43,8 @@ namespace NN {
       std::shared_ptr<Systems::Graphics::RenderSystem> getRenderSystem();
       World *getWorld();
 
-      void setSceneStateMachine(Scenes::SceneStateMachine *sceneStateMachine);
-      Scenes::SceneStateMachine *getSceneStateMachine();
+      void setSceneStateMachine(std::shared_ptr<Scenes::SceneStateMachine> sceneStateMachine);
+      std::shared_ptr<Scenes::SceneStateMachine> getSceneStateMachine();
 
     private:
       void render();
@@ -64,8 +64,7 @@ namespace NN {
 
       Entities::Entity currentPlayer;
 
-      Scenes::SceneStateMachine *sceneStateMachine;
-
+      std::shared_ptr<Scenes::SceneStateMachine> sceneStateMachine;
       std::shared_ptr<Systems::Graphics::RenderSystem> renderSystem;
       std::shared_ptr<Systems::BuiltIns::InputSystem> inputSystem;
       std::shared_ptr<Systems::BuiltIns::PlayerMovementSystem> playerMovementSystem;

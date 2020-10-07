@@ -8,7 +8,7 @@ namespace NN {
   namespace Scenes::Examples {
     class BasicExampleScene: public Scenes::Scene {
       public:
-        BasicExampleScene(Engine &engine): Scene(engine) {}
+        BasicExampleScene(Engine *engine): Scene(engine) {}
 
         void onCreate() override;
         void onDestroy() override;

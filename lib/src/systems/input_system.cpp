@@ -11,10 +11,10 @@ using namespace std;
 #include "coordinator.h"
 
 namespace NN::Systems::BuiltIns {
-  void InputSystem::update(NN::Engine &engine, double frameTime) {
-    NN::Coordinator *coordinator = engine.getCoordinator();
+  void InputSystem::update(NN::Engine *engine, double frameTime) {
+    NN::Coordinator *coordinator = engine->getCoordinator();
 
-    auto &input = coordinator->getComponent<Components::Input>(engine.getCurrentPlayer());
+    auto &input = coordinator->getComponent<Components::Input>(engine->getCurrentPlayer());
 
     boost::scoped_ptr<InputPacket> inputPacket(Keyboard::get().getInput());
 

@@ -8,8 +8,8 @@ namespace NN::Utils {
     double sideDistX;
     double sideDistY;
 
-    double deltaDistX = abs(1 / dirX);
-    double deltaDistY = abs(1 / dirY);
+    double deltaDistX = fabs(1 / dirX);
+    double deltaDistY = fabs(1 / dirY);
 
     int stepX;
     int stepY;

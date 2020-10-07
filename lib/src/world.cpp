@@ -20,22 +20,22 @@ int World::getMapPoint(int x, int y) {
 }
 
 void World::markNotTraversable(int x, int y) {
-  navMesh[x][y] = false;
+  navMesh[x * this->height + y] = false;
 }
 
 void World::markTraversable(int x, int y) {
-  navMesh[x][y] = true;
+  navMesh[x * this->height + y] = true;
 }
 
 bool World::isTraversable(int x, int y) {
-  return navMesh[x][y];
+  return navMesh[x * this->height + y];
 }
 
 void World::setupNavMesh() {
-  navMesh = new bool*[height];
+  navMesh = new bool[height*width];
 
-  for (int i = 0; i < height; i++) {
-    navMesh[i] = new bool[width];
+  for (int i = 0; i < height * width; i++) {
+      navMesh[i] = false;
   }
 
   resetNavMesh();
@@ -45,7 +45,7 @@ void World::setupNavMesh() {
 void World::resetNavMesh() {
   for (int i =  0; i < height; i++) {
     for (int j = 0; j < width; j++) {
-      navMesh[i][j] = getMapPoint(i, j) == 0 ? true: false;
+      navMesh[i * this->height + j] = getMapPoint(i, j) == 0 ? true: false;
     }
   }
 }
@@ -54,7 +54,7 @@ void World::draw() {
   cout << "NavMesh: " << endl;
   for (int i =  0; i < height; i++) {
     for (int j = 0; j < width; j++) {
-      cout << navMesh[i][j] << ",";
+      cout << navMesh[i * this->width + j] << ",";
     }
 
     cout << "\t";
