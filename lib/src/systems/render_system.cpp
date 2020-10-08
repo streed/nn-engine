@@ -162,7 +162,7 @@ namespace NN::Systems::Graphics {
   void RenderSystem::drawTextureSlice(int x, int bottom, int end, Utils::RayCastHit hit, std::vector<NN::Graphics::Texture> *textures) {
     int lineHeight = (int)(config->getScreenHeight() / hit.perpWallDist);
     double step = 1.0 * TEXTURE_WIDTH / lineHeight;
-    double texPos = (bottom - config->getScreenHeight() / 2 + lineHeight / 2) * step;
+    double texPos = (double(bottom) - config->getScreenHeight() / 2 + double(lineHeight) / 2) * step;
     for (int y = bottom; y < end; y++) {
       int texY = (int)texPos & (TEXTURE_HEIGHT - 1);
       texPos += step;

@@ -3,6 +3,7 @@
 using namespace std;
 
 #include <boost/program_options.hpp>
+#include <boost/filesystem/directory.hpp>
 
 namespace po = boost::program_options;
 
@@ -40,22 +41,41 @@ namespace NN {
     loadJsonConfig();
 
     loadTextures();
+    loadSprites();
   }
 
   void Config::loadTextures() {
-    textures.push_back(Graphics::Texture("./textures/bluestone.png"));
-    textures.push_back(Graphics::Texture("./textures/colorstone.png"));
-    textures.push_back(Graphics::Texture("./textures/eagle.png"));
-    textures.push_back(Graphics::Texture("./textures/greystone.png"));
-    textures.push_back(Graphics::Texture("./textures/mossy.png"));
-    textures.push_back(Graphics::Texture("./textures/purplestone.png"));
-    textures.push_back(Graphics::Texture("./textures/redbrick.png"));
-    textures.push_back(Graphics::Texture("./textures/wood.png"));
-    textures.push_back(Graphics::Texture("./textures/barrel.png"));
-    textures.push_back(Graphics::Texture("./textures/greenlight.png"));
-    textures.push_back(Graphics::Texture("./textures/pillar.png"));
-    textures.push_back(Graphics::Texture("./textures/penguin.png"));
-    textures.push_back(Graphics::Texture("./textures/fireball.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/bluestone.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/colorstone.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/eagle.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/greystone.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/mossy.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/purplestone.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/redbrick.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/wood.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/barrel.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/greenlight.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/pillar.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/penguin.png"));
+    textures.push_back(Graphics::Texture(baseGameDir + "textures/fireball.png"));
+  }
+
+  void Config::loadSprites() {
+      //Let's just load one sprite...I need to rethink how this is all loaded...
+      const std::string path(baseGameDir + "textures\\animated\\1");
+      boost::filesystem::directory_iterator end;
+
+      std::vector<int> spriteImagesToLoad;
+
+      for (boost::filesystem::directory_iterator iter(path); iter != end; iter++) {
+          spriteImagesToLoad.push_back(std::stoi(iter->path().filename().string()));
+      }
+
+      std::sort(spriteImagesToLoad.begin(), spriteImagesToLoad.end());
+
+      for (const auto& spritePath: spriteImagesToLoad) {
+          textures.push_back(Graphics::Texture(baseGameDir + "textures/animated/1/" + std::to_string(spritePath)));
+      }
   }
 
   void Config::loadJsonConfig() {
@@ -70,10 +90,10 @@ namespace NN {
   }
 
   int Config::getScreenWidth() {
-    return 720;
+    return 320;
   }
 
   int Config::getScreenHeight() {
-    return 480;
+    return 200;
   }
 }

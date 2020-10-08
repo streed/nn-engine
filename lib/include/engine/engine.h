@@ -19,6 +19,7 @@ namespace NN {
       class PlayerMovementSystem;
       class PhysicsSystem;
       class SpriteSystem;
+      class AnimatedSpriteSystem;
     }
   }
 
@@ -56,7 +57,7 @@ namespace NN {
       Config *config;
       Coordinator *coordinator;
 
-      static const int DESIRED_FPS = 60;
+      static const int DESIRED_FPS = 120;
       static const int GAME_LOOP_TICKS = 1000 / DESIRED_FPS;
 
       double currentFrameTime;
@@ -69,6 +70,7 @@ namespace NN {
       std::shared_ptr<Systems::BuiltIns::InputSystem> inputSystem;
       std::shared_ptr<Systems::BuiltIns::PlayerMovementSystem> playerMovementSystem;
       std::shared_ptr<Systems::BuiltIns::PhysicsSystem> physicsSystem;
+      std::shared_ptr<Systems::BuiltIns::AnimatedSpriteSystem> animatedSpriteSystem;
       std::shared_ptr<Systems::BuiltIns::SpriteSystem> spriteSystem;
   };
 }

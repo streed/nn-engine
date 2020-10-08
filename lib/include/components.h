@@ -99,6 +99,31 @@ namespace NN {
       int spriteHeight;
     } Sprite;
 
+    typedef struct _Animation {
+        int startIndex;
+        int endIndex;
+        unsigned int msPerFrame;
+        double timeRemainingOnFrame;
+    } Animation;
+
+    typedef struct _AnimatedSprite {
+        int startTexturIndex;
+        int endTextureIndex;
+        int currentFrame;
+        int currentAnimation;
+        int spriteWidth;
+        int spriteHeight;
+        double spriteScaleX;
+        double spriteScaleY;
+        int vMove;
+        bool actuallyStatic;
+        Animation animations[10];
+
+        bool isValid() {
+            return spriteWidth != 0 && spriteHeight != 0;
+        }
+    } AnimatedSprite;
+
     typedef struct _Input {
       bool forward;
       bool backward;

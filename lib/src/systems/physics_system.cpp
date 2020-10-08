@@ -1,3 +1,6 @@
+#include <iostream>
+using namespace std;
+
 #include "systems/physics_system.h"
 
 #include "engine/engine.h"
@@ -15,12 +18,11 @@ namespace NN::Systems::BuiltIns {
       double newX = position.posX + velocity.velocityX;
       double newY = position.posY + velocity.velocityY;
 
-      // TODO: Make sure this works with isTraversable
-      if (engine->getWorld()->getMapPoint(int(newX), int(position.posY)) == 0) {
+      if (engine->getWorld()->isTraversable(int(newX), int(position.posY))) {
         position.posX = newX;
       }
 
-      if (engine->getWorld()->getMapPoint(int(position.posX), int(newY)) == 0) {
+      if (engine->getWorld()->isTraversable(int(position.posX), int(newY))) {
         position.posY = newY;
       }
     }

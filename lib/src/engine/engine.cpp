@@ -15,6 +15,7 @@ using namespace std;
 #include "systems/player_movement_system.h"
 #include "systems/physics_system.h"
 #include "systems/sprite_system.h"
+#include "systems/AnimatedSpriteSystem.h"
 #include "world.h"
 
 namespace NN {
@@ -29,12 +30,14 @@ namespace NN {
     playerMovementSystem = coordinator->registerSystem<Systems::BuiltIns::PlayerMovementSystem>();
     physicsSystem = coordinator->registerSystem<Systems::BuiltIns::PhysicsSystem>();
     spriteSystem = coordinator->registerSystem<Systems::BuiltIns::SpriteSystem>();
+    animatedSpriteSystem = coordinator->registerSystem<Systems::BuiltIns::AnimatedSpriteSystem>();
 
     coordinator->registerComponent<Components::Position>();
     coordinator->registerComponent<Components::Velocity>();
     coordinator->registerComponent<Components::Camera>();
     coordinator->registerComponent<Components::Input>();
     coordinator->registerComponent<Components::Sprite>();
+    coordinator->registerComponent<Components::AnimatedSprite>();
 
     Entities::Signature renderSignature;
     renderSignature.set(coordinator->getComponentType<Components::Position>());
@@ -58,8 +61,12 @@ namespace NN {
 
     Entities::Signature spriteSignature;
     spriteSignature.set(coordinator->getComponentType<Components::Position>());
-    spriteSignature.set(coordinator->getComponentType<Components::Sprite>());
+    spriteSignature.set(coordinator->getComponentType<Components::AnimatedSprite>());
     coordinator->setSystemSignature<Systems::BuiltIns::SpriteSystem>(spriteSignature);
+
+    Entities::Signature animatedSpriteSignature;
+    animatedSpriteSignature.set(coordinator->getComponentType<Components::AnimatedSprite>());
+    coordinator->setSystemSignature<Systems::BuiltIns::AnimatedSpriteSystem>(animatedSpriteSignature);
   }
 
   Engine::~Engine() {}
@@ -98,12 +105,14 @@ namespace NN {
 
       inputSystem->update(this, frameTime);
 
-      while (lag >= GAME_LOOP_TICKS) {
-        playerMovementSystem->update(this, GAME_LOOP_TICKS / 1000.0);
-        sceneStateMachine->update(GAME_LOOP_TICKS / 1000.0);
-        physicsSystem->update(this, GAME_LOOP_TICKS / 1000.0);
-        lag -= GAME_LOOP_TICKS;
-      }
+	  while (lag >= GAME_LOOP_TICKS) {
+		  unsigned int ticks = SDL_GetTicks();
+		  playerMovementSystem->update(this, GAME_LOOP_TICKS / 1000.0);
+		  animatedSpriteSystem->update(this, GAME_LOOP_TICKS / 1000.0);
+		  sceneStateMachine->update(GAME_LOOP_TICKS / 1000.0);
+		  physicsSystem->update(this, GAME_LOOP_TICKS / 1000.0);
+		  lag -= GAME_LOOP_TICKS;
+	  }
 
       renderSystem->update(this, frameTime);
       spriteSystem->update(this, frameTime);

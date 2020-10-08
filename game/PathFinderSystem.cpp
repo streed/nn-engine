@@ -35,7 +35,6 @@ void PathFinderSystem::update(NN::Engine *engine, double frameTime) {
 		auto& position = coordinator->getComponent<Position>(entity);
 		auto& velocity = coordinator->getComponent<Velocity>(entity);
 		auto& target = coordinator->getComponent<TargetEntity>(entity);
-
 		auto& targetPosition = coordinator->getComponent<Position>(target.target);
 
 		double targetDistance = distance(position, targetPosition);
@@ -55,15 +54,17 @@ void PathFinderSystem::update(NN::Engine *engine, double frameTime) {
 
 			float diffX = (nextCellToMoveTo.posX + 0.5) - position.posX;
 			float diffY = (nextCellToMoveTo.posY + 0.5) - position.posY;
+
 			float length = (diffX * diffX) + (diffY * diffY);
 			length = length * inverseSqrt(length);
 			double moveSpeed = velocity.maxSpeed * frameTime;
-			double dirX = diffX * double(length);
-			double dirY = diffY * double(length);
+			double dirX = diffX / double(length);
+			double dirY = diffY / double(length);
+
 			velocity.velocityX = dirX * moveSpeed;
 			velocity.velocityY = dirY * moveSpeed;
 		} else {
-			cout << entity << " found their target: " << target.target << endl;
+			//cout << entity << " found their target: " << target.target << endl;
 		}
 	}
 }
