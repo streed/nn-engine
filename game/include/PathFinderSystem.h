@@ -1,5 +1,5 @@
 #pragma once
-#include "systems\system.h"
+#include "systems/system.h"
 #include "entities.h"
 
 namespace NN {

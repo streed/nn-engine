@@ -408,3 +408,4 @@ FodyWeavers.xsd
 /lib/nnEngine.sln
 /nn-engine/Engine/Engine.vcxproj
 /nn-engine/nn-engine.sln
+.env/
