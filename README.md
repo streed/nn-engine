@@ -12,7 +12,7 @@ Linux
 =====
 ```
 sudo apt-get install libsdl2-dev
-sudo apt-get install libsdl2ttf-dev
+sudo apt-get install libsdl2-ttf-dev
 ```
 
 OSX

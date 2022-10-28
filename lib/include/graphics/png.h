@@ -1,7 +1,11 @@
 #ifndef __PNG__
 #define __PNG__
 
+#include <cstddef>
+
 #include <vector>
+
+using namespace std;
 
 int decodePNG(std::vector<unsigned char>& out_image_32bit,
               unsigned long& image_width,
