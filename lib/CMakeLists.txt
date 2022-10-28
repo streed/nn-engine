@@ -33,7 +33,7 @@ macro(run_conan)
     # -------------------------------------------------
     # Add Deps Here
     #--------------------------------------------------
-    boost/1.74.0
+    boost/1.80.0
     nlohmann_json/3.9.1
     # -------------------------------------------------
     # End Deps Here
@@ -56,7 +56,7 @@ conan_basic_setup()
 
 #Set(Boost_DEBUG 1)
 Set(Boost_INSTALL_DIR ${CONAN_BOOST_ROOT})
-find_package(Boost 1.74.0 COMPONENTS REQUIRED program_options)
+find_package(Boost 1.80.0 COMPONENTS REQUIRED program_options filesystem)
 
 find_package(SDL2 REQUIRED)
 
@@ -69,6 +69,7 @@ include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL2::Main
                                               SDL2::TTF
                                               Boost::program_options
+                                              Boost::filesystem
                                               CONAN_PKG::fmt
                                               CONAN_PKG::spdlog)
 

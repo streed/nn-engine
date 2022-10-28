@@ -110,37 +110,23 @@ void FollowScene::onCreate() {
     coordinator->addComponent<TargetEntity>(penguinFollower2, TargetEntity{penguinFollower, 0.5 });
 
     std::srand(std::time(nullptr));
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 18; j++) {
-            NN::Entities::Entity fire = coordinator->createEntity();
-            coordinator->addComponent<NN::Components::Position>(fire, NN::Components::Position{ double(i) + 0.5, double(j) + 0.5 });
-            coordinator->addComponent<NN::Components::AnimatedSprite>(fire, NN::Components::AnimatedSprite{ 13,
-                                                                                                            131,
-                                                                                                            (13 + std::rand() % 119),
-                                                                                                            0,
-                                                                                                            64,
-                                                                                                            64,
-                                                                                                            1,
-                                                                                                            1,
-                                                                                                            64,
-                                                                                                            false,
-                                                                                                            {NN::Components::Animation{13, 119, (unsigned int)(std::rand() % 1000 + 1), 0}} });
-        }
-    }
-
-    /*NN::Entities::Entity fire2 = coordinator->createEntity();
-    coordinator->addComponent<NN::Components::Position>(fire2, NN::Components::Position{ 5.5, 7.5 });
-    coordinator->addComponent<NN::Components::AnimatedSprite>(fire2, NN::Components::AnimatedSprite{ 13,
-                                                                                                     131,
-                                                                                                     100,
-                                                                                                     0,
-                                                                                                     64,
-                                                                                                     64,
-                                                                                                     2.0,
-                                                                                                     2.0,
-                                                                                                     48,
-                                                                                                     false,
-                                                                                                     {NN::Components::Animation{13, 119, 30, 0}} });*/
+    // for (int i = 0; i < 10; i++) {
+    //     for (int j = 0; j < 18; j++) {
+    //         NN::Entities::Entity fire = coordinator->createEntity();
+    //         coordinator->addComponent<NN::Components::Position>(fire, NN::Components::Position{ double(i) + 0.5, double(j) + 0.5 });
+    //         coordinator->addComponent<NN::Components::AnimatedSprite>(fire, NN::Components::AnimatedSprite{ 13,
+    //                                                                                                         13,
+    //                                                                                                         13,
+    //                                                                                                         0,
+    //                                                                                                         64,
+    //                                                                                                         64,
+    //                                                                                                         1,
+    //                                                                                                         1,
+    //                                                                                                         64,
+    //                                                                                                         false,
+    //                                                                                                         {NN::Components::Animation{13, 13, (unsigned int)(std::rand() % 1000 + 1), 0}} });
+    //     }
+    // }
 }
 
 void FollowScene::update(double frameTime) {

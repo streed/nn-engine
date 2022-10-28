@@ -3,7 +3,9 @@
 using namespace std;
 
 #include <boost/program_options.hpp>
-#include <boost/filesystem/directory.hpp>
+#define BOOST_NO_CXX11_SCOPED_ENUMS
+#include <boost/filesystem.hpp>
+#undef BOOST_NO_CXX11_SCOPED_ENUMS
 
 namespace po = boost::program_options;
 
@@ -41,7 +43,7 @@ namespace NN {
     loadJsonConfig();
 
     loadTextures();
-    loadSprites();
+    // loadSprites();
   }
 
   void Config::loadTextures() {
@@ -62,7 +64,7 @@ namespace NN {
 
   void Config::loadSprites() {
       //Let's just load one sprite...I need to rethink how this is all loaded...
-      const std::string path(baseGameDir + "textures\\animated\\1");
+      const std::string path(baseGameDir + "textures/animated/1");
       boost::filesystem::directory_iterator end;
 
       std::vector<int> spriteImagesToLoad;

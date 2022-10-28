@@ -1,5 +1,4 @@
-# nn-engine
-Let's make a game...with raycasting and pain
+# nn-engine Let's make a game...with raycasting and pain
 
 ![Example Rendering](https://i.imgur.com/vP9CuwG.jpg)
 
@@ -13,6 +12,7 @@ Linux
 ```
 sudo apt-get install libsdl2-dev
 sudo apt-get install libsdl2-ttf-dev
+sudo apt-get install libboost-all-dev
 ```
 
 OSX
