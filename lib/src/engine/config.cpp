@@ -12,6 +12,7 @@ namespace po = boost::program_options;
 
 #include "engine/config.h"
 #include "graphics/texture.h"
+#include "input/keyboard.h"
 
 namespace NN {
   Config::Config(int argc, char **args)
@@ -37,6 +38,9 @@ namespace NN {
 
     loadJsonConfig();
     loadTextures();
+
+    // Load key bindings from the same config file
+    Keyboard::get().loadBindings(baseGameDir + "game.json");
   }
 
   void Config::loadJsonConfig() {

@@ -20,6 +20,16 @@ namespace NN {
       class SpriteSystem;
       class AnimatedSpriteSystem;
     }
+
+    namespace Weapons {
+      class WeaponSystem;
+      class ProjectileSystem;
+    }
+  }
+
+  namespace UI {
+    class UISystem;
+    class UICanvas;
   }
 
   namespace Scenes {
@@ -46,6 +56,13 @@ namespace NN {
       void setSceneStateMachine(std::shared_ptr<Scenes::SceneStateMachine> sceneStateMachine);
       std::shared_ptr<Scenes::SceneStateMachine> getSceneStateMachine();
 
+      // UI
+      UI::UISystem *getUISystem();
+
+      // Weapons
+      std::shared_ptr<Systems::Weapons::WeaponSystem> getWeaponSystem();
+      std::shared_ptr<Systems::Weapons::ProjectileSystem> getProjectileSystem();
+
     private:
       void render();
       void processEvents();
@@ -71,6 +88,10 @@ namespace NN {
       std::shared_ptr<Systems::BuiltIns::PhysicsSystem> physicsSystem;
       std::shared_ptr<Systems::BuiltIns::AnimatedSpriteSystem> animatedSpriteSystem;
       std::shared_ptr<Systems::BuiltIns::SpriteSystem> spriteSystem;
+      std::shared_ptr<Systems::Weapons::WeaponSystem> weaponSystem;
+      std::shared_ptr<Systems::Weapons::ProjectileSystem> projectileSystem;
+
+      std::unique_ptr<UI::UISystem> uiSystem;
   };
 }
 

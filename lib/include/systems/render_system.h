@@ -41,10 +41,16 @@ namespace NN {
         void update(NN::Engine *engine, double frameTime) override;
 
         void present(bool debug, int fps);
+        // Split present for UI overlay: first draws buffer + debug, then UI renders, then final present
+        void presentPreUI(bool debug, int fps);
+        void presentFinal();
         void clear();
 
         double *getZBuffer();
         void setBufferPixel(int x, int y, Uint32 color);
+
+        SDL_Renderer *getRenderer();
+        TTF_Font *getFont();
 
       private:
         void drawTextureSlice(int x,

@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <sstream>
 
 #include "follow_scene.h"
 
@@ -10,6 +11,9 @@
 #include "world.h"
 #include "scene/map_loader.h"
 #include "PathFinderSystem.h"
+#include "weapons/weapon_components.h"
+#include "weapons/weapon_system.h"
+#include "ui/ui_system.h"
 
 static int worldMap[18*10] = {
   1,1,4,4,4,4,4,4,2,2,
@@ -51,6 +55,9 @@ void FollowScene::onCreate() {
 	} else {
 		createHardcoded();
 	}
+
+	setupWeapons();
+	setupHUD();
 }
 
 void FollowScene::createFromMapFile() {
@@ -163,6 +170,119 @@ void FollowScene::createHardcoded() {
 	coordinator->addComponent<TargetEntity>(penguinFollower2, TargetEntity{ penguinFollower, 0.5 });
 }
 
+void FollowScene::onDestroy() {
+	engine->getUISystem()->removeCanvas(&hudCanvas);
+}
+
+void FollowScene::setupWeapons() {
+	NN::Coordinator* coordinator = engine->getCoordinator();
+
+	// Add health to the player
+	coordinator->addComponent<NN::Components::Health>(engine->getCurrentPlayer(),
+		NN::Components::Health{ 100.0, 100.0 });
+
+	// Add health to all penguins (anything with AnimatedSprite + Position)
+	// Register them as hittable for the weapon system
+	auto weaponSys = engine->getWeaponSystem();
+
+	// Create a hitscan weapon entity
+	NN::Entities::Entity weaponEntity = coordinator->createEntity();
+	coordinator->addComponent<NN::Components::Weapon>(weaponEntity,
+		NN::Components::Weapon{
+			NN::Components::WeaponType::HITSCAN,
+			25.0,    // damage
+			50.0,    // range
+			0.3,     // fire rate (seconds between shots)
+			0.0,     // cooldown remaining
+			false,   // firing
+			-1,      // ammo (infinite)
+			-1,      // max ammo
+			0.0,     // projectile speed (N/A for hitscan)
+			-1,      // projectile texture (N/A)
+			0.2,     // projectile radius (N/A)
+			-1,      // weapon texture
+			-1,      // muzzle flash texture
+			0.0,     // muzzle flash timer
+			0.05,    // muzzle flash duration
+			0        // slot
+		});
+
+	// Create a projectile weapon entity
+	NN::Entities::Entity rocketEntity = coordinator->createEntity();
+	coordinator->addComponent<NN::Components::Weapon>(rocketEntity,
+		NN::Components::Weapon{
+			NN::Components::WeaponType::PROJECTILE,
+			50.0,    // damage
+			30.0,    // range
+			1.0,     // fire rate
+			0.0,     // cooldown remaining
+			false,   // firing
+			10,      // ammo
+			10,      // max ammo
+			8.0,     // projectile speed
+			12,      // projectile texture (fireball)
+			0.3,     // projectile radius
+			-1,      // weapon texture
+			-1,      // muzzle flash texture
+			0.0,     // muzzle flash timer
+			0.1,     // muzzle flash duration
+			1        // slot
+		});
+}
+
+void FollowScene::setupHUD() {
+	using namespace NN::UI;
+
+	// Crosshair at screen center
+	hudCanvas.addCrosshair(Color(0, 255, 0, 200), 8, 2, 3);
+
+	// Health bar at bottom-left
+	healthBarId = hudCanvas.addBar(
+		10, -30, 150, 16,
+		100.0, 100.0,
+		Color(200, 30, 30, 220),
+		Color(60, 60, 60, 180),
+		Anchor::BOTTOM_LEFT, 5);
+
+	// Health label
+	hudCanvas.addText(10, -50, "HP", Color(255, 255, 255, 200), 14,
+		Anchor::BOTTOM_LEFT, 10);
+
+	// Ammo text at bottom-right
+	ammoTextId = hudCanvas.addText(
+		-100, -30, "AMMO: INF",
+		Color(255, 255, 100, 220), 14,
+		Anchor::BOTTOM_RIGHT, 10);
+
+	// Weapon indicator at bottom-center
+	hudCanvas.addText(
+		-30, -30, "[1] Hitscan  [2] Rocket",
+		Color(200, 200, 200, 180), 12,
+		Anchor::BOTTOM_CENTER, 10);
+
+	// Register the canvas with the UI system
+	engine->getUISystem()->addCanvas(&hudCanvas);
+}
+
 void FollowScene::update(double frameTime) {
 	pathFinderSystem->update(engine, frameTime);
+
+	// Sync weapon firing state with player input
+	NN::Coordinator* coordinator = engine->getCoordinator();
+	auto &input = coordinator->getComponent<NN::Components::Input>(engine->getCurrentPlayer());
+
+	// Update weapon firing state from input
+	// For simplicity, update all weapon entities' firing state
+	for (auto const &entity : engine->getWeaponSystem()->entities) {
+		auto &weapon = coordinator->getComponent<NN::Components::Weapon>(entity);
+		weapon.firing = input.shoot;
+	}
+
+	// Update HUD health bar
+	if (healthBarId >= 0) {
+		auto &health = coordinator->getComponent<NN::Components::Health>(engine->getCurrentPlayer());
+		auto &bar = hudCanvas.getElement(healthBarId);
+		bar.value = health.current;
+		bar.maxValue = health.max;
+	}
 }

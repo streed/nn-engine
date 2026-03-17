@@ -129,6 +129,11 @@ namespace NN {
       bool rotateRight;
       bool quit;
       bool debug;
+      bool shoot;
+      bool weapon1;
+      bool weapon2;
+      bool weapon3;
+      bool weapon4;
     };
 
 

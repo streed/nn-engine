@@ -26,5 +26,10 @@ namespace NN::Systems::BuiltIns {
     input.rotateRight = inputPacket.get()->rotateRight;
     input.quit = inputPacket.get()->quit;
     input.debug = inputPacket.get()->debug;
+    input.shoot = inputPacket.get()->shoot;
+    input.weapon1 = inputPacket.get()->weapon1;
+    input.weapon2 = inputPacket.get()->weapon2;
+    input.weapon3 = inputPacket.get()->weapon3;
+    input.weapon4 = inputPacket.get()->weapon4;
   }
 }

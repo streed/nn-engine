@@ -83,4 +83,29 @@ namespace NN::Utils {
       world->getMapPoint(mapX, mapY) - 1
     };
   }
+
+  double RayCast::intersectCircle(double cx, double cy, double radius) const {
+    // Vector from ray origin to circle center
+    double ocX = cx - startX;
+    double ocY = cy - startY;
+
+    // Project onto ray direction
+    double dot = ocX * dirX + ocY * dirY;
+    if (dot < 0.0) return -1.0; // Circle is behind ray
+
+    // Closest point on ray to circle center
+    double closestX = startX + dirX * dot;
+    double closestY = startY + dirY * dot;
+
+    double distSq = (closestX - cx) * (closestX - cx) + (closestY - cy) * (closestY - cy);
+    double radiusSq = radius * radius;
+
+    if (distSq > radiusSq) return -1.0; // Ray misses
+
+    // Distance from closest point back to intersection
+    double offset = std::sqrt(radiusSq - distSq);
+    double t = dot - offset;
+
+    return (t >= 0.0) ? t : dot + offset;
+  }
 }

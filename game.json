@@ -20,5 +20,20 @@
     "textures/pillar.png",
     "textures/penguin.png",
     "textures/fireball.png"
-  ]
+  ],
+  "bindings": {
+    "forward": "W",
+    "backward": "S",
+    "strafe_left": "A",
+    "strafe_right": "D",
+    "rotate_left": "K",
+    "rotate_right": "L",
+    "quit": "Q",
+    "debug": "P",
+    "shoot": "SPACE",
+    "weapon1": "1",
+    "weapon2": "2",
+    "weapon3": "3",
+    "weapon4": "4"
+  }
 }

@@ -15,6 +15,10 @@
 #include "systems/physics_system.h"
 #include "systems/sprite_system.h"
 #include "systems/AnimatedSpriteSystem.h"
+#include "weapons/weapon_system.h"
+#include "weapons/projectile_system.h"
+#include "weapons/weapon_components.h"
+#include "ui/ui_system.h"
 #include "world.h"
 
 namespace NN {
@@ -30,6 +34,8 @@ namespace NN {
     physicsSystem = coordinator->registerSystem<Systems::BuiltIns::PhysicsSystem>();
     spriteSystem = coordinator->registerSystem<Systems::BuiltIns::SpriteSystem>();
     animatedSpriteSystem = coordinator->registerSystem<Systems::BuiltIns::AnimatedSpriteSystem>();
+    weaponSystem = coordinator->registerSystem<Systems::Weapons::WeaponSystem>();
+    projectileSystem = coordinator->registerSystem<Systems::Weapons::ProjectileSystem>();
 
     coordinator->registerComponent<Components::Position>();
     coordinator->registerComponent<Components::Velocity>();
@@ -37,6 +43,10 @@ namespace NN {
     coordinator->registerComponent<Components::Input>();
     coordinator->registerComponent<Components::Sprite>();
     coordinator->registerComponent<Components::AnimatedSprite>();
+    coordinator->registerComponent<Components::Weapon>();
+    coordinator->registerComponent<Components::WeaponInventory>();
+    coordinator->registerComponent<Components::Projectile>();
+    coordinator->registerComponent<Components::Health>();
 
     Entities::Signature renderSignature;
     renderSignature.set(coordinator->getComponentType<Components::Position>());
@@ -66,6 +76,17 @@ namespace NN {
     Entities::Signature animatedSpriteSignature;
     animatedSpriteSignature.set(coordinator->getComponentType<Components::AnimatedSprite>());
     coordinator->setSystemSignature<Systems::BuiltIns::AnimatedSpriteSystem>(animatedSpriteSignature);
+
+    Entities::Signature weaponSignature;
+    weaponSignature.set(coordinator->getComponentType<Components::Weapon>());
+    coordinator->setSystemSignature<Systems::Weapons::WeaponSystem>(weaponSignature);
+
+    Entities::Signature projectileSignature;
+    projectileSignature.set(coordinator->getComponentType<Components::Position>());
+    projectileSignature.set(coordinator->getComponentType<Components::Projectile>());
+    coordinator->setSystemSignature<Systems::Weapons::ProjectileSystem>(projectileSignature);
+
+    uiSystem = std::make_unique<UI::UISystem>();
   }
 
   Engine::~Engine() {
@@ -79,6 +100,9 @@ namespace NN {
     } else {
       if (renderSystem->setup(config)) {
         std::cout << "Window created, starting game." << std::endl;
+
+        // Initialize UI system with the renderer and font from render system
+        uiSystem->setup(renderSystem->getRenderer(), renderSystem->getFont(), config);
       }
     }
   }
@@ -106,17 +130,24 @@ namespace NN {
 
       inputSystem->update(this, frameTime);
 
-	  while (lag >= GAME_LOOP_TICKS) {
-		  playerMovementSystem->update(this, GAME_LOOP_TICKS / 1000.0);
-		  animatedSpriteSystem->update(this, GAME_LOOP_TICKS / 1000.0);
-		  sceneStateMachine->update(GAME_LOOP_TICKS / 1000.0);
-		  physicsSystem->update(this, GAME_LOOP_TICKS / 1000.0);
-		  lag -= GAME_LOOP_TICKS;
-	  }
+      while (lag >= GAME_LOOP_TICKS) {
+        playerMovementSystem->update(this, GAME_LOOP_TICKS / 1000.0);
+        animatedSpriteSystem->update(this, GAME_LOOP_TICKS / 1000.0);
+        sceneStateMachine->update(GAME_LOOP_TICKS / 1000.0);
+        physicsSystem->update(this, GAME_LOOP_TICKS / 1000.0);
+        weaponSystem->update(this, GAME_LOOP_TICKS / 1000.0);
+        projectileSystem->update(this, GAME_LOOP_TICKS / 1000.0);
+        lag -= GAME_LOOP_TICKS;
+      }
 
       renderSystem->update(this, frameTime);
       spriteSystem->update(this, frameTime);
-      renderSystem->present(debug, (int)(1.0 / frameTime));
+
+      // Render UI on top of the 3D scene
+      renderSystem->presentPreUI(debug, (int)(1.0 / frameTime));
+      uiSystem->render(renderSystem->getRenderer());
+      renderSystem->presentFinal();
+
       renderSystem->clear();
 
       oldFrameTime = currentFrameTime;
@@ -168,8 +199,20 @@ namespace NN {
   void Engine::setSceneStateMachine(std::shared_ptr<Scenes::SceneStateMachine> sceneStateMachine) {
     this->sceneStateMachine = sceneStateMachine;
   }
-  
+
   std::shared_ptr<Scenes::SceneStateMachine> Engine::getSceneStateMachine() {
     return sceneStateMachine;
+  }
+
+  UI::UISystem *Engine::getUISystem() {
+    return uiSystem.get();
+  }
+
+  std::shared_ptr<Systems::Weapons::WeaponSystem> Engine::getWeaponSystem() {
+    return weaponSystem;
+  }
+
+  std::shared_ptr<Systems::Weapons::ProjectileSystem> Engine::getProjectileSystem() {
+    return projectileSystem;
   }
 }

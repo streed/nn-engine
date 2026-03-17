@@ -234,4 +234,38 @@ namespace NN::Systems::Graphics {
     buffer[y][x] = color;
   }
 
+  void RenderSystem::presentPreUI(bool debug, int fps) {
+    drawBuffer();
+    SDL_RenderCopy(renderer, screen, NULL, NULL);
+
+    if (debug) {
+      ostringstream fpsString;
+      fpsString << "FPS: " << fps;
+      SDL_Color color = {50, 205, 50};
+      SDL_Surface *fpsText = TTF_RenderText_Blended(font, fpsString.str().c_str(), color);
+      SDL_Rect dest;
+      dest.x = 0;
+      dest.y = 0;
+      dest.w = fpsText->w;
+      dest.h = fpsText->h;
+
+      SDL_Texture *fpsTexture = SDL_CreateTextureFromSurface(renderer, fpsText);
+      SDL_RenderCopy(renderer, fpsTexture, NULL, &dest);
+      SDL_DestroyTexture(fpsTexture);
+      SDL_FreeSurface(fpsText);
+    }
+  }
+
+  void RenderSystem::presentFinal() {
+    SDL_RenderPresent(renderer);
+  }
+
+  SDL_Renderer *RenderSystem::getRenderer() {
+    return renderer;
+  }
+
+  TTF_Font *RenderSystem::getFont() {
+    return font;
+  }
+
 }
