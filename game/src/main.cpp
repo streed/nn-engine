@@ -12,24 +12,37 @@
 #include "engine/config.h"
 #include "scene/scene_state_machine.h"
 #include "follow_scene.h"
+#include "penguin_shooter_scene.h"
 
 int main(int argc, char *args[]) {
   NN::Config config(argc, args);
   NN::Engine engine(&config);
   engine.setup();
 
-  // Check if a map file was provided as the last argument
+  auto sceneStateMachine = std::make_shared<NN::Scenes::SceneStateMachine>();
+
+  // Check for command-line scene selection or map file
+  std::string sceneType;
   std::string mapFile;
-  if (argc > 1) {
-    std::string lastArg = args[argc - 1];
-    if (lastArg.size() > 5 && lastArg.substr(lastArg.size() - 5) == ".json"
-        && lastArg.find("--") != 0) {
-      mapFile = lastArg;
+
+  for (int i = 1; i < argc; i++) {
+    std::string arg = args[i];
+    if (arg == "--scene" && i + 1 < argc) {
+      sceneType = args[++i];
+    } else if (arg.size() > 5 && arg.substr(arg.size() - 5) == ".json"
+               && arg.find("--") != 0) {
+      mapFile = arg;
     }
   }
 
-  auto sceneStateMachine = std::make_shared<NN::Scenes::SceneStateMachine>();
-  sceneStateMachine->add(std::make_shared<FollowScene>(&engine, mapFile));
+  if (sceneType == "follow" || !mapFile.empty()) {
+    // Original follow scene (penguins follow player/each other)
+    sceneStateMachine->add(std::make_shared<FollowScene>(&engine, mapFile));
+  } else {
+    // Default: Penguin shooter game
+    sceneStateMachine->add(std::make_shared<PenguinShooterScene>(&engine));
+  }
+
   engine.setSceneStateMachine(sceneStateMachine);
 
   std::cout << "nnEngine - Running!" << std::endl;
