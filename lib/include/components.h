@@ -3,6 +3,7 @@
 
 #include <bitset>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <memory>
 #include <unordered_map>

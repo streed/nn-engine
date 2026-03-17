@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 #include "coordinator.h"
 #include "engine/config.h"
@@ -25,7 +25,7 @@ namespace NN {
   Engine::Engine(Config *config): config(config) {
     quit = false;
     debug = false;
-    coordinator = new Coordinator();
+    coordinator = std::make_unique<Coordinator>();
     coordinator->init();
 
     renderSystem = coordinator->registerSystem<Systems::Graphics::RenderSystem>();
@@ -89,9 +89,7 @@ namespace NN {
     uiSystem = std::make_unique<UI::UISystem>();
   }
 
-  Engine::~Engine() {
-    delete coordinator;
-  }
+  Engine::~Engine() = default;
 
   void Engine::setup() {
     if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_JOYSTICK) < 0 || TTF_Init() < 0) {
@@ -118,13 +116,13 @@ namespace NN {
 
       processEvents();
 
-      boost::scoped_ptr<InputPacket> inputPacket(Keyboard::get().getInput());
+      std::unique_ptr<InputPacket> inputPacket(Keyboard::get().getInput());
 
-      if (inputPacket.get()->quit) {
+      if (inputPacket->quit) {
         quit = true;
       }
 
-      if (inputPacket.get()->debug) {
+      if (inputPacket->debug) {
         debug = !debug;
       }
 
@@ -173,7 +171,7 @@ namespace NN {
   }
 
   NN::Coordinator *Engine::getCoordinator() {
-    return coordinator;
+    return coordinator.get();
   }
 
   void Engine::setCurrentPlayer(Entities::Entity entity) {

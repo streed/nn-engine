@@ -65,6 +65,8 @@ void PenguinShooterScene::onCreate() {
 
 void PenguinShooterScene::onDestroy() {
 	engine->getUISystem()->removeCanvas(&hudCanvas);
+	delete world;
+	world = nullptr;
 }
 
 void PenguinShooterScene::setupMap() {

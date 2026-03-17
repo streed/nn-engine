@@ -2,6 +2,7 @@
 #define NN_ENTITIES_H
 
 #include <array>
+#include <cstdint>
 #include <queue>
 #include <cstdlib>
 #include <bitset>

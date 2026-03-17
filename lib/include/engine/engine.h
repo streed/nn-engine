@@ -71,7 +71,7 @@ namespace NN {
       bool debug;
 
       Config *config;
-      Coordinator *coordinator;
+      std::unique_ptr<Coordinator> coordinator;
 
       static const int DESIRED_FPS = 120;
       static const int GAME_LOOP_TICKS = 1000 / DESIRED_FPS;

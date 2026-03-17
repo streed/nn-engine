@@ -1,7 +1,4 @@
-#include <iostream>
-using namespace std;
-
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 #include "systems/input_system.h"
 #include "engine/engine.h"
@@ -16,20 +13,20 @@ namespace NN::Systems::BuiltIns {
 
     auto &input = coordinator->getComponent<Components::Input>(engine->getCurrentPlayer());
 
-    boost::scoped_ptr<InputPacket> inputPacket(Keyboard::get().getInput());
+    std::unique_ptr<InputPacket> inputPacket(Keyboard::get().getInput());
 
-    input.forward = inputPacket.get()->forward;
-    input.backward = inputPacket.get()->backward;
-    input.strafeLeft = inputPacket.get()->strafeLeft;
-    input.strafeRight = inputPacket.get()->strafeRight;
-    input.rotateLeft = inputPacket.get()->rotateLeft;
-    input.rotateRight = inputPacket.get()->rotateRight;
-    input.quit = inputPacket.get()->quit;
-    input.debug = inputPacket.get()->debug;
-    input.shoot = inputPacket.get()->shoot;
-    input.weapon1 = inputPacket.get()->weapon1;
-    input.weapon2 = inputPacket.get()->weapon2;
-    input.weapon3 = inputPacket.get()->weapon3;
-    input.weapon4 = inputPacket.get()->weapon4;
+    input.forward = inputPacket->forward;
+    input.backward = inputPacket->backward;
+    input.strafeLeft = inputPacket->strafeLeft;
+    input.strafeRight = inputPacket->strafeRight;
+    input.rotateLeft = inputPacket->rotateLeft;
+    input.rotateRight = inputPacket->rotateRight;
+    input.quit = inputPacket->quit;
+    input.debug = inputPacket->debug;
+    input.shoot = inputPacket->shoot;
+    input.weapon1 = inputPacket->weapon1;
+    input.weapon2 = inputPacket->weapon2;
+    input.weapon3 = inputPacket->weapon3;
+    input.weapon4 = inputPacket->weapon4;
   }
 }

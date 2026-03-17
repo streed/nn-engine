@@ -95,6 +95,7 @@ namespace NN::Systems::Graphics {
 
       // Center of screen
       int p = y - config->getScreenHeight() / 2;
+      if (p == 0) continue; // Skip center scanline to avoid division by zero
       int posZ = config->getScreenHeight() / 2;
 
       double rowDistance = 1.0 * posZ / p;
@@ -115,8 +116,10 @@ namespace NN::Systems::Graphics {
         floorX += floorStepX;
         floorY += floorStepY;
 
-        int floorTexture = 3;
-        int ceilingTexture = 7;
+        static constexpr int FLOOR_TEXTURE_INDEX = 3;
+        static constexpr int CEILING_TEXTURE_INDEX = 7;
+        int floorTexture = FLOOR_TEXTURE_INDEX;
+        int ceilingTexture = CEILING_TEXTURE_INDEX;
 
         Uint32 color = textures->at(floorTexture)
           .getPixels()
