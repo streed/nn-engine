@@ -1,5 +1,5 @@
-#ifndef __SCENE_STATE_MACHINE__
-#define __SCENE_STATE_MACHINE__
+#ifndef NN_SCENE_STATE_MACHINE_H
+#define NN_SCENE_STATE_MACHINE_H
 
 #include <vector>
 #include <memory>

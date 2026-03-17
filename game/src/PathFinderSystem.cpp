@@ -1,10 +1,8 @@
-#include <iostream>
-using namespace std;
 #include <map>
-#include <unordered_map>
 #include <algorithm>
 #include <limits>
 #include <queue>
+#include <cmath>
 
 #include "PathFinderSystem.h"
 
@@ -12,20 +10,16 @@ using namespace std;
 #include "world.h"
 #include "components.h"
 #include "coordinator.h"
-#include "utils.h"
 #include "entities.h"
 
 using namespace NN;
 using namespace NN::Components;
 
-#define EPSILON 0.5
+constexpr double PATH_EPSILON = 0.5;
 
-double distance(const Position &a, const Position &b);
-double h(const Position &a, const Position &b);
-Position getNextFromOpenSet(std::map<const Position, Position> &openSet, std::map<const Position, unsigned int> &fScore);
-Position findNextPositionToMoveTo(const Position &current, const Position &target, World* world);
-std::vector<Position> getNeighbors(World* world, const Position &poisition);
-std::vector<Position> reconstructPath(std::map<const Position, Position>& cameFrom, const Position &start, Position end);
+static double distance(const Position &a, const Position &b);
+static Position findNextPositionToMoveTo(const Position &current, const Position &target, World* world);
+static std::vector<Position> getNeighbors(World* world, const Position &position);
 
 void PathFinderSystem::update(NN::Engine *engine, double frameTime) {
 	Coordinator* coordinator = engine->getCoordinator();
@@ -38,7 +32,7 @@ void PathFinderSystem::update(NN::Engine *engine, double frameTime) {
 		auto& targetPosition = coordinator->getComponent<Position>(target.target);
 
 		double targetDistance = distance(position, targetPosition);
-		if (targetDistance < target.stopDistanace) {
+		if (targetDistance < target.stopDistance) {
 			target.state = TargetEntity::STOPPED;
 		} else {
 			target.state = TargetEntity::SEEKING;
@@ -52,147 +46,101 @@ void PathFinderSystem::update(NN::Engine *engine, double frameTime) {
 																 { double(int(targetPosition.posX)), double(int(targetPosition.posY)) },
 																 world);
 
-			float diffX = (nextCellToMoveTo.posX + 0.5) - position.posX;
-			float diffY = (nextCellToMoveTo.posY + 0.5) - position.posY;
+			double diffX = (nextCellToMoveTo.posX + 0.5) - position.posX;
+			double diffY = (nextCellToMoveTo.posY + 0.5) - position.posY;
 
-			float length = (diffX * diffX) + (diffY * diffY);
-			length = length * inverseSqrt(length);
-			double moveSpeed = velocity.maxSpeed * frameTime;
-			double dirX = diffX / double(length);
-			double dirY = diffY / double(length);
+			double length = std::sqrt(diffX * diffX + diffY * diffY);
+			if (length > 0.0) {
+				double moveSpeed = velocity.maxSpeed * frameTime;
+				double dirX = diffX / length;
+				double dirY = diffY / length;
 
-			velocity.velocityX = dirX * moveSpeed;
-			velocity.velocityY = dirY * moveSpeed;
-		} else {
-			//cout << entity << " found their target: " << target.target << endl;
+				velocity.velocityX = dirX * moveSpeed;
+				velocity.velocityY = dirY * moveSpeed;
+			}
 		}
 	}
 }
 
-double distance(const Position& a, const Position& b) {
-	float diffX = float(a.posX - b.posX);
-	float diffY = float(a.posY - b.posY);
-	float length = (diffX * diffX) + (diffY * diffY);
-	return double(length) * inverseSqrt(length);
+static double distance(const Position& a, const Position& b) {
+	double diffX = a.posX - b.posX;
+	double diffY = a.posY - b.posY;
+	return std::sqrt(diffX * diffX + diffY * diffY);
 }
 
-double h(const Position& a, const Position& b) {
-	return distance(a, b);
-}
-
-Position getNextFromOpenSet(std::map<const Position, Position> &openSet, std::map<const Position, unsigned int> &fScore) {
-	std::vector<std::pair<unsigned int, Position> > fScorePositionTuples;
-
-	for (auto& position : openSet) {
-		unsigned int f = fScore[position.first];
-		fScorePositionTuples.push_back(std::make_pair(f, position.first));
-	}
-
-	std::sort(fScorePositionTuples.begin(), fScorePositionTuples.end());
-
-	return fScorePositionTuples.front().second;
-}
-
-std::vector<Position> getNeighbors(World* world, const Position &position) {
-	double x = position.posX;
-	double y = position.posY;
-
-	std::vector<Position> potentialNeighbors;
-
-	potentialNeighbors.push_back({ x, y - 1 });
-	potentialNeighbors.push_back({ x, y + 1 });
-
-	potentialNeighbors.push_back({ x - 1, y });
-	potentialNeighbors.push_back({ x + 1, y });
+static std::vector<Position> getNeighbors(World* world, const Position &position) {
+	int x = int(position.posX);
+	int y = int(position.posY);
 
 	std::vector<Position> neighbors;
+	neighbors.reserve(4);
 
-	for (auto const& potentialPoint : potentialNeighbors) {
-		double px = potentialPoint.posX;
-		double py = potentialPoint.posY;
+	const Position candidates[4] = {
+		{ double(x), double(y - 1) },
+		{ double(x), double(y + 1) },
+		{ double(x - 1), double(y) },
+		{ double(x + 1), double(y) },
+	};
 
-		bool traversable = world->isTraversable(int(px), int(py));
-		if (!((px < 0 || py < 0 || px >= world->width || py >= world->height) && !traversable)) {
-			neighbors.push_back(potentialPoint);
+	for (const auto& pt : candidates) {
+		int px = int(pt.posX);
+		int py = int(pt.posY);
+
+		if (px >= 0 && py >= 0 && px < world->width && py < world->height
+			&& world->isTraversable(px, py)) {
+			neighbors.push_back(pt);
 		}
 	}
 
 	return neighbors;
 }
 
-std::vector<Position> reconstructPath(std::map<const Position, Position>& cameFrom, const Position& source, Position target) {
-	std::vector<Position> path;
-	path.push_back(target);
+static Position findNextPositionToMoveTo(const Position &source, const Position &target, World* world) {
+	// A* pathfinding using a priority queue for efficient minimum extraction
+	using PqEntry = std::pair<double, Position>;
+	auto cmp = [](const PqEntry& a, const PqEntry& b) { return a.first > b.first; };
+	std::priority_queue<PqEntry, std::vector<PqEntry>, decltype(cmp)> openQueue(cmp);
 
-	while (target != source) {
-		target = cameFrom[target];
-		path.insert(path.begin(), target);
-	}
-
-	return path;
-}
-
-Position findNextPositionToMoveTo(const Position &source, const Position &target, World* world) {
-	int cellX = int(target.posX);
-	int cellY = int(target.posY);
-
-	std::map<const Position, Position> openSet;
 	std::map<const Position, Position> cameFrom;
-
-	std::map<const Position, unsigned int> gScore;
-	std::map<const Position, unsigned int> fScore;
-
-	for (int x = 0; x < world->width; x++) {
-		for (int y = 0; y < world->height; y++) {
-			if (world->isTraversable(int(x), int(y))) {
-				Position p = { x, y };
-				gScore[p] = std::numeric_limits<unsigned int>::max();
-				fScore[p] = std::numeric_limits<unsigned int>::max();
-			}
-		}
-	}
+	std::map<const Position, double> gScore;
 
 	gScore[source] = 0;
-	fScore[source] = double(h(source, target));
-
-	bool foundPath = false;
-	openSet[source] = source;
+	openQueue.push({ distance(source, target), source });
 
 	Position current;
-	while (!openSet.empty()) {
-		current = getNextFromOpenSet(openSet, fScore);
+	bool foundPath = false;
 
-		if (fabs(current.posX - target.posX) < EPSILON && fabs(current.posY - target.posY) < EPSILON) {
+	while (!openQueue.empty()) {
+		current = openQueue.top().second;
+		openQueue.pop();
+
+		if (std::fabs(current.posX - target.posX) < PATH_EPSILON
+			&& std::fabs(current.posY - target.posY) < PATH_EPSILON) {
 			foundPath = true;
 			break;
 		}
 
-		openSet.erase(current);
+		for (const auto& neighbor : getNeighbors(world, current)) {
+			double tentativeG = gScore[current] + 1.0;
+			auto it = gScore.find(neighbor);
 
-		for (auto const& neighbor : getNeighbors(world, current)) {
-			unsigned int tentativeGScore = gScore[current] + 1;
-
-			if (tentativeGScore < gScore[neighbor]) {
+			if (it == gScore.end() || tentativeG < it->second) {
 				cameFrom[neighbor] = current;
-				gScore[neighbor] = tentativeGScore;
-				fScore[neighbor] = gScore[neighbor] + h(neighbor, target);
-
-				if (openSet.count(neighbor) == 0) {
-					openSet[neighbor] = neighbor;
-				}
+				gScore[neighbor] = tentativeG;
+				double f = tentativeG + distance(neighbor, target);
+				openQueue.push({ f, neighbor });
 			}
 		}
 	}
 
 	if (foundPath) {
-		std::vector<Position> path = reconstructPath(cameFrom, source, current);
-
-		if (path.size() >= 2) {
-			return path.at(1);
-		} else {
-			return path.at(0);
+		// Walk back from current to source, return the first step
+		Position step = current;
+		while (cameFrom.count(step) && !(cameFrom[step] == source)) {
+			step = cameFrom[step];
 		}
-	} else {
-		return source;
+		return step;
 	}
+
+	return source;
 }

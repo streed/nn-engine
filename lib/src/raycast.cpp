@@ -1,6 +1,6 @@
 #include "raycast.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "globals.h"
 namespace NN::Utils {

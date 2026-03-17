@@ -1,5 +1,5 @@
-#ifndef __COMPONENTS__
-#define __COMPONENTS__
+#ifndef NN_COMPONENTS_H
+#define NN_COMPONENTS_H
 
 #include <bitset>
 #include <cmath>
@@ -14,25 +14,25 @@ namespace NN {
     using ComponentType = std::uint8_t;
     const ComponentType MAX_COMPONENTS = 32;
 
-    typedef struct _Camera {
+    struct Camera {
       double dirX;
       double dirY;
       double planeX;
       double planeY;
 
-      double getCameraX(int x, int screenWidth) {
+      double getCameraX(int x, int screenWidth) const {
         return 2.0 * x / double(screenWidth) - 1;
       }
 
-      double getRayDirX(double cameraX) {
+      double getRayDirX(double cameraX) const {
         return dirX + planeX * cameraX;
       }
 
-      double getRayDirY(double cameraX) {
+      double getRayDirY(double cameraX) const {
         return dirY + planeY * cameraX;
       }
 
-      double getInvDet() {
+      double getInvDet() const {
         return 1.0 / (planeX * dirY - dirX * planeY);
       }
 
@@ -44,17 +44,13 @@ namespace NN {
         planeX = planeX * cos(rotateSpeed) - planeY * sin(rotateSpeed);
         planeY = oldPlaneX * sin(rotateSpeed) + planeY * cos(rotateSpeed);
       }
-    } Camera;
+    };
 
-    typedef struct _Position {
+    struct Position {
       double posX;
       double posY;
 
-      bool operator<(struct _Position& pos) const {
-          return posX < pos.posX && posY < pos.posY;
-      }
-
-      bool operator<(const struct _Position& pos) const {
+      bool operator<(const Position& pos) const {
           if (posX < pos.posX) {
               return true;
           } else if (posX > pos.posX) {
@@ -64,50 +60,50 @@ namespace NN {
           }
       }
 
-      bool operator!=(const struct _Position& pos) {
+      bool operator!=(const Position& pos) const {
           return !(*this == pos);
       }
 
-      bool operator==(const struct _Position& pos) {
+      bool operator==(const Position& pos) const {
           return fabs(posX - pos.posX) < std::numeric_limits<double>::epsilon() &&
 				 fabs(posY - pos.posY) < std::numeric_limits<double>::epsilon();
       }
 
-    } Position;
+    };
 
-    typedef struct _Velocity {
+    struct Velocity {
       double velocityX;
       double velocityY;
       double maxSpeed;
       double maxRotateSpeed;
-    } Velocity;
+    };
 
-    typedef struct _Rotation {
+    struct Rotation {
       double maxRotateSpeed;
-    } Rotation;
+    };
 
-    typedef struct _ImpAIComponent {
+    struct ImpAiComponent {
       bool seeking;
       double searchDistance;
       double timeUntilNextShot;
       double shootingCoolDown;
-    } ImpAiComponent;
+    };
 
-    typedef struct _Sprite {
+    struct Sprite {
       int textureIndex;
       int spriteWidth;
       int spriteHeight;
-    } Sprite;
+    };
 
-    typedef struct _Animation {
+    struct Animation {
         int startIndex;
         int endIndex;
         unsigned int msPerFrame;
         double timeRemainingOnFrame;
-    } Animation;
+    };
 
-    typedef struct _AnimatedSprite {
-        int startTexturIndex;
+    struct AnimatedSprite {
+        int startTextureIndex;
         int endTextureIndex;
         int currentFrame;
         int currentAnimation;
@@ -119,12 +115,12 @@ namespace NN {
         bool actuallyStatic;
         Animation animations[10];
 
-        bool isValid() {
+        bool isValid() const {
             return spriteWidth != 0 && spriteHeight != 0;
         }
-    } AnimatedSprite;
+    };
 
-    typedef struct _Input {
+    struct Input {
       bool forward;
       bool backward;
       bool strafeLeft;
@@ -133,7 +129,7 @@ namespace NN {
       bool rotateRight;
       bool quit;
       bool debug;
-    } Input;
+    };
 
 
     class ComponentArrayInterface {
@@ -170,14 +166,16 @@ namespace NN {
         }
 
         void destroyedEntity(Entities::Entity entity) override {
-          remove(entity);
+          if (entityToIndex.find(entity) != entityToIndex.end()) {
+            remove(entity);
+          }
         }
 
       private:
         std::array<T, Entities::MAX_ENTITIES> componentArray;
         std::unordered_map<Entities::Entity, size_t> entityToIndex;
         std::unordered_map<size_t, Entities::Entity> indexToEntity;
-        size_t size;
+        size_t size = 0;
     };
 
     class ComponentManager {

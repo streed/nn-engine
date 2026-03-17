@@ -1,15 +1,15 @@
-#ifndef GLOBALS_H
-#define GLOBALS_H
+#ifndef NN_GLOBALS_H
+#define NN_GLOBALS_H
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 200
-#define MAP_WIDTH 24
-#define MAP_HEIGHT 24
+constexpr int SCREEN_WIDTH = 320;
+constexpr int SCREEN_HEIGHT = 200;
+constexpr int MAP_WIDTH = 24;
+constexpr int MAP_HEIGHT = 24;
 
-#define MOVE_SPEED 5
-#define ROTATE_SPEED 3
+constexpr int MOVE_SPEED = 5;
+constexpr int ROTATE_SPEED = 3;
 
-#define TEXTURE_WIDTH 64
-#define TEXTURE_HEIGHT (TEXTURE_WIDTH)
+constexpr int TEXTURE_WIDTH = 64;
+constexpr int TEXTURE_HEIGHT = TEXTURE_WIDTH;
 
 #endif

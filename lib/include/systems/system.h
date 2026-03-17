@@ -1,5 +1,5 @@
-#ifndef __SYSTEM__
-#define __SYSTEM__
+#ifndef NN_SYSTEM_H
+#define NN_SYSTEM_H
 
 #include <unordered_map>
 #include <memory>

@@ -1,5 +1,5 @@
-#ifndef __SPRITE_SYSTEM__
-#define __SPRITE_SYSTEM__
+#ifndef NN_SPRITE_SYSTEM_H
+#define NN_SPRITE_SYSTEM_H
 
 #if defined __APPLE__ || _MSC_VER
 #include <SDL.h>

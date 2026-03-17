@@ -6,19 +6,18 @@ namespace NN {
 	class Engine;
 }
 
-typedef struct _TargetEntity {
+struct TargetEntity {
 	enum TargetState {
 		SEEKING,
 		STOPPED
 	};
 
 	NN::Entities::Entity target;
-	double stopDistanace;
+	double stopDistance;
 	enum TargetState state;
-} TargetEntity;
+};
 
 class PathFinderSystem : public NN::Systems::System {
 	public:
 		void update(NN::Engine* engine, double frameTime) override;
 };
-

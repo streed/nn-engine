@@ -16,18 +16,24 @@ World::~World() {
 }
 
 int World::getMapPoint(int x, int y) {
+  if (x < 0 || x >= width || y < 0 || y >= height) {
+    return 1; // treat out-of-bounds as solid wall
+  }
   return *(this->map + y * this->width + x);
 }
 
 void World::markNotTraversable(int x, int y) {
-  navMesh[y * this->width+ x] = false;
+  if (x < 0 || x >= width || y < 0 || y >= height) return;
+  navMesh[y * this->width + x] = false;
 }
 
 void World::markTraversable(int x, int y) {
-  navMesh[y * this->width+ x] = true;
+  if (x < 0 || x >= width || y < 0 || y >= height) return;
+  navMesh[y * this->width + x] = true;
 }
 
 bool World::isTraversable(int x, int y) {
+  if (x < 0 || x >= width || y < 0 || y >= height) return false;
   return navMesh[y * this->width + x];
 }
 

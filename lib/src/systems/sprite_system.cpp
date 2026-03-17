@@ -1,8 +1,6 @@
-#include <iostream>
-using namespace std;
-#include <memory>
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 #include "systems/sprite_system.h"
 #include "systems/render_system.h"
@@ -13,47 +11,32 @@ using namespace std;
 #include "coordinator.h"
 
 namespace NN::Systems::BuiltIns {
-  void sortSprites(std::shared_ptr<int[]> order, std::shared_ptr<int []> dist, int amount) {
-    std::vector<std::pair<double, int> > sprites(amount);
-    for(int i = 0; i < amount; i++) {
-      sprites[i].first = dist[i];
-      sprites[i].second = order[i];
-    }
-
-    std::sort(sprites.begin(), sprites.end());
-
-    for(int i = 0; i < amount; i++) {
-      dist[i] = int(sprites[amount - i - 1].first);
-      order[i] = sprites[amount - i - 1].second;
-    }
-  }
-
-  int distanceFromPlayer(Components::Position &player,  Components::Position &sprite) {
-    return int((player.posX - sprite.posX) * (player.posX - sprite.posX) +
-      (player.posY - sprite.posY) * (player.posY - sprite.posY));
+  static double distanceSquared(const Components::Position &player, const Components::Position &sprite) {
+    double dx = player.posX - sprite.posX;
+    double dy = player.posY - sprite.posY;
+    return dx * dx + dy * dy;
   }
 
   void SpriteSystem::update(Engine *engine, double frameTime) {
     Coordinator *coordinator = engine->getCoordinator();
     std::vector<Entities::Entity> entitiesVector(entities.begin(), entities.end());
-
-    std::shared_ptr<int []> spriteOrder(new int[entitiesVector.size()]);
-    std::shared_ptr<int []> spriteDistance(new int[entitiesVector.size()]);
+    size_t numSprites = entitiesVector.size();
 
     auto &playerPosition = coordinator->getComponent<Components::Position>(engine->getCurrentPlayer());
     auto &playerCamera = coordinator->getComponent<Components::Camera>(engine->getCurrentPlayer());
 
-    for (size_t i = 0; i < entitiesVector.size(); i++) {
-      Entities::Entity entity = entitiesVector.at(i);
-      auto &spritePosition = coordinator->getComponent<Components::Position>(entity);
-      spriteOrder[i] = i;
-      spriteDistance[i] = distanceFromPlayer(playerPosition, spritePosition);
+    // Build index+distance pairs and sort by distance (far to near)
+    std::vector<std::pair<double, size_t>> spriteDistances(numSprites);
+    for (size_t i = 0; i < numSprites; i++) {
+      auto &spritePosition = coordinator->getComponent<Components::Position>(entitiesVector[i]);
+      spriteDistances[i] = { distanceSquared(playerPosition, spritePosition), i };
     }
 
-    sortSprites(spriteOrder, spriteDistance, entitiesVector.size());
+    std::sort(spriteDistances.begin(), spriteDistances.end(),
+              [](const auto &a, const auto &b) { return a.first > b.first; });
 
-    for (size_t i = 0; i < entitiesVector.size(); i++) {
-      NN::Entities::Entity actualSpriteEntity = entitiesVector.at(spriteOrder[i]);
+    for (size_t i = 0; i < numSprites; i++) {
+      NN::Entities::Entity actualSpriteEntity = entitiesVector[spriteDistances[i].second];
       auto &position = coordinator->getComponent<NN::Components::Position>(actualSpriteEntity);
       auto& spriteAnimation = coordinator->getComponent<NN::Components::AnimatedSprite>(actualSpriteEntity);
 

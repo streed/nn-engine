@@ -1,6 +1,7 @@
-#ifndef __CONFIG__
-#define __CONFIG__
+#ifndef NN_CONFIG_H
+#define NN_CONFIG_H
 
+#include <string>
 #include <vector>
 
 #include "graphics/texture.h"
@@ -10,6 +11,9 @@ namespace NN {
     std::vector<Graphics::Texture> textures;
     bool fullscreen;
     std::string baseGameDir;
+    int screenWidth;
+    int screenHeight;
+    std::vector<std::string> textureFiles;
 
     public:
     Config(int argc, char **args);
@@ -20,10 +24,11 @@ namespace NN {
     int getScreenWidth();
     int getScreenHeight();
 
+    const std::string &getBaseGameDir() const;
+
     private:
     void loadJsonConfig();
     void loadTextures();
-    void loadSprites();
   };
 }
 #endif

@@ -71,6 +71,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE SDL2::Main
                                               Boost::program_options
                                               Boost::filesystem
                                               CONAN_PKG::fmt
-                                              CONAN_PKG::spdlog)
+                                              CONAN_PKG::spdlog
+                                              CONAN_PKG::nlohmann_json)
 
 install(TARGETS nnEngine LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)

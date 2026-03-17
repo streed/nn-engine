@@ -1,5 +1,5 @@
-#ifndef __SPRITE__
-#define __SPRITE__
+#ifndef NN_SPRITE_H
+#define NN_SPRITE_H
 
 class Sprite {
   public:

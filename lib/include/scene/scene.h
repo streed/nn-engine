@@ -1,8 +1,5 @@
-#ifndef __SCENE__
-#define __SCENE__
-
-#include <iostream>
-using namespace std;
+#ifndef NN_SCENE_H
+#define NN_SCENE_H
 
 #include <vector>
 #include <cstdlib>
@@ -19,7 +16,7 @@ namespace NN {
   namespace Scenes {
     class Scene {
       public:
-        Scene(Engine *engine): engine(engine), player(-1), world(NULL) {}
+        Scene(Engine *engine): engine(engine), player(-1), world(nullptr) {}
         virtual void onCreate() = 0;
         virtual void onDestroy() = 0;
         virtual void update(double frameTime) {};

@@ -1,5 +1,5 @@
-#ifndef __KEYBOARD__
-#define __KEYBOARD__
+#ifndef NN_KEYBOARD_H
+#define NN_KEYBOARD_H
 
 #define MAX_NUM_KEYS 322
 

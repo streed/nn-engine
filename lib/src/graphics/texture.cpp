@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 
 #include "graphics/texture.h"
 #include "graphics/png.h"
@@ -6,12 +7,16 @@
 namespace NN::Graphics {
 
   Texture::Texture(std::string filename): filename(filename) {
-    std::cout << "Loading texture: " << filename << std::endl;
     loadImage();
   }
 
   void Texture::loadFile(std::vector<unsigned char> &buffer) {
     std::ifstream file(filename.c_str(), std::ios::in|std::ios::binary|std::ios::ate);
+
+    if (!file.is_open()) {
+      std::cerr << "Error: Could not open texture file: " << filename << std::endl;
+      return;
+    }
 
     std::streamsize size = 0;
 
@@ -23,10 +28,13 @@ namespace NN::Graphics {
       size -= file.tellg();
     }
 
-    buffer.resize(size_t(size));
-    if (size > 0) {
-      file.read((char *)(&buffer[0]), size);
+    if (size <= 0) {
+      std::cerr << "Error: Texture file is empty: " << filename << std::endl;
+      return;
     }
+
+    buffer.resize(size_t(size));
+    file.read((char *)(&buffer[0]), size);
   }
 
   void Texture::loadImage() {
@@ -34,7 +42,13 @@ namespace NN::Graphics {
 
     loadFile(file);
 
+    if (file.empty()) {
+      std::cerr << "Error: No data loaded for texture: " << filename << std::endl;
+      return;
+    }
+
     if (decodePNG(image, width, height, file)) {
+      std::cerr << "Error: Failed to decode PNG: " << filename << std::endl;
       return;
     }
 
@@ -43,8 +57,8 @@ namespace NN::Graphics {
 
     for (size_t i = 0; i < colors.size(); i++) {
       colors[i].r = image[i * 4 + 0];
-      colors[i].g = image[i * 4 + 0];
-      colors[i].b = image[i * 4 + 0];
+      colors[i].g = image[i * 4 + 1];
+      colors[i].b = image[i * 4 + 2];
       pixels[i] = 0x1000000 * image[i * 4 + 3] +
         0x10000 * image[i * 4 + 0] +
         0x100 * image[i * 4 + 1] +

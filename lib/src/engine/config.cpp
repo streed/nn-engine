@@ -1,6 +1,5 @@
 #include <iostream>
-
-using namespace std;
+#include <fstream>
 
 #include <boost/program_options.hpp>
 #define BOOST_NO_CXX11_SCOPED_ENUMS
@@ -9,15 +8,15 @@ using namespace std;
 
 namespace po = boost::program_options;
 
-#include <boost/property_tree/ptree.hpp>
-namespace pt = boost::property_tree;
+#include <nlohmann/json.hpp>
 
 #include "engine/config.h"
-
 #include "graphics/texture.h"
 
 namespace NN {
-  Config::Config(int argc, char **args) {
+  Config::Config(int argc, char **args)
+    : fullscreen(false), screenWidth(320), screenHeight(200) {
+
     po::options_description description("Allowed Options");
     description.add_options()
       ("help", "Show this help message")
@@ -29,58 +28,87 @@ namespace NN {
     po::notify(vm);
 
     if (vm.count("help")) {
-      cout << description << endl;
+      std::cout << description << std::endl;
     }
 
     if (vm.count("fullscreen")) {
       fullscreen = vm["fullscreen"].as<bool>();
     }
 
-    if (vm.count("base-game-dir")) {
-      cout << "Loading game data from: " << baseGameDir << endl;
-    }
-
     loadJsonConfig();
-
     loadTextures();
-    // loadSprites();
-  }
-
-  void Config::loadTextures() {
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/bluestone.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/colorstone.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/eagle.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/greystone.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/mossy.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/purplestone.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/redbrick.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/wood.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/barrel.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/greenlight.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/pillar.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/penguin.png"));
-    textures.push_back(Graphics::Texture(baseGameDir + "textures/fireball.png"));
-  }
-
-  void Config::loadSprites() {
-      //Let's just load one sprite...I need to rethink how this is all loaded...
-      const std::string path(baseGameDir + "textures/animated/1");
-      boost::filesystem::directory_iterator end;
-
-      std::vector<int> spriteImagesToLoad;
-
-      for (boost::filesystem::directory_iterator iter(path); iter != end; iter++) {
-          spriteImagesToLoad.push_back(std::stoi(iter->path().filename().string()));
-      }
-
-      std::sort(spriteImagesToLoad.begin(), spriteImagesToLoad.end());
-
-      for (const auto& spritePath: spriteImagesToLoad) {
-          textures.push_back(Graphics::Texture(baseGameDir + "textures/animated/1/" + std::to_string(spritePath)));
-      }
   }
 
   void Config::loadJsonConfig() {
+    std::string configPath = baseGameDir + "game.json";
+    std::ifstream configFile(configPath);
+
+    if (!configFile.is_open()) {
+      std::cerr << "Warning: Could not open config file: " << configPath
+                << ", using defaults" << std::endl;
+      return;
+    }
+
+    try {
+      nlohmann::json config;
+      configFile >> config;
+
+      if (config.contains("settings")) {
+        auto &settings = config["settings"];
+
+        if (settings.contains("fullscreen")) {
+          fullscreen = settings["fullscreen"].get<bool>();
+        }
+
+        if (settings.contains("screen")) {
+          auto &screen = settings["screen"];
+          if (screen.contains("width")) {
+            screenWidth = screen["width"].get<int>();
+          }
+          if (screen.contains("height")) {
+            screenHeight = screen["height"].get<int>();
+          }
+        }
+      }
+
+      if (config.contains("textures")) {
+        textureFiles.clear();
+        for (const auto &tex : config["textures"]) {
+          textureFiles.push_back(tex.get<std::string>());
+        }
+      }
+    } catch (const nlohmann::json::exception &e) {
+      std::cerr << "Error parsing config file: " << e.what() << std::endl;
+    }
+  }
+
+  void Config::loadTextures() {
+    if (!textureFiles.empty()) {
+      for (const auto &texFile : textureFiles) {
+        std::string fullPath = baseGameDir + texFile;
+        textures.push_back(Graphics::Texture(fullPath));
+      }
+    } else {
+      // Fallback: load default textures
+      const char *defaultTextures[] = {
+        "textures/bluestone.png",
+        "textures/colorstone.png",
+        "textures/eagle.png",
+        "textures/greystone.png",
+        "textures/mossy.png",
+        "textures/purplestone.png",
+        "textures/redbrick.png",
+        "textures/wood.png",
+        "textures/barrel.png",
+        "textures/greenlight.png",
+        "textures/pillar.png",
+        "textures/penguin.png",
+        "textures/fireball.png",
+      };
+      for (const auto &tex : defaultTextures) {
+        textures.push_back(Graphics::Texture(baseGameDir + tex));
+      }
+    }
   }
 
   std::vector<Graphics::Texture> *Config::getTextures() {
@@ -92,10 +120,14 @@ namespace NN {
   }
 
   int Config::getScreenWidth() {
-    return 320;
+    return screenWidth;
   }
 
   int Config::getScreenHeight() {
-    return 200;
+    return screenHeight;
+  }
+
+  const std::string &Config::getBaseGameDir() const {
+    return baseGameDir;
   }
 }

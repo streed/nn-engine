@@ -1,5 +1,5 @@
-#ifndef __TEXTURE__
-#define __TEXTURE__
+#ifndef NN_TEXTURE_H
+#define NN_TEXTURE_H
 
 #if defined __APPLE__ || _MSC_VER
 

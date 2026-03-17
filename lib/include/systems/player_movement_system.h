@@ -1,5 +1,5 @@
-#ifndef __PLAYER_MOVEMENT_SYSTEM__
-#define __PLAYER_MOVEMENT_SYSTEM__
+#ifndef NN_PLAYER_MOVEMENT_SYSTEM_H
+#define NN_PLAYER_MOVEMENT_SYSTEM_H
 
 #include "systems/system.h"
 

@@ -1,5 +1,4 @@
 #include <iostream>
-using namespace std;
 
 #include <boost/scoped_ptr.hpp>
 
@@ -69,15 +68,17 @@ namespace NN {
     coordinator->setSystemSignature<Systems::BuiltIns::AnimatedSpriteSystem>(animatedSpriteSignature);
   }
 
-  Engine::~Engine() {}
+  Engine::~Engine() {
+    delete coordinator;
+  }
 
   void Engine::setup() {
     if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_JOYSTICK) < 0 || TTF_Init() < 0) {
-      cout << "SDL Could not initialize! SDL_Error: " << SDL_GetError() << "\n";
-      cout << "TTF Could not inituialize! TTF_Error: " << TTF_GetError() << "\n";
+      std::cout << "SDL Could not initialize! SDL_Error: " << SDL_GetError() << "\n";
+      std::cout << "TTF Could not inituialize! TTF_Error: " << TTF_GetError() << "\n";
     } else {
       if (renderSystem->setup(config)) {
-        cout << "Window created, starting game." << endl;
+        std::cout << "Window created, starting game." << std::endl;
       }
     }
   }
@@ -106,7 +107,6 @@ namespace NN {
       inputSystem->update(this, frameTime);
 
 	  while (lag >= GAME_LOOP_TICKS) {
-		  unsigned int ticks = SDL_GetTicks();
 		  playerMovementSystem->update(this, GAME_LOOP_TICKS / 1000.0);
 		  animatedSpriteSystem->update(this, GAME_LOOP_TICKS / 1000.0);
 		  sceneStateMachine->update(GAME_LOOP_TICKS / 1000.0);

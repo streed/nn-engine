@@ -1,6 +1,5 @@
-#ifndef __ENGINE__
-
-#define __ENGINE__
+#ifndef NN_ENGINE_H
+#define NN_ENGINE_H
 
 #include <memory>
 

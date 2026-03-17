@@ -1,5 +1,5 @@
-#ifndef __PHYSICS_SYSTEM__
-#define __PHYSICS_SYSTEM__
+#ifndef NN_PHYSICS_SYSTEM_H
+#define NN_PHYSICS_SYSTEM_H
 
 #include "systems/system.h"
 

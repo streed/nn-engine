@@ -1,5 +1,5 @@
-#ifndef __ENTITIES__
-#define __ENTITIES__
+#ifndef NN_ENTITIES_H
+#define NN_ENTITIES_H
 
 #include <array>
 #include <queue>

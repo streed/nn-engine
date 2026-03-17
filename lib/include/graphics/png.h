@@ -1,5 +1,5 @@
-#ifndef __PNG__
-#define __PNG__
+#ifndef NN_PNG_H
+#define NN_PNG_H
 
 #include <cstddef>
 

@@ -1,5 +1,5 @@
-#ifndef __INPUT_SYSTEM__
-#define __INPUT_SYSTEM__
+#ifndef NN_INPUT_SYSTEM_H
+#define NN_INPUT_SYSTEM_H
 
 #include "systems/system.h"
 

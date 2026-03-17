@@ -1,5 +1,5 @@
-#ifndef __COORDINATOR__
-#define __COORDINATOR__
+#ifndef NN_COORDINATOR_H
+#define NN_COORDINATOR_H
 
 #include <memory>
 

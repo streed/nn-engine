@@ -1,0 +1,110 @@
+{
+  "map": {
+    "width": 10,
+    "height": 18,
+    "tiles": [
+      1,1,4,4,4,4,4,4,2,2,
+      1,0,0,0,0,0,0,0,0,2,
+      4,0,0,0,0,0,0,0,0,4,
+      4,0,0,0,0,0,0,0,0,4,
+      4,0,0,0,0,0,0,0,0,4,
+      4,0,0,0,0,0,0,0,0,4,
+      4,0,0,0,0,0,0,0,0,4,
+      4,0,0,0,0,0,0,0,0,4,
+      3,0,0,0,0,0,0,0,0,5,
+      3,3,4,4,0,0,4,4,5,5,
+      1,0,0,0,0,0,0,0,0,2,
+      4,0,0,0,0,0,0,0,0,4,
+      4,0,0,0,0,0,0,0,0,4,
+      4,0,0,0,0,0,0,0,0,4,
+      4,0,0,0,0,0,0,0,0,4,
+      4,0,0,0,0,0,0,0,0,4,
+      4,0,0,0,0,0,0,0,0,4,
+      3,4,4,4,4,4,4,4,4,5
+    ]
+  },
+  "entities": [
+    {
+      "type": "player",
+      "name": "player",
+      "x": 5.5,
+      "y": 2.0,
+      "camera": {
+        "dirX": -1.0,
+        "dirY": 0.0,
+        "planeX": 0.0,
+        "planeY": 0.66
+      },
+      "movement": {
+        "maxSpeed": 5.0,
+        "maxRotateSpeed": 3.0
+      }
+    },
+    {
+      "type": "npc",
+      "name": "penguin1",
+      "x": 5.5,
+      "y": 16.5,
+      "sprite": {
+        "textureIndex": 11,
+        "width": 64,
+        "height": 64,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "vMove": 0
+      },
+      "movement": {
+        "maxSpeed": 3.0,
+        "maxRotateSpeed": 3.0
+      },
+      "follow": {
+        "target": "player",
+        "stopDistance": 1.0
+      }
+    },
+    {
+      "type": "npc",
+      "name": "penguin2",
+      "x": 8.0,
+      "y": 8.0,
+      "sprite": {
+        "textureIndex": 11,
+        "width": 64,
+        "height": 64,
+        "scaleX": 2.0,
+        "scaleY": 2.0,
+        "vMove": 64
+      },
+      "movement": {
+        "maxSpeed": 2.0,
+        "maxRotateSpeed": 3.0
+      },
+      "follow": {
+        "target": "penguin1",
+        "stopDistance": 0.5
+      }
+    },
+    {
+      "type": "npc",
+      "name": "penguin3",
+      "x": 5.5,
+      "y": 16.0,
+      "sprite": {
+        "textureIndex": 11,
+        "width": 64,
+        "height": 64,
+        "scaleX": 3.0,
+        "scaleY": 3.0,
+        "vMove": 64
+      },
+      "movement": {
+        "maxSpeed": 2.0,
+        "maxRotateSpeed": 3.0
+      },
+      "follow": {
+        "target": "penguin2",
+        "stopDistance": 0.5
+      }
+    }
+  ]
+}
