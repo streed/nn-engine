@@ -19,6 +19,8 @@
 #include "weapons/projectile_system.h"
 #include "weapons/weapon_components.h"
 #include "ui/ui_system.h"
+#include "audio/sound_system.h"
+#include "scripting/lua_engine.h"
 #include "world.h"
 
 namespace NN {
@@ -87,6 +89,8 @@ namespace NN {
     coordinator->setSystemSignature<Systems::Weapons::ProjectileSystem>(projectileSignature);
 
     uiSystem = std::make_unique<UI::UISystem>();
+    soundSystem = std::make_unique<Audio::SoundSystem>();
+    scriptEngine = std::make_unique<Scripting::LuaEngine>();
   }
 
   Engine::~Engine() = default;
@@ -103,6 +107,14 @@ namespace NN {
         uiSystem->setup(renderSystem->getRenderer(), renderSystem->getFont(), config);
       }
     }
+
+    // Initialize audio
+    if (!soundSystem->setup()) {
+      std::cerr << "Warning: Audio system failed to initialize" << std::endl;
+    }
+
+    // Initialize Lua scripting
+    scriptEngine->setup(this, soundSystem.get());
   }
 
   void Engine::run() {
@@ -138,6 +150,9 @@ namespace NN {
             auto &cam = coordinator->getComponent<Components::Camera>(currentPlayer);
             w->tryInteractDoor(pos.posX, pos.posY, cam.dirX, cam.dirY);
           }
+          if (scriptEngine->isLoaded()) {
+            scriptEngine->callOnInteract();
+          }
         }
         prevInteract = input.interact;
       }
@@ -152,7 +167,23 @@ namespace NN {
 
         // Update door animations
         World *w = getWorld();
-        if (w) w->updateDoors(GAME_LOOP_TICKS / 1000.0);
+        if (w) {
+          w->updateDoors(GAME_LOOP_TICKS / 1000.0);
+
+          // Update zones and fire Lua callbacks
+          if (scriptEngine->isLoaded()) {
+            auto &pos = coordinator->getComponent<Components::Position>(currentPlayer);
+            std::vector<std::string> entered, exited;
+            w->updateZones(pos.posX, pos.posY, entered, exited);
+            for (const auto &z : entered) scriptEngine->callOnZoneEnter(z);
+            for (const auto &z : exited) scriptEngine->callOnZoneExit(z);
+          }
+        }
+
+        // Lua per-frame update
+        if (scriptEngine->isLoaded()) {
+          scriptEngine->callOnUpdate(GAME_LOOP_TICKS / 1000.0);
+        }
 
         lag -= GAME_LOOP_TICKS;
       }
@@ -231,5 +262,13 @@ namespace NN {
 
   std::shared_ptr<Systems::Weapons::ProjectileSystem> Engine::getProjectileSystem() {
     return projectileSystem;
+  }
+
+  Audio::SoundSystem *Engine::getSoundSystem() {
+    return soundSystem.get();
+  }
+
+  Scripting::LuaEngine *Engine::getScriptEngine() {
+    return scriptEngine.get();
   }
 }

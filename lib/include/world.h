@@ -1,7 +1,9 @@
 #ifndef WORLD_CLASS_H
 #define WORLD_CLASS_H
 
+#include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <cstdint>
 
@@ -15,6 +17,11 @@ struct DoorState {
   bool closing;
   double autoCloseTimer; // seconds until door starts closing (-1 = no auto-close)
   double autoCloseDelay; // configured delay before auto-close
+};
+
+struct Zone {
+  std::string name;
+  double x, y, w, h;
 };
 
 class World {
@@ -43,12 +50,23 @@ class World {
     bool tryInteractDoor(double playerX, double playerY, double playerDirX, double playerDirY);
     const std::vector<DoorState> &getDoors() const;
 
+    // Zone management
+    void addZone(const std::string &name, double x, double y, double w, double h);
+    bool isInZone(const std::string &name, double px, double py) const;
+    void updateZones(double px, double py,
+                     std::vector<std::string> &entered,
+                     std::vector<std::string> &exited);
+    const std::vector<Zone> &getZones() const;
+
   private:
     void setupNavMesh();
     std::int64_t doorKey(int x, int y) const;
 
     std::vector<DoorState> doors;
-    std::unordered_map<std::int64_t, size_t> doorLookup; // key -> index in doors vector
+    std::unordered_map<std::int64_t, size_t> doorLookup;
+
+    std::vector<Zone> zones;
+    std::unordered_set<std::string> activeZones; // zones the player is currently in
 };
 
 #endif

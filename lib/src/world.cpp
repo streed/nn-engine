@@ -179,3 +179,54 @@ bool World::tryInteractDoor(double playerX, double playerY, double playerDirX, d
   }
   return false;
 }
+
+// Zone management
+
+void World::addZone(const std::string &name, double x, double y, double w, double h) {
+  zones.push_back({name, x, y, w, h});
+}
+
+bool World::isInZone(const std::string &name, double px, double py) const {
+  for (const auto &zone : zones) {
+    if (zone.name == name) {
+      return px >= zone.x && px < zone.x + zone.w &&
+             py >= zone.y && py < zone.y + zone.h;
+    }
+  }
+  return false;
+}
+
+void World::updateZones(double px, double py,
+                        std::vector<std::string> &entered,
+                        std::vector<std::string> &exited) {
+  entered.clear();
+  exited.clear();
+
+  std::unordered_set<std::string> nowIn;
+  for (const auto &zone : zones) {
+    if (px >= zone.x && px < zone.x + zone.w &&
+        py >= zone.y && py < zone.y + zone.h) {
+      nowIn.insert(zone.name);
+    }
+  }
+
+  // Newly entered zones
+  for (const auto &name : nowIn) {
+    if (activeZones.find(name) == activeZones.end()) {
+      entered.push_back(name);
+    }
+  }
+
+  // Exited zones
+  for (const auto &name : activeZones) {
+    if (nowIn.find(name) == nowIn.end()) {
+      exited.push_back(name);
+    }
+  }
+
+  activeZones = nowIn;
+}
+
+const std::vector<Zone> &World::getZones() const {
+  return zones;
+}

@@ -2,6 +2,8 @@
 #define NN_ENGINE_H
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "entities.h"
 
@@ -32,6 +34,14 @@ namespace NN {
     class UICanvas;
   }
 
+  namespace Audio {
+    class SoundSystem;
+  }
+
+  namespace Scripting {
+    class LuaEngine;
+  }
+
   namespace Scenes {
     class SceneStateMachine;
   }
@@ -58,6 +68,12 @@ namespace NN {
 
       // UI
       UI::UISystem *getUISystem();
+
+      // Audio
+      Audio::SoundSystem *getSoundSystem();
+
+      // Scripting
+      Scripting::LuaEngine *getScriptEngine();
 
       // Weapons
       std::shared_ptr<Systems::Weapons::WeaponSystem> getWeaponSystem();
@@ -92,6 +108,8 @@ namespace NN {
       std::shared_ptr<Systems::Weapons::ProjectileSystem> projectileSystem;
 
       std::unique_ptr<UI::UISystem> uiSystem;
+      std::unique_ptr<Audio::SoundSystem> soundSystem;
+      std::unique_ptr<Scripting::LuaEngine> scriptEngine;
 
       bool prevInteract = false;
   };

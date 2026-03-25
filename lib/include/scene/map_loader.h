@@ -54,12 +54,31 @@ namespace NN {
       double autoCloseDelay = 5.0;
     };
 
+    struct ZoneDef {
+      std::string name;
+      double x, y, w, h;
+    };
+
+    struct SoundDef {
+      std::string name;
+      std::string filepath;
+    };
+
+    struct MusicDef {
+      std::string name;
+      std::string filepath;
+    };
+
     struct MapData {
       int width = 0;
       int height = 0;
       std::vector<int> tiles;
       std::vector<EntityDef> entities;
       std::vector<DoorDef> doors;
+      std::vector<ZoneDef> zones;
+      std::vector<SoundDef> sounds;
+      std::vector<MusicDef> music;
+      std::string scriptPath;  // path to Lua script for this map
     };
 
     class MapLoader {

@@ -1,0 +1,115 @@
+{
+  "name": "default",
+  "description": "Default nn-engine tileset based on Wolfenstein-style textures",
+  "tiles": {
+    "empty": {
+      "id": 0,
+      "solid": false,
+      "name": "Empty",
+      "color": "#2a2a2a",
+      "category": "floor"
+    },
+    "wall_blue": {
+      "id": 1,
+      "textureIndex": 0,
+      "solid": true,
+      "name": "Blue Stone",
+      "color": "#4466aa",
+      "category": "wall"
+    },
+    "wall_color": {
+      "id": 2,
+      "textureIndex": 1,
+      "solid": true,
+      "name": "Color Stone",
+      "color": "#cc8844",
+      "category": "wall"
+    },
+    "wall_eagle": {
+      "id": 3,
+      "textureIndex": 2,
+      "solid": true,
+      "name": "Eagle",
+      "color": "#888866",
+      "category": "wall"
+    },
+    "wall_grey": {
+      "id": 4,
+      "textureIndex": 3,
+      "solid": true,
+      "name": "Grey Stone",
+      "color": "#888888",
+      "category": "wall"
+    },
+    "wall_mossy": {
+      "id": 5,
+      "textureIndex": 4,
+      "solid": true,
+      "name": "Mossy",
+      "color": "#668844",
+      "category": "wall"
+    },
+    "wall_purple": {
+      "id": 6,
+      "textureIndex": 5,
+      "solid": true,
+      "name": "Purple Stone",
+      "color": "#886688",
+      "category": "wall"
+    },
+    "wall_red": {
+      "id": 7,
+      "textureIndex": 6,
+      "solid": true,
+      "name": "Red Brick",
+      "color": "#aa4444",
+      "category": "wall"
+    },
+    "wall_wood": {
+      "id": 8,
+      "textureIndex": 7,
+      "solid": true,
+      "name": "Wood",
+      "color": "#8b6914",
+      "category": "wall"
+    }
+  },
+  "sprites": {
+    "barrel": {
+      "textureIndex": 8,
+      "name": "Barrel",
+      "icon": "O",
+      "width": 64,
+      "height": 64
+    },
+    "greenlight": {
+      "textureIndex": 9,
+      "name": "Green Light",
+      "icon": "*",
+      "width": 64,
+      "height": 64
+    },
+    "pillar": {
+      "textureIndex": 10,
+      "name": "Pillar",
+      "icon": "I",
+      "width": 64,
+      "height": 64
+    },
+    "penguin": {
+      "textureIndex": 11,
+      "name": "Penguin",
+      "icon": "P",
+      "width": 64,
+      "height": 64,
+      "animated": true
+    }
+  },
+  "floorTexture": 3,
+  "ceilingTexture": 7,
+  "doorDefaults": {
+    "textureIndex": 2,
+    "speed": 2.0,
+    "autoCloseDelay": 5.0
+  }
+}

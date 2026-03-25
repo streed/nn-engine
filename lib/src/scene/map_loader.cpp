@@ -66,6 +66,44 @@ namespace NN::Scenes {
         }
       }
 
+      // Load zones
+      if (json.contains("zones")) {
+        for (const auto &zoneJson : json["zones"]) {
+          ZoneDef zone;
+          zone.name = zoneJson.value("name", "");
+          zone.x = zoneJson.value("x", 0.0);
+          zone.y = zoneJson.value("y", 0.0);
+          zone.w = zoneJson.value("w", 1.0);
+          zone.h = zoneJson.value("h", 1.0);
+          data.zones.push_back(zone);
+        }
+      }
+
+      // Load sounds
+      if (json.contains("sounds")) {
+        for (const auto &sndJson : json["sounds"]) {
+          SoundDef snd;
+          snd.name = sndJson.value("name", "");
+          snd.filepath = sndJson.value("file", "");
+          data.sounds.push_back(snd);
+        }
+      }
+
+      // Load music
+      if (json.contains("music")) {
+        for (const auto &musJson : json["music"]) {
+          MusicDef mus;
+          mus.name = musJson.value("name", "");
+          mus.filepath = musJson.value("file", "");
+          data.music.push_back(mus);
+        }
+      }
+
+      // Load script path
+      if (json.contains("script")) {
+        data.scriptPath = json.value("script", "");
+      }
+
       // Load entities
       if (json.contains("entities")) {
         for (const auto &entityJson : json["entities"]) {
