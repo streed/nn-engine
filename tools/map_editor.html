@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nn-engine Map Editor</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #1a1a2e; color: #e0e0e0; display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
+#sidebar { width: 280px; background: #16213e; padding: 12px; overflow-y: auto; border-right: 2px solid #0f3460; display: flex; flex-direction: column; gap: 10px; }
+#sidebar h2 { font-size: 14px; color: #e94560; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #0f3460; padding-bottom: 4px; }
+#sidebar label { font-size: 12px; display: block; margin-top: 4px; }
+#sidebar input, #sidebar select { width: 100%; padding: 4px 6px; background: #0f3460; border: 1px solid #533483; color: #e0e0e0; border-radius: 3px; font-size: 12px; }
+#sidebar input[type=number] { width: 60px; }
+.btn { padding: 6px 12px; background: #e94560; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.btn:hover { background: #c73652; }
+.btn-sm { padding: 3px 8px; font-size: 11px; }
+.btn-secondary { background: #533483; }
+.btn-secondary:hover { background: #6b44a0; }
+
+/* Tile palette */
+.tile-palette { display: flex; flex-wrap: wrap; gap: 4px; }
+.tile-swatch { width: 32px; height: 32px; border: 2px solid transparent; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; }
+.tile-swatch.selected { border-color: #e94560; box-shadow: 0 0 6px #e94560; }
+.tile-swatch:hover { border-color: #fff; }
+
+/* Tools */
+.tool-bar { display: flex; gap: 4px; flex-wrap: wrap; }
+.tool-btn { padding: 4px 8px; background: #0f3460; border: 1px solid #533483; color: #e0e0e0; border-radius: 3px; cursor: pointer; font-size: 11px; }
+.tool-btn.active { background: #e94560; border-color: #e94560; }
+
+/* Main area */
+#main { flex: 1; display: flex; flex-direction: column; }
+#toolbar { background: #16213e; padding: 8px 12px; display: flex; gap: 8px; align-items: center; border-bottom: 2px solid #0f3460; }
+#toolbar span { font-size: 12px; color: #999; }
+#canvas-wrap { flex: 1; overflow: auto; position: relative; background: #111; }
+canvas { cursor: crosshair; }
+
+/* Right panel */
+#right-panel { width: 280px; background: #16213e; padding: 12px; overflow-y: auto; border-left: 2px solid #0f3460; display: flex; flex-direction: column; gap: 10px; }
+
+/* Entity / door / zone lists */
+.item-list { max-height: 150px; overflow-y: auto; font-size: 11px; }
+.item-row { padding: 3px 4px; background: #0f3460; margin: 2px 0; border-radius: 2px; display: flex; justify-content: space-between; align-items: center; }
+.item-row:hover { background: #1a3a6e; }
+.del-btn { background: #e94560; color: white; border: none; border-radius: 2px; cursor: pointer; font-size: 10px; padding: 1px 5px; }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: #16213e; padding: 20px; border-radius: 8px; border: 2px solid #533483; min-width: 400px; max-width: 600px; max-height: 80vh; overflow-y: auto; }
+.modal h3 { color: #e94560; margin-bottom: 10px; }
+.modal textarea { width: 100%; height: 300px; background: #0f3460; color: #e0e0e0; border: 1px solid #533483; font-family: monospace; font-size: 12px; padding: 8px; border-radius: 4px; }
+
+/* Status bar */
+#status { background: #0f3460; padding: 4px 12px; font-size: 11px; color: #888; border-top: 1px solid #533483; }
+</style>
+</head>
+<body>
+
+<!-- Left Sidebar -->
+<div id="sidebar">
+  <div>
+    <h2>Map Settings</h2>
+    <label>Width: <input type="number" id="mapWidth" value="24" min="4" max="128"></label>
+    <label>Height: <input type="number" id="mapHeight" value="24" min="4" max="128"></label>
+    <button class="btn btn-sm" onclick="resizeMap()">Resize</button>
+    <button class="btn btn-sm btn-secondary" onclick="fillBorder()">Fill Border</button>
+  </div>
+
+  <div>
+    <h2>Tool</h2>
+    <div class="tool-bar">
+      <button class="tool-btn active" data-tool="paint" onclick="setTool('paint')">Paint</button>
+      <button class="tool-btn" data-tool="fill" onclick="setTool('fill')">Fill</button>
+      <button class="tool-btn" data-tool="rect" onclick="setTool('rect')">Rect</button>
+      <button class="tool-btn" data-tool="line" onclick="setTool('line')">Line</button>
+      <button class="tool-btn" data-tool="erase" onclick="setTool('erase')">Erase</button>
+      <button class="tool-btn" data-tool="pick" onclick="setTool('pick')">Pick</button>
+      <button class="tool-btn" data-tool="door" onclick="setTool('door')">Door</button>
+      <button class="tool-btn" data-tool="entity" onclick="setTool('entity')">Entity</button>
+      <button class="tool-btn" data-tool="zone" onclick="setTool('zone')">Zone</button>
+    </div>
+  </div>
+
+  <div>
+    <h2>Tiles</h2>
+    <div class="tile-palette" id="tilePalette"></div>
+  </div>
+
+  <div id="door-options" style="display:none">
+    <h2>Door Options</h2>
+    <label>Direction:
+      <select id="doorDir"><option value="up">Up</option><option value="down">Down</option></select>
+    </label>
+    <label>Texture: <input type="number" id="doorTex" value="2" min="0" max="20"></label>
+    <label>Speed: <input type="number" id="doorSpeed" value="2.0" step="0.5" min="0.5"></label>
+    <label>Auto-close (s): <input type="number" id="doorClose" value="5.0" step="1" min="0"></label>
+  </div>
+
+  <div id="entity-options" style="display:none">
+    <h2>Entity Options</h2>
+    <label>Type:
+      <select id="entityType">
+        <option value="player">Player</option>
+        <option value="static_sprite">Static Sprite</option>
+        <option value="npc">NPC</option>
+      </select>
+    </label>
+    <label>Name: <input type="text" id="entityName" value=""></label>
+    <label>Sprite: <select id="entitySprite"></select></label>
+  </div>
+
+  <div id="zone-options" style="display:none">
+    <h2>Zone Options</h2>
+    <label>Name: <input type="text" id="zoneName" value="zone1"></label>
+  </div>
+
+  <div>
+    <h2>Tileset</h2>
+    <input type="file" id="tilesetFile" accept=".json" style="font-size:11px">
+    <div id="tilesetInfo" style="font-size:11px; margin-top:4px; color:#888;"></div>
+  </div>
+</div>
+
+<!-- Main Canvas Area -->
+<div id="main">
+  <div id="toolbar">
+    <button class="btn" onclick="exportJSON()">Export JSON</button>
+    <button class="btn btn-secondary" onclick="importJSON()">Import JSON</button>
+    <button class="btn btn-secondary" onclick="clearMap()">Clear</button>
+    <button class="btn btn-secondary" onclick="undo()">Undo (Z)</button>
+    <span id="coordDisplay">0, 0</span>
+    <span>|</span>
+    <span>Grid: <input type="number" id="cellSize" value="24" min="8" max="64" style="width:40px;background:#0f3460;color:#e0e0e0;border:1px solid #533483;font-size:11px;" onchange="updateCellSize()"></span>
+    <label style="font-size:12px"><input type="checkbox" id="showGrid" checked onchange="draw()"> Grid</label>
+    <label style="font-size:12px"><input type="checkbox" id="showZones" checked onchange="draw()"> Zones</label>
+    <label style="font-size:12px"><input type="checkbox" id="showEntities" checked onchange="draw()"> Entities</label>
+  </div>
+  <div id="canvas-wrap">
+    <canvas id="canvas"></canvas>
+  </div>
+  <div id="status">Ready</div>
+</div>
+
+<!-- Right Panel -->
+<div id="right-panel">
+  <div>
+    <h2>Doors (<span id="doorCount">0</span>)</h2>
+    <div class="item-list" id="doorList"></div>
+  </div>
+  <div>
+    <h2>Entities (<span id="entityCount">0</span>)</h2>
+    <div class="item-list" id="entityList"></div>
+  </div>
+  <div>
+    <h2>Zones (<span id="zoneCount">0</span>)</h2>
+    <div class="item-list" id="zoneList"></div>
+  </div>
+  <div>
+    <h2>Script</h2>
+    <label>Path: <input type="text" id="scriptPath" value="" placeholder="scripts/level.lua"></label>
+  </div>
+  <div>
+    <h2>Sounds</h2>
+    <div class="item-list" id="soundList"></div>
+    <div style="display:flex;gap:4px;margin-top:4px;">
+      <input type="text" id="sndName" placeholder="name" style="flex:1">
+      <input type="text" id="sndFile" placeholder="file path" style="flex:1">
+      <button class="btn btn-sm" onclick="addSound()">+</button>
+    </div>
+  </div>
+  <div>
+    <h2>Music</h2>
+    <div class="item-list" id="musicList"></div>
+    <div style="display:flex;gap:4px;margin-top:4px;">
+      <input type="text" id="musName" placeholder="name" style="flex:1">
+      <input type="text" id="musFile" placeholder="file path" style="flex:1">
+      <button class="btn btn-sm" onclick="addMusic()">+</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <h3>Map JSON</h3>
+    <textarea id="jsonOutput" readonly></textarea>
+    <div style="margin-top:10px;display:flex;gap:8px;">
+      <button class="btn" onclick="copyJSON()">Copy</button>
+      <button class="btn btn-secondary" onclick="downloadJSON()">Download</button>
+      <button class="btn btn-secondary" onclick="closeModal('exportModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <h3>Import Map JSON</h3>
+    <textarea id="jsonInput" placeholder="Paste map JSON here..."></textarea>
+    <div style="margin-top:10px;display:flex;gap:8px;">
+      <button class="btn" onclick="doImport()">Import</button>
+      <button class="btn btn-secondary" onclick="closeModal('importModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────
+let mapW = 24, mapH = 24;
+let tiles = [];
+let doors = [];
+let entities = [];
+let zones = [];
+let sounds = [];
+let musicTracks = [];
+let tileset = null;
+let tileColors = {};
+let tileNames = {};
+let selectedTile = 1;
+let currentTool = 'paint';
+let cellSize = 24;
+let undoStack = [];
+const MAX_UNDO = 50;
+
+// Drag state
+let painting = false;
+let dragStart = null; // for rect/line/zone tools
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// ── Initialization ─────────────────────────────────────────────────
+function init() {
+  initMap(mapW, mapH);
+  fillBorder();
+  loadDefaultTileset();
+  setupEvents();
+  draw();
+}
+
+function initMap(w, h) {
+  mapW = w; mapH = h;
+  tiles = new Array(w * h).fill(0);
+  canvas.width = w * cellSize;
+  canvas.height = h * cellSize;
+}
+
+function loadDefaultTileset() {
+  // Embedded default tileset
+  const ts = {
+    name: "default",
+    tiles: {
+      empty:      { id: 0, solid: false, name: "Empty",      color: "#2a2a2a", category: "floor" },
+      wall_blue:  { id: 1, solid: true,  name: "Blue Stone",  color: "#4466aa", category: "wall" },
+      wall_color: { id: 2, solid: true,  name: "Color Stone", color: "#cc8844", category: "wall" },
+      wall_eagle: { id: 3, solid: true,  name: "Eagle",       color: "#888866", category: "wall" },
+      wall_grey:  { id: 4, solid: true,  name: "Grey Stone",  color: "#888888", category: "wall" },
+      wall_mossy: { id: 5, solid: true,  name: "Mossy",       color: "#668844", category: "wall" },
+      wall_purple:{ id: 6, solid: true,  name: "Purple Stone", color: "#886688", category: "wall" },
+      wall_red:   { id: 7, solid: true,  name: "Red Brick",   color: "#aa4444", category: "wall" },
+      wall_wood:  { id: 8, solid: true,  name: "Wood",        color: "#8b6914", category: "wall" }
+    },
+    sprites: {
+      barrel:     { textureIndex: 8,  name: "Barrel",      icon: "O" },
+      greenlight: { textureIndex: 9,  name: "Green Light", icon: "*" },
+      pillar:     { textureIndex: 10, name: "Pillar",      icon: "I" },
+      penguin:    { textureIndex: 11, name: "Penguin",     icon: "P", animated: true }
+    }
+  };
+  applyTileset(ts);
+}
+
+function applyTileset(ts) {
+  tileset = ts;
+  tileColors = {};
+  tileNames = {};
+  for (const [key, t] of Object.entries(ts.tiles)) {
+    tileColors[t.id] = t.color;
+    tileNames[t.id] = t.name;
+  }
+  buildPalette();
+  buildSpriteSelect();
+  document.getElementById('tilesetInfo').textContent = 'Tileset: ' + ts.name;
+}
+
+function buildPalette() {
+  const pal = document.getElementById('tilePalette');
+  pal.innerHTML = '';
+  const sorted = Object.values(tileset.tiles).sort((a, b) => a.id - b.id);
+  for (const t of sorted) {
+    const div = document.createElement('div');
+    div.className = 'tile-swatch' + (t.id === selectedTile ? ' selected' : '');
+    div.style.background = t.color;
+    div.title = t.name + ' (id: ' + t.id + ')';
+    div.textContent = t.id;
+    div.onclick = () => { selectedTile = t.id; buildPalette(); };
+    pal.appendChild(div);
+  }
+}
+
+function buildSpriteSelect() {
+  const sel = document.getElementById('entitySprite');
+  sel.innerHTML = '<option value="-1">None</option>';
+  if (!tileset || !tileset.sprites) return;
+  for (const [key, s] of Object.entries(tileset.sprites)) {
+    const opt = document.createElement('option');
+    opt.value = s.textureIndex;
+    opt.textContent = s.name + ' (' + s.textureIndex + ')';
+    sel.appendChild(opt);
+  }
+}
+
+// ── Canvas Events ──────────────────────────────────────────────────
+function setupEvents() {
+  canvas.addEventListener('mousedown', onMouseDown);
+  canvas.addEventListener('mousemove', onMouseMove);
+  canvas.addEventListener('mouseup', onMouseUp);
+  canvas.addEventListener('mouseleave', onMouseUp);
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', onKeyDown);
+
+  document.getElementById('tilesetFile').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const ts = JSON.parse(reader.result);
+        applyTileset(ts);
+        draw();
+        status('Loaded tileset: ' + ts.name);
+      } catch(e) { status('Error loading tileset: ' + e.message); }
+    };
+    reader.readAsText(file);
+  });
+}
+
+function cellAt(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - rect.left) / cellSize);
+  const y = Math.floor((e.clientY - rect.top) / cellSize);
+  return { x: Math.max(0, Math.min(mapW - 1, x)), y: Math.max(0, Math.min(mapH - 1, y)) };
+}
+
+function onMouseDown(e) {
+  const c = cellAt(e);
+  painting = true;
+
+  if (currentTool === 'paint' || currentTool === 'erase') {
+    saveUndo();
+    setTile(c.x, c.y, currentTool === 'erase' ? 0 : selectedTile);
+    draw();
+  } else if (currentTool === 'fill') {
+    saveUndo();
+    floodFill(c.x, c.y, selectedTile);
+    draw();
+  } else if (currentTool === 'pick') {
+    selectedTile = getTile(c.x, c.y);
+    buildPalette();
+    setTool('paint');
+  } else if (currentTool === 'rect' || currentTool === 'line' || currentTool === 'zone') {
+    dragStart = c;
+  } else if (currentTool === 'door') {
+    addDoor(c.x, c.y);
+  } else if (currentTool === 'entity') {
+    addEntity(c.x + 0.5, c.y + 0.5);
+  }
+}
+
+function onMouseMove(e) {
+  const c = cellAt(e);
+  document.getElementById('coordDisplay').textContent = c.x + ', ' + c.y + ' [' + (tileNames[getTile(c.x, c.y)] || getTile(c.x, c.y)) + ']';
+
+  if (!painting) { if (dragStart) { draw(); drawPreview(c); } return; }
+
+  if (currentTool === 'paint') {
+    setTile(c.x, c.y, selectedTile);
+    draw();
+  } else if (currentTool === 'erase') {
+    setTile(c.x, c.y, 0);
+    draw();
+  } else if (dragStart && (currentTool === 'rect' || currentTool === 'line' || currentTool === 'zone')) {
+    draw();
+    drawPreview(c);
+  }
+}
+
+function onMouseUp(e) {
+  if (!painting) return;
+  painting = false;
+
+  if (dragStart) {
+    const c = cellAt(e);
+    if (currentTool === 'rect') {
+      saveUndo();
+      fillRect(dragStart.x, dragStart.y, c.x, c.y, selectedTile);
+    } else if (currentTool === 'line') {
+      saveUndo();
+      drawLine(dragStart.x, dragStart.y, c.x, c.y, selectedTile);
+    } else if (currentTool === 'zone') {
+      const x1 = Math.min(dragStart.x, c.x);
+      const y1 = Math.min(dragStart.y, c.y);
+      const x2 = Math.max(dragStart.x, c.x);
+      const y2 = Math.max(dragStart.y, c.y);
+      const name = document.getElementById('zoneName').value || 'zone' + (zones.length + 1);
+      zones.push({ name, x: x1, y: y1, w: x2 - x1 + 1, h: y2 - y1 + 1 });
+      updateLists();
+    }
+    dragStart = null;
+    draw();
+  }
+}
+
+function onKeyDown(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'z' || e.key === 'Z') { undo(); }
+  if (e.key >= '0' && e.key <= '9') { selectedTile = parseInt(e.key); buildPalette(); }
+  if (e.key === 'p') setTool('paint');
+  if (e.key === 'f') setTool('fill');
+  if (e.key === 'r') setTool('rect');
+  if (e.key === 'l') setTool('line');
+  if (e.key === 'e') setTool('erase');
+  if (e.key === 'd') setTool('door');
+  if (e.key === 'n') setTool('entity');
+}
+
+// ── Map Operations ─────────────────────────────────────────────────
+function getTile(x, y) { return tiles[y * mapW + x] || 0; }
+function setTile(x, y, v) { if (x >= 0 && x < mapW && y >= 0 && y < mapH) tiles[y * mapW + x] = v; }
+
+function floodFill(x, y, newVal) {
+  const target = getTile(x, y);
+  if (target === newVal) return;
+  const stack = [{ x, y }];
+  while (stack.length) {
+    const { x: cx, y: cy } = stack.pop();
+    if (cx < 0 || cx >= mapW || cy < 0 || cy >= mapH) continue;
+    if (getTile(cx, cy) !== target) continue;
+    setTile(cx, cy, newVal);
+    stack.push({ x: cx + 1, y: cy }, { x: cx - 1, y: cy }, { x: cx, y: cy + 1 }, { x: cx, y: cy - 1 });
+  }
+}
+
+function fillRect(x1, y1, x2, y2, val) {
+  const sx = Math.min(x1, x2), ex = Math.max(x1, x2);
+  const sy = Math.min(y1, y2), ey = Math.max(y1, y2);
+  for (let y = sy; y <= ey; y++)
+    for (let x = sx; x <= ex; x++)
+      setTile(x, y, val);
+}
+
+function drawLine(x1, y1, x2, y2, val) {
+  // Bresenham
+  let dx = Math.abs(x2 - x1), dy = Math.abs(y2 - y1);
+  let sx = x1 < x2 ? 1 : -1, sy = y1 < y2 ? 1 : -1;
+  let err = dx - dy;
+  while (true) {
+    setTile(x1, y1, val);
+    if (x1 === x2 && y1 === y2) break;
+    let e2 = 2 * err;
+    if (e2 > -dy) { err -= dy; x1 += sx; }
+    if (e2 < dx) { err += dx; y1 += sy; }
+  }
+}
+
+function fillBorder() {
+  saveUndo();
+  for (let x = 0; x < mapW; x++) { setTile(x, 0, 1); setTile(x, mapH - 1, 1); }
+  for (let y = 0; y < mapH; y++) { setTile(0, y, 1); setTile(mapW - 1, y, 1); }
+  draw();
+}
+
+function resizeMap() {
+  const nw = parseInt(document.getElementById('mapWidth').value) || 24;
+  const nh = parseInt(document.getElementById('mapHeight').value) || 24;
+  saveUndo();
+  const oldTiles = tiles.slice();
+  const ow = mapW, oh = mapH;
+  initMap(nw, nh);
+  for (let y = 0; y < Math.min(oh, nh); y++)
+    for (let x = 0; x < Math.min(ow, nw); x++)
+      tiles[y * nw + x] = oldTiles[y * ow + x];
+  draw();
+  status('Resized to ' + nw + 'x' + nh);
+}
+
+function clearMap() {
+  if (!confirm('Clear entire map?')) return;
+  saveUndo();
+  tiles.fill(0);
+  doors = []; entities = []; zones = [];
+  updateLists();
+  draw();
+}
+
+// ── Undo ───────────────────────────────────────────────────────────
+function saveUndo() {
+  undoStack.push(tiles.slice());
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+}
+
+function undo() {
+  if (!undoStack.length) return;
+  tiles = undoStack.pop();
+  draw();
+  status('Undo');
+}
+
+// ── Doors / Entities / Zones ───────────────────────────────────────
+function addDoor(x, y) {
+  // Remove existing door at same position
+  doors = doors.filter(d => d.x !== x || d.y !== y);
+  doors.push({
+    x, y,
+    direction: document.getElementById('doorDir').value,
+    texture: parseInt(document.getElementById('doorTex').value) || 2,
+    speed: parseFloat(document.getElementById('doorSpeed').value) || 2.0,
+    autoCloseDelay: parseFloat(document.getElementById('doorClose').value) || 5.0
+  });
+  // Ensure tile at door position is a wall
+  if (getTile(x, y) === 0) { saveUndo(); setTile(x, y, selectedTile || 3); }
+  updateLists();
+  draw();
+  status('Door added at ' + x + ',' + y);
+}
+
+function addEntity(x, y) {
+  const type = document.getElementById('entityType').value;
+  const name = document.getElementById('entityName').value || type + entities.length;
+  const spriteIdx = parseInt(document.getElementById('entitySprite').value);
+  const ent = { type, name, x, y };
+  if (type === 'player') {
+    ent.camera = { dirX: 1, dirY: 0, planeX: 0, planeY: 0.66 };
+    ent.movement = { maxSpeed: 5, maxRotateSpeed: 3 };
+  }
+  if (spriteIdx >= 0) {
+    ent.sprite = { textureIndex: spriteIdx, width: 64, height: 64 };
+  }
+  entities.push(ent);
+  updateLists();
+  draw();
+  status('Entity "' + name + '" added');
+}
+
+function addSound() {
+  const name = document.getElementById('sndName').value.trim();
+  const file = document.getElementById('sndFile').value.trim();
+  if (!name || !file) return;
+  sounds.push({ name, file });
+  document.getElementById('sndName').value = '';
+  document.getElementById('sndFile').value = '';
+  updateLists();
+}
+
+function addMusic() {
+  const name = document.getElementById('musName').value.trim();
+  const file = document.getElementById('musFile').value.trim();
+  if (!name || !file) return;
+  musicTracks.push({ name, file });
+  document.getElementById('musName').value = '';
+  document.getElementById('musFile').value = '';
+  updateLists();
+}
+
+function removeDoor(i) { doors.splice(i, 1); updateLists(); draw(); }
+function removeEntity(i) { entities.splice(i, 1); updateLists(); draw(); }
+function removeZone(i) { zones.splice(i, 1); updateLists(); draw(); }
+function removeSound(i) { sounds.splice(i, 1); updateLists(); }
+function removeMusic(i) { musicTracks.splice(i, 1); updateLists(); }
+
+function updateLists() {
+  // Doors
+  document.getElementById('doorCount').textContent = doors.length;
+  document.getElementById('doorList').innerHTML = doors.map((d, i) =>
+    `<div class="item-row"><span>Door (${d.x},${d.y}) ${d.direction}</span><button class="del-btn" onclick="removeDoor(${i})">x</button></div>`
+  ).join('');
+
+  // Entities
+  document.getElementById('entityCount').textContent = entities.length;
+  document.getElementById('entityList').innerHTML = entities.map((e, i) =>
+    `<div class="item-row"><span>${e.type}: ${e.name} (${e.x.toFixed(1)},${e.y.toFixed(1)})</span><button class="del-btn" onclick="removeEntity(${i})">x</button></div>`
+  ).join('');
+
+  // Zones
+  document.getElementById('zoneCount').textContent = zones.length;
+  document.getElementById('zoneList').innerHTML = zones.map((z, i) =>
+    `<div class="item-row"><span>${z.name} (${z.x},${z.y} ${z.w}x${z.h})</span><button class="del-btn" onclick="removeZone(${i})">x</button></div>`
+  ).join('');
+
+  // Sounds
+  document.getElementById('soundList').innerHTML = sounds.map((s, i) =>
+    `<div class="item-row"><span>${s.name}: ${s.file}</span><button class="del-btn" onclick="removeSound(${i})">x</button></div>`
+  ).join('');
+
+  // Music
+  document.getElementById('musicList').innerHTML = musicTracks.map((m, i) =>
+    `<div class="item-row"><span>${m.name}: ${m.file}</span><button class="del-btn" onclick="removeMusic(${i})">x</button></div>`
+  ).join('');
+}
+
+// ── Tool Selection ─────────────────────────────────────────────────
+function setTool(t) {
+  currentTool = t;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.toggle('active', b.dataset.tool === t));
+  document.getElementById('door-options').style.display = t === 'door' ? '' : 'none';
+  document.getElementById('entity-options').style.display = t === 'entity' ? '' : 'none';
+  document.getElementById('zone-options').style.display = t === 'zone' ? '' : 'none';
+  status('Tool: ' + t);
+}
+
+function updateCellSize() {
+  cellSize = parseInt(document.getElementById('cellSize').value) || 24;
+  canvas.width = mapW * cellSize;
+  canvas.height = mapH * cellSize;
+  draw();
+}
+
+// ── Drawing ────────────────────────────────────────────────────────
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Tiles
+  for (let y = 0; y < mapH; y++) {
+    for (let x = 0; x < mapW; x++) {
+      const tid = getTile(x, y);
+      ctx.fillStyle = tileColors[tid] || '#333';
+      ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+    }
+  }
+
+  // Grid
+  if (document.getElementById('showGrid').checked) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x <= mapW; x++) {
+      ctx.beginPath(); ctx.moveTo(x * cellSize, 0); ctx.lineTo(x * cellSize, mapH * cellSize); ctx.stroke();
+    }
+    for (let y = 0; y <= mapH; y++) {
+      ctx.beginPath(); ctx.moveTo(0, y * cellSize); ctx.lineTo(mapW * cellSize, y * cellSize); ctx.stroke();
+    }
+  }
+
+  // Doors
+  for (const d of doors) {
+    ctx.strokeStyle = '#ff0';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(d.x * cellSize + 2, d.y * cellSize + 2, cellSize - 4, cellSize - 4);
+    ctx.fillStyle = '#ff0';
+    ctx.font = (cellSize * 0.4) + 'px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('D', d.x * cellSize + cellSize / 2, d.y * cellSize + cellSize * 0.65);
+  }
+
+  // Zones
+  if (document.getElementById('showZones').checked) {
+    for (const z of zones) {
+      ctx.fillStyle = 'rgba(0, 200, 255, 0.15)';
+      ctx.fillRect(z.x * cellSize, z.y * cellSize, z.w * cellSize, z.h * cellSize);
+      ctx.strokeStyle = 'rgba(0, 200, 255, 0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(z.x * cellSize, z.y * cellSize, z.w * cellSize, z.h * cellSize);
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(0, 200, 255, 0.8)';
+      ctx.font = (cellSize * 0.45) + 'px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(z.name, z.x * cellSize + 3, z.y * cellSize + cellSize * 0.5);
+    }
+  }
+
+  // Entities
+  if (document.getElementById('showEntities').checked) {
+    for (const e of entities) {
+      const cx = e.x * cellSize, cy = e.y * cellSize;
+      const r = cellSize * 0.35;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = e.type === 'player' ? '#0f0' : e.type === 'npc' ? '#f80' : '#08f';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.font = (cellSize * 0.3) + 'px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(e.name.substring(0, 4), cx, cy + cellSize * 0.12);
+    }
+  }
+}
+
+function drawPreview(c) {
+  if (!dragStart) return;
+  ctx.save();
+  if (currentTool === 'zone') {
+    const x1 = Math.min(dragStart.x, c.x), y1 = Math.min(dragStart.y, c.y);
+    const x2 = Math.max(dragStart.x, c.x), y2 = Math.max(dragStart.y, c.y);
+    ctx.fillStyle = 'rgba(0,200,255,0.2)';
+    ctx.fillRect(x1 * cellSize, y1 * cellSize, (x2 - x1 + 1) * cellSize, (y2 - y1 + 1) * cellSize);
+    ctx.strokeStyle = 'rgba(0,200,255,0.8)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x1 * cellSize, y1 * cellSize, (x2 - x1 + 1) * cellSize, (y2 - y1 + 1) * cellSize);
+  } else {
+    ctx.strokeStyle = 'rgba(233,69,96,0.8)';
+    ctx.lineWidth = 2;
+    if (currentTool === 'rect') {
+      const x1 = Math.min(dragStart.x, c.x), y1 = Math.min(dragStart.y, c.y);
+      const x2 = Math.max(dragStart.x, c.x), y2 = Math.max(dragStart.y, c.y);
+      ctx.strokeRect(x1 * cellSize, y1 * cellSize, (x2 - x1 + 1) * cellSize, (y2 - y1 + 1) * cellSize);
+    } else if (currentTool === 'line') {
+      ctx.beginPath();
+      ctx.moveTo(dragStart.x * cellSize + cellSize / 2, dragStart.y * cellSize + cellSize / 2);
+      ctx.lineTo(c.x * cellSize + cellSize / 2, c.y * cellSize + cellSize / 2);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+// ── JSON Export / Import ───────────────────────────────────────────
+function buildJSON() {
+  const data = {
+    map: { width: mapW, height: mapH, tiles: tiles.slice() }
+  };
+  if (doors.length) data.doors = doors;
+  if (zones.length) data.zones = zones;
+  if (sounds.length) data.sounds = sounds;
+  if (musicTracks.length) data.music = musicTracks;
+  const sp = document.getElementById('scriptPath').value.trim();
+  if (sp) data.script = sp;
+  if (entities.length) data.entities = entities;
+  return JSON.stringify(data, null, 2);
+}
+
+function exportJSON() {
+  document.getElementById('jsonOutput').value = buildJSON();
+  document.getElementById('exportModal').classList.add('active');
+}
+
+function importJSON() {
+  document.getElementById('importModal').classList.add('active');
+}
+
+function doImport() {
+  try {
+    const json = JSON.parse(document.getElementById('jsonInput').value);
+    if (json.map) {
+      mapW = json.map.width || 24;
+      mapH = json.map.height || 24;
+      document.getElementById('mapWidth').value = mapW;
+      document.getElementById('mapHeight').value = mapH;
+      initMap(mapW, mapH);
+      if (json.map.tiles) {
+        for (let i = 0; i < Math.min(json.map.tiles.length, tiles.length); i++)
+          tiles[i] = json.map.tiles[i];
+      }
+    }
+    doors = json.doors || [];
+    entities = json.entities || [];
+    zones = json.zones || [];
+    sounds = json.sounds || [];
+    musicTracks = json.music || [];
+    document.getElementById('scriptPath').value = json.script || '';
+    updateLists();
+    draw();
+    closeModal('importModal');
+    status('Map imported');
+  } catch (e) {
+    alert('Invalid JSON: ' + e.message);
+  }
+}
+
+function copyJSON() {
+  navigator.clipboard.writeText(document.getElementById('jsonOutput').value);
+  status('Copied to clipboard');
+}
+
+function downloadJSON() {
+  const blob = new Blob([buildJSON()], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'map.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+function status(msg) { document.getElementById('status').textContent = msg; }
+
+// ── Start ──────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
