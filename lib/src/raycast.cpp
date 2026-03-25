@@ -47,6 +47,11 @@ namespace NN::Utils {
       }
 
       if (world->getMapPoint(mapX, mapY) > 0) {
+        // Check if this is a fully open door - if so, skip it
+        DoorState *door = world->getDoor(mapX, mapY);
+        if (door && door->openProgress >= 1.0) {
+          continue; // Ray passes through open door
+        }
         hit = 1;
       }
     }
@@ -72,6 +77,13 @@ namespace NN::Utils {
       texX = TEXTURE_WIDTH - texX - 1;
     }
 
+    // Check if the hit tile is a door
+    DoorState *door = world->getDoor(mapX, mapY);
+    bool isDoor = door != nullptr;
+    bool doorOpensUp = isDoor ? door->opensUp : false;
+    double doorOpenProgress = isDoor ? door->openProgress : 0.0;
+    int textureIndex = isDoor ? door->textureIndex : (world->getMapPoint(mapX, mapY) - 1);
+
     return {
       mapX,
       mapY,
@@ -80,7 +92,10 @@ namespace NN::Utils {
       side,
       perpWallDist,
       world->getMapPoint(mapX, mapY),
-      world->getMapPoint(mapX, mapY) - 1
+      textureIndex,
+      isDoor,
+      doorOpensUp,
+      doorOpenProgress
     };
   }
 

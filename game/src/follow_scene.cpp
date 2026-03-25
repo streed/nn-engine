@@ -94,7 +94,7 @@ void FollowScene::createFromMapFile() {
 			coordinator->addComponent<NN::Components::Camera>(entity,
 				NN::Components::Camera{ entityDef.dirX, entityDef.dirY, entityDef.planeX, entityDef.planeY });
 			coordinator->addComponent<NN::Components::Input>(entity,
-				NN::Components::Input{ false, false, false, false, false, false, false, false });
+				NN::Components::Input{ false, false, false, false, false, false, false, false, false, false, false, false, false, false });
 			coordinator->addComponent<NN::Components::Velocity>(entity,
 				NN::Components::Velocity{ 0, 0, entityDef.maxSpeed, entityDef.maxRotateSpeed });
 		} else {
@@ -148,7 +148,7 @@ void FollowScene::createHardcoded() {
 	engine->setCurrentPlayer(currentPlayer);
 	coordinator->addComponent<NN::Components::Position>(currentPlayer, NN::Components::Position{ 5.5, 2 });
 	coordinator->addComponent<NN::Components::Camera>(currentPlayer, NN::Components::Camera{ -1, 0, 0, 0.66 });
-	coordinator->addComponent<NN::Components::Input>(currentPlayer, NN::Components::Input{ false, false, false, false, false, false, false, false });
+	coordinator->addComponent<NN::Components::Input>(currentPlayer, NN::Components::Input{ false, false, false, false, false, false, false, false, false, false, false, false, false, false });
 	coordinator->addComponent<NN::Components::Velocity>(currentPlayer, NN::Components::Velocity{ 0, 0, 5, 3 });
 
 	NN::Entities::Entity penguin = coordinator->createEntity();

@@ -158,6 +158,24 @@ namespace NN::Systems::Graphics {
         drawEnd = config->getScreenHeight() - 1;
       }
 
+      // Adjust draw range for partially open doors
+      if (hit.isDoor && hit.doorOpenProgress > 0.0) {
+        int visibleHeight = static_cast<int>(lineHeight * (1.0 - hit.doorOpenProgress));
+        if (hit.doorOpensUp) {
+          // Door slides up into ceiling - gap appears at bottom
+          drawEnd = drawStart + visibleHeight;
+          if (drawEnd > config->getScreenHeight()) {
+            drawEnd = config->getScreenHeight() - 1;
+          }
+        } else {
+          // Door slides down into floor - gap appears at top
+          drawStart = drawEnd - visibleHeight;
+          if (drawStart < 0) {
+            drawStart = 0;
+          }
+        }
+      }
+
       drawTextureSlice(x, drawStart, drawEnd, hit, textures);
     }
   }

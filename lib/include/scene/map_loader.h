@@ -39,6 +39,19 @@ namespace NN {
       // NPC follow target
       std::string followTarget;
       double stopDistance = 1.0;
+
+      // Health
+      double health = 0;
+      double maxHealth = 0;
+    };
+
+    struct DoorDef {
+      int x;
+      int y;
+      bool opensUp = true;       // "up" or "down"
+      int textureIndex = 2;      // default: eagle texture
+      double speed = 2.0;
+      double autoCloseDelay = 5.0;
     };
 
     struct MapData {
@@ -46,6 +59,7 @@ namespace NN {
       int height = 0;
       std::vector<int> tiles;
       std::vector<EntityDef> entities;
+      std::vector<DoorDef> doors;
     };
 
     class MapLoader {

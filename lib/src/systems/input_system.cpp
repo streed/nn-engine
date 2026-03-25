@@ -28,5 +28,6 @@ namespace NN::Systems::BuiltIns {
     input.weapon2 = inputPacket->weapon2;
     input.weapon3 = inputPacket->weapon3;
     input.weapon4 = inputPacket->weapon4;
+    input.interact = inputPacket->interact;
   }
 }

@@ -17,6 +17,7 @@
 #include "ui/ui_system.h"
 
 // A bigger arena map for the shooter
+// Note: tiles marked 3 at door positions are wall placeholders that become doors
 static int shooterMap[20 * 20] = {
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
@@ -25,12 +26,12 @@ static int shooterMap[20 * 20] = {
 	1,0,0,2,2,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1,
 	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-	1,0,0,0,0,0,0,4,4,0,0,4,4,0,0,0,0,0,0,1,
+	1,0,0,0,0,0,0,4,4,3,3,4,4,0,0,0,0,0,0,1,
 	1,0,0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0,0,1,
-	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+	1,0,0,0,0,0,3,0,0,0,0,0,0,3,0,0,0,0,0,1,
+	1,0,0,0,0,0,3,0,0,0,0,0,0,3,0,0,0,0,0,1,
 	1,0,0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0,0,1,
-	1,0,0,0,0,0,0,4,4,0,0,4,4,0,0,0,0,0,0,1,
+	1,0,0,0,0,0,0,4,4,3,3,4,4,0,0,0,0,0,0,1,
 	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 	1,0,0,5,5,0,0,0,0,0,0,0,0,0,0,6,6,0,0,1,
@@ -71,6 +72,23 @@ void PenguinShooterScene::onDestroy() {
 
 void PenguinShooterScene::setupMap() {
 	world = new World(20, 20, (int*)&shooterMap);
+
+	// Add doors at the arena entrances (eagle texture = index 2)
+	// North entrance (top wall, row 7, cols 9-10) - opens up
+	world->addDoor(9, 7, true, 2, 2.0, 5.0);
+	world->addDoor(10, 7, true, 2, 2.0, 5.0);
+
+	// South entrance (bottom wall, row 12, cols 9-10) - opens down
+	world->addDoor(9, 12, false, 2, 2.0, 5.0);
+	world->addDoor(10, 12, false, 2, 2.0, 5.0);
+
+	// West entrance (left wall, col 6, rows 9-10) - opens up
+	world->addDoor(6, 9, true, 2, 2.0, 5.0);
+	world->addDoor(6, 10, true, 2, 2.0, 5.0);
+
+	// East entrance (right wall, col 13, rows 9-10) - opens down
+	world->addDoor(13, 9, false, 2, 2.0, 5.0);
+	world->addDoor(13, 10, false, 2, 2.0, 5.0);
 }
 
 void PenguinShooterScene::setupPlayer() {
@@ -85,7 +103,7 @@ void PenguinShooterScene::setupPlayer() {
 	coordinator->addComponent<NN::Components::Camera>(currentPlayer,
 		NN::Components::Camera{ -1, 0, 0, 0.66 });
 	coordinator->addComponent<NN::Components::Input>(currentPlayer,
-		NN::Components::Input{ false, false, false, false, false, false, false, false, false, false, false, false, false });
+		NN::Components::Input{ false, false, false, false, false, false, false, false, false, false, false, false, false, false });
 	coordinator->addComponent<NN::Components::Velocity>(currentPlayer,
 		NN::Components::Velocity{ 0, 0, 5, 3 });
 	coordinator->addComponent<NN::Components::Health>(currentPlayer,

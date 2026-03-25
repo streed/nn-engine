@@ -19,6 +19,10 @@ namespace NN::Utils {
     double perpWallDist;
     int colorIndex;
     int textureIndex;
+    // Door info
+    bool isDoor;
+    bool doorOpensUp;
+    double doorOpenProgress;
   };
 
   struct EntityHit {

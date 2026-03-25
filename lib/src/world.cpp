@@ -1,5 +1,5 @@
 #include <iostream>
-using namespace std;
+#include <cmath>
 
 #include "world.h"
 
@@ -45,7 +45,6 @@ void World::setupNavMesh() {
   }
 
   resetNavMesh();
-
 }
 
 void World::resetNavMesh() {
@@ -57,18 +56,126 @@ void World::resetNavMesh() {
 }
 
 void World::draw() {
-  cout << "NavMesh: " << endl;
+  std::cout << "NavMesh: " << std::endl;
   for (int i =  0; i < height; i++) {
     for (int j = 0; j < width; j++) {
-      cout << navMesh[i * width  + j] << ",";
+      std::cout << navMesh[i * width  + j] << ",";
     }
 
-    cout << "\t";
+    std::cout << "\t";
 
     for (int j = 0; j < width; j++) {
-      cout << getMapPoint(j, i) << ",";
+      std::cout << getMapPoint(j, i) << ",";
     }
 
-    cout << endl;
+    std::cout << std::endl;
   }
+}
+
+// Door management
+
+std::int64_t World::doorKey(int x, int y) const {
+  return (static_cast<std::int64_t>(y) << 32) | static_cast<std::int64_t>(x);
+}
+
+void World::addDoor(int x, int y, bool opensUp, int textureIndex, double speed, double autoCloseDelay) {
+  DoorState door{};
+  door.mapX = x;
+  door.mapY = y;
+  door.opensUp = opensUp;
+  door.textureIndex = textureIndex;
+  door.openProgress = 0.0;
+  door.speed = speed;
+  door.opening = false;
+  door.closing = false;
+  door.autoCloseTimer = -1.0;
+  door.autoCloseDelay = autoCloseDelay;
+
+  size_t index = doors.size();
+  doors.push_back(door);
+  doorLookup[doorKey(x, y)] = index;
+
+  // Door tiles are solid walls in the map, so navMesh should block them
+  markNotTraversable(x, y);
+}
+
+DoorState *World::getDoor(int x, int y) {
+  auto it = doorLookup.find(doorKey(x, y));
+  if (it != doorLookup.end()) {
+    return &doors[it->second];
+  }
+  return nullptr;
+}
+
+bool World::hasDoor(int x, int y) const {
+  return doorLookup.find(doorKey(x, y)) != doorLookup.end();
+}
+
+const std::vector<DoorState> &World::getDoors() const {
+  return doors;
+}
+
+void World::updateDoors(double frameTime) {
+  static constexpr double PASSABLE_THRESHOLD = 0.7;
+
+  for (auto &door : doors) {
+    if (door.opening) {
+      door.openProgress += door.speed * frameTime;
+      if (door.openProgress >= 1.0) {
+        door.openProgress = 1.0;
+        door.opening = false;
+        // Start auto-close timer
+        if (door.autoCloseDelay > 0) {
+          door.autoCloseTimer = door.autoCloseDelay;
+        }
+      }
+    } else if (door.closing) {
+      door.openProgress -= door.speed * frameTime;
+      if (door.openProgress <= 0.0) {
+        door.openProgress = 0.0;
+        door.closing = false;
+      }
+    } else if (door.autoCloseTimer > 0) {
+      // Count down auto-close timer
+      door.autoCloseTimer -= frameTime;
+      if (door.autoCloseTimer <= 0) {
+        door.autoCloseTimer = -1.0;
+        door.closing = true;
+      }
+    }
+
+    // Update navmesh based on door state
+    if (door.openProgress >= PASSABLE_THRESHOLD) {
+      markTraversable(door.mapX, door.mapY);
+    } else {
+      markNotTraversable(door.mapX, door.mapY);
+    }
+  }
+}
+
+bool World::tryInteractDoor(double playerX, double playerY, double playerDirX, double playerDirY) {
+  static constexpr double INTERACT_RANGE = 2.5;
+
+  // Check tiles in front of the player
+  for (double dist = 0.5; dist <= INTERACT_RANGE; dist += 0.5) {
+    int checkX = static_cast<int>(playerX + playerDirX * dist);
+    int checkY = static_cast<int>(playerY + playerDirY * dist);
+
+    DoorState *door = getDoor(checkX, checkY);
+    if (door) {
+      if (!door->opening && !door->closing) {
+        if (door->openProgress < 0.5) {
+          door->opening = true;
+          door->closing = false;
+          door->autoCloseTimer = -1.0;
+        } else {
+          door->closing = true;
+          door->opening = false;
+          door->autoCloseTimer = -1.0;
+        }
+      }
+      return true;
+    }
+  }
+  return false;
 }

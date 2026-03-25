@@ -128,6 +128,20 @@ namespace NN {
 
       inputSystem->update(this, frameTime);
 
+      // Handle interact (edge-triggered: activate on press, not hold)
+      {
+        auto &input = coordinator->getComponent<Components::Input>(currentPlayer);
+        if (input.interact && !prevInteract) {
+          World *w = getWorld();
+          if (w) {
+            auto &pos = coordinator->getComponent<Components::Position>(currentPlayer);
+            auto &cam = coordinator->getComponent<Components::Camera>(currentPlayer);
+            w->tryInteractDoor(pos.posX, pos.posY, cam.dirX, cam.dirY);
+          }
+        }
+        prevInteract = input.interact;
+      }
+
       while (lag >= GAME_LOOP_TICKS) {
         playerMovementSystem->update(this, GAME_LOOP_TICKS / 1000.0);
         animatedSpriteSystem->update(this, GAME_LOOP_TICKS / 1000.0);
@@ -135,6 +149,11 @@ namespace NN {
         physicsSystem->update(this, GAME_LOOP_TICKS / 1000.0);
         weaponSystem->update(this, GAME_LOOP_TICKS / 1000.0);
         projectileSystem->update(this, GAME_LOOP_TICKS / 1000.0);
+
+        // Update door animations
+        World *w = getWorld();
+        if (w) w->updateDoors(GAME_LOOP_TICKS / 1000.0);
+
         lag -= GAME_LOOP_TICKS;
       }
 

@@ -92,6 +92,8 @@ namespace NN {
       std::shared_ptr<Systems::Weapons::ProjectileSystem> projectileSystem;
 
       std::unique_ptr<UI::UISystem> uiSystem;
+
+      bool prevInteract = false;
   };
 }
 

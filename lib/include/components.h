@@ -135,6 +135,7 @@ namespace NN {
       bool weapon2;
       bool weapon3;
       bool weapon4;
+      bool interact;
     };
 
 

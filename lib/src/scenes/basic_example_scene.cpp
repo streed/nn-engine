@@ -35,6 +35,12 @@ namespace NN::Scenes::Examples {
                                                                                   false,
                                                                                   false,
                                                                                   false,
+                                                                                  false,
+                                                                                  false,
+                                                                                  false,
+                                                                                  false,
+                                                                                  false,
+                                                                                  false,
                                                                                   false});
     coordinator->addComponent<Components::Velocity>(currentPlayer, Components::Velocity{0, 0, 5, 3});
 

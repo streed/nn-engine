@@ -39,6 +39,33 @@ namespace NN::Scenes {
         }
       }
 
+      // Load doors
+      if (json.contains("doors")) {
+        for (const auto &doorJson : json["doors"]) {
+          DoorDef door;
+          door.x = doorJson.value("x", 0);
+          door.y = doorJson.value("y", 0);
+          std::string dir = doorJson.value("direction", "up");
+          door.opensUp = (dir == "up");
+          door.textureIndex = doorJson.value("texture", 2);
+          door.speed = doorJson.value("speed", 2.0);
+          door.autoCloseDelay = doorJson.value("autoCloseDelay", 5.0);
+          data.doors.push_back(door);
+        }
+      } else if (json.contains("map") && json["map"].contains("doors")) {
+        for (const auto &doorJson : json["map"]["doors"]) {
+          DoorDef door;
+          door.x = doorJson.value("x", 0);
+          door.y = doorJson.value("y", 0);
+          std::string dir = doorJson.value("direction", "up");
+          door.opensUp = (dir == "up");
+          door.textureIndex = doorJson.value("texture", 2);
+          door.speed = doorJson.value("speed", 2.0);
+          door.autoCloseDelay = doorJson.value("autoCloseDelay", 5.0);
+          data.doors.push_back(door);
+        }
+      }
+
       // Load entities
       if (json.contains("entities")) {
         for (const auto &entityJson : json["entities"]) {

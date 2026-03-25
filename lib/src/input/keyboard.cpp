@@ -48,6 +48,7 @@ void Keyboard::setupDefaultBindings() {
   bindings["weapon2"]      = SDL_SCANCODE_2;
   bindings["weapon3"]      = SDL_SCANCODE_3;
   bindings["weapon4"]      = SDL_SCANCODE_4;
+  bindings["interact"]     = SDL_SCANCODE_E;
 }
 
 int Keyboard::scancodeFromName(const std::string &name) {
@@ -171,7 +172,8 @@ InputPacket *Keyboard::getInput() {
     keyPresses[bindings["weapon1"]],
     keyPresses[bindings["weapon2"]],
     keyPresses[bindings["weapon3"]],
-    keyPresses[bindings["weapon4"]]
+    keyPresses[bindings["weapon4"]],
+    keyPresses[bindings["interact"]]
   );
   return packet;
 }
