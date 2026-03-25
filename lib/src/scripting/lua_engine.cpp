@@ -1,6 +1,8 @@
 #include "scripting/lua_engine.h"
 
 #include <iostream>
+#include <cmath>
+#include <algorithm>
 
 #define SOL_ALL_SAFETIES_ON 1
 #include "sol/sol.hpp"
@@ -13,13 +15,6 @@
 #include "audio/sound_system.h"
 
 namespace NN::Scripting {
-
-  // We store the sol::state as an opaque pointer to avoid sol2 in the header
-  static sol::state *getSol(lua_State *L) {
-    // Not used - we keep our own sol::state
-    (void)L;
-    return nullptr;
-  }
 
   // The actual sol::state, stored here to keep header clean
   struct LuaEngineImpl {
@@ -39,7 +34,8 @@ namespace NN::Scripting {
     soundSystem = snd;
 
     impl = std::make_unique<LuaEngineImpl>();
-    impl->lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::string, sol::lib::table);
+    impl->lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::string,
+                             sol::lib::table, sol::lib::coroutine);
     L = impl->lua.lua_state();
 
     registerAPI();
@@ -49,7 +45,7 @@ namespace NN::Scripting {
   void LuaEngine::registerAPI() {
     auto &lua = impl->lua;
 
-    // ── Map / Door control ──────────────────────────────────────────
+    // ── Door Control ────────────────────────────────────────────────
     lua.set_function("open_door", [this](int x, int y) {
       World *w = engine->getWorld();
       if (!w) return;
@@ -92,9 +88,7 @@ namespace NN::Scripting {
       World *w = engine->getWorld();
       if (!w) return;
       DoorState *door = w->getDoor(x, y);
-      if (door) {
-        door->autoCloseDelay = delay;
-      }
+      if (door) door->autoCloseDelay = delay;
     });
 
     lua.set_function("is_door_open", [this](int x, int y) -> bool {
@@ -104,7 +98,14 @@ namespace NN::Scripting {
       return door && door->openProgress >= 0.9;
     });
 
-    // ── Player info ─────────────────────────────────────────────────
+    lua.set_function("get_door_progress", [this](int x, int y) -> double {
+      World *w = engine->getWorld();
+      if (!w) return 0.0;
+      DoorState *door = w->getDoor(x, y);
+      return door ? door->openProgress : 0.0;
+    });
+
+    // ── Player Control ──────────────────────────────────────────────
     lua.set_function("get_player_pos", [this]() -> std::tuple<double, double> {
       auto &pos = engine->getCoordinator()->getComponent<Components::Position>(
         engine->getCurrentPlayer());
@@ -116,6 +117,32 @@ namespace NN::Scripting {
         engine->getCurrentPlayer());
       pos.posX = x;
       pos.posY = y;
+    });
+
+    lua.set_function("get_player_dir", [this]() -> std::tuple<double, double> {
+      auto &cam = engine->getCoordinator()->getComponent<Components::Camera>(
+        engine->getCurrentPlayer());
+      return {cam.dirX, cam.dirY};
+    });
+
+    lua.set_function("set_player_dir", [this](double dirX, double dirY) {
+      auto &cam = engine->getCoordinator()->getComponent<Components::Camera>(
+        engine->getCurrentPlayer());
+      // Normalize direction
+      double len = std::sqrt(dirX * dirX + dirY * dirY);
+      if (len < 0.001) return;
+      cam.dirX = dirX / len;
+      cam.dirY = dirY / len;
+      // Recalculate plane perpendicular to direction, maintaining FOV
+      double fov = 0.66; // standard FOV factor
+      cam.planeX = -cam.dirY * fov;
+      cam.planeY = cam.dirX * fov;
+    });
+
+    lua.set_function("rotate_player", [this](double angle) {
+      auto &cam = engine->getCoordinator()->getComponent<Components::Camera>(
+        engine->getCurrentPlayer());
+      cam.rotate(angle);
     });
 
     lua.set_function("get_player_health", [this]() -> double {
@@ -130,10 +157,146 @@ namespace NN::Scripting {
       health.current = h;
     });
 
-    // ── Map queries ─────────────────────────────────────────────────
+    lua.set_function("get_player_max_health", [this]() -> double {
+      auto &health = engine->getCoordinator()->getComponent<Components::Health>(
+        engine->getCurrentPlayer());
+      return health.max;
+    });
+
+    lua.set_function("set_player_speed", [this](double speed) {
+      auto &vel = engine->getCoordinator()->getComponent<Components::Velocity>(
+        engine->getCurrentPlayer());
+      vel.maxSpeed = speed;
+    });
+
+    lua.set_function("get_player_speed", [this]() -> double {
+      auto &vel = engine->getCoordinator()->getComponent<Components::Velocity>(
+        engine->getCurrentPlayer());
+      return vel.maxSpeed;
+    });
+
+    // ── Entity Control ──────────────────────────────────────────────
+    lua.set_function("get_entity", [this](const std::string &name) -> int {
+      if (!hasEntity(name)) return -1;
+      return static_cast<int>(getEntityByName(name));
+    });
+
+    lua.set_function("entity_exists", [this](const std::string &name) -> bool {
+      return hasEntity(name);
+    });
+
+    lua.set_function("get_entity_pos", [this](const std::string &name) -> std::tuple<double, double> {
+      if (!hasEntity(name)) return {0.0, 0.0};
+      auto ent = getEntityByName(name);
+      auto &pos = engine->getCoordinator()->getComponent<Components::Position>(ent);
+      return {pos.posX, pos.posY};
+    });
+
+    lua.set_function("set_entity_pos", [this](const std::string &name, double x, double y) {
+      if (!hasEntity(name)) return;
+      auto ent = getEntityByName(name);
+      auto &pos = engine->getCoordinator()->getComponent<Components::Position>(ent);
+      pos.posX = x;
+      pos.posY = y;
+    });
+
+    lua.set_function("get_entity_health", [this](const std::string &name) -> double {
+      if (!hasEntity(name)) return 0.0;
+      auto ent = getEntityByName(name);
+      auto &health = engine->getCoordinator()->getComponent<Components::Health>(ent);
+      return health.current;
+    });
+
+    lua.set_function("set_entity_health", [this](const std::string &name, double h) {
+      if (!hasEntity(name)) return;
+      auto ent = getEntityByName(name);
+      auto &health = engine->getCoordinator()->getComponent<Components::Health>(ent);
+      health.current = h;
+    });
+
+    lua.set_function("damage_entity", [this](const std::string &name, double amount) {
+      if (!hasEntity(name)) return;
+      auto ent = getEntityByName(name);
+      auto &health = engine->getCoordinator()->getComponent<Components::Health>(ent);
+      health.takeDamage(amount);
+    });
+
+    lua.set_function("heal_entity", [this](const std::string &name, double amount) {
+      if (!hasEntity(name)) return;
+      auto ent = getEntityByName(name);
+      auto &health = engine->getCoordinator()->getComponent<Components::Health>(ent);
+      health.heal(amount);
+    });
+
+    lua.set_function("set_entity_sprite", [this](const std::string &name, int textureIndex) {
+      if (!hasEntity(name)) return;
+      auto ent = getEntityByName(name);
+      auto &sprite = engine->getCoordinator()->getComponent<Components::AnimatedSprite>(ent);
+      sprite.startTextureIndex = textureIndex;
+      sprite.currentFrame = 0;
+    });
+
+    lua.set_function("spawn_entity", [this](const std::string &name, double x, double y,
+                                             int textureIndex, int spriteW, int spriteH) -> int {
+      auto *coord = engine->getCoordinator();
+      auto ent = coord->createEntity();
+
+      Components::Position pos{};
+      pos.posX = x;
+      pos.posY = y;
+      coord->addComponent(ent, pos);
+
+      Components::AnimatedSprite sprite{};
+      sprite.startTextureIndex = textureIndex;
+      sprite.endTextureIndex = textureIndex;
+      sprite.currentFrame = 0;
+      sprite.currentAnimation = 0;
+      sprite.spriteWidth = spriteW;
+      sprite.spriteHeight = spriteH;
+      sprite.spriteScaleX = 1.0;
+      sprite.spriteScaleY = 1.0;
+      sprite.vMove = 0;
+      sprite.actuallyStatic = true;
+      coord->addComponent(ent, sprite);
+
+      Components::Health health{};
+      health.current = 100.0;
+      health.max = 100.0;
+      coord->addComponent(ent, health);
+
+      registerEntity(name, ent);
+      return static_cast<int>(ent);
+    });
+
+    lua.set_function("destroy_entity", [this](const std::string &name) {
+      if (!hasEntity(name)) return;
+      auto ent = getEntityByName(name);
+      engine->getCoordinator()->destroyEntity(ent);
+      unregisterEntity(name);
+    });
+
+    lua.set_function("move_entity_toward", [this](const std::string &name,
+                                                    double targetX, double targetY, double speed) {
+      if (!hasEntity(name)) return;
+      auto ent = getEntityByName(name);
+      auto &pos = engine->getCoordinator()->getComponent<Components::Position>(ent);
+      double dx = targetX - pos.posX;
+      double dy = targetY - pos.posY;
+      double dist = std::sqrt(dx * dx + dy * dy);
+      if (dist < 0.01) return;
+      pos.posX += (dx / dist) * speed;
+      pos.posY += (dy / dist) * speed;
+    });
+
+    // ── Map Queries & Mutation ──────────────────────────────────────
     lua.set_function("get_tile", [this](int x, int y) -> int {
       World *w = engine->getWorld();
       return w ? w->getMapPoint(x, y) : -1;
+    });
+
+    lua.set_function("set_tile", [this](int x, int y, int value) {
+      World *w = engine->getWorld();
+      if (w) w->setMapPoint(x, y, value);
     });
 
     lua.set_function("is_traversable", [this](int x, int y) -> bool {
@@ -141,13 +304,23 @@ namespace NN::Scripting {
       return w ? w->isTraversable(x, y) : false;
     });
 
-    // ── Zone queries ────────────────────────────────────────────────
+    lua.set_function("get_map_size", [this]() -> std::tuple<int, int> {
+      World *w = engine->getWorld();
+      return w ? std::make_tuple(w->width, w->height) : std::make_tuple(0, 0);
+    });
+
+    // ── Zone Queries ────────────────────────────────────────────────
     lua.set_function("is_player_in_zone", [this](const std::string &name) -> bool {
       World *w = engine->getWorld();
       if (!w) return false;
       auto &pos = engine->getCoordinator()->getComponent<Components::Position>(
         engine->getCurrentPlayer());
       return w->isInZone(name, pos.posX, pos.posY);
+    });
+
+    lua.set_function("is_point_in_zone", [this](const std::string &name, double x, double y) -> bool {
+      World *w = engine->getWorld();
+      return w ? w->isInZone(name, x, y) : false;
     });
 
     // ── Sound ───────────────────────────────────────────────────────
@@ -174,21 +347,43 @@ namespace NN::Scripting {
       if (soundSystem) soundSystem->setMusicVolume(vol);
     });
 
+    lua.set_function("set_sound_volume", [this](int vol) {
+      if (soundSystem) soundSystem->setMasterSoundVolume(vol);
+    });
+
     // ── UI Messages ─────────────────────────────────────────────────
-    lua.set_function("show_message", [this](const std::string &text) {
-      // Store message for the scene to display via UI system
-      std::cout << "[SCRIPT] " << text << std::endl;
-      // The scene can poll this - we store it in a global for now
-      impl->lua["_engine_message"] = text;
+    lua.set_function("show_message", [this](const std::string &text, sol::optional<double> duration) {
+      currentMessage = text;
+      messageTimer = duration.value_or(0.0); // 0 = permanent until cleared
     });
 
     lua.set_function("get_message", [this]() -> std::string {
-      sol::optional<std::string> msg = impl->lua["_engine_message"];
-      return msg.value_or("");
+      return currentMessage;
     });
 
     lua.set_function("clear_message", [this]() {
-      impl->lua["_engine_message"] = sol::nil;
+      currentMessage.clear();
+      messageTimer = 0.0;
+    });
+
+    // ── Timer System ────────────────────────────────────────────────
+    lua.set_function("set_timeout", [this](double seconds, const std::string &callback) -> int {
+      int id = nextTimerId++;
+      timers.push_back({seconds, 0.0, callback, id});
+      return id;
+    });
+
+    lua.set_function("set_interval", [this](double seconds, const std::string &callback) -> int {
+      int id = nextTimerId++;
+      timers.push_back({seconds, seconds, callback, id});
+      return id;
+    });
+
+    lua.set_function("cancel_timer", [this](int id) {
+      timers.erase(
+        std::remove_if(timers.begin(), timers.end(),
+                        [id](const ScriptTimer &t) { return t.id == id; }),
+        timers.end());
     });
 
     // ── Utility ─────────────────────────────────────────────────────
@@ -200,6 +395,15 @@ namespace NN::Scripting {
       double dx = x2 - x1;
       double dy = y2 - y1;
       return std::sqrt(dx * dx + dy * dy);
+    });
+
+    lua.set_function("random", [](int min, int max) -> int {
+      if (min >= max) return min;
+      return min + (std::rand() % (max - min + 1));
+    });
+
+    lua.set_function("random_float", [](double min, double max) -> double {
+      return min + (static_cast<double>(std::rand()) / RAND_MAX) * (max - min);
     });
   }
 
@@ -214,6 +418,8 @@ namespace NN::Scripting {
         return false;
       }
       scriptLoaded = true;
+      // Automatically call on_start when script is loaded
+      callOnStart();
       return true;
     } catch (const sol::error &e) {
       std::cerr << "Lua load error: " << e.what() << std::endl;
@@ -240,6 +446,19 @@ namespace NN::Scripting {
 
   void LuaEngine::callOnUpdate(double frameTime) {
     if (!impl || !scriptLoaded) return;
+
+    // Update timers
+    updateTimers(frameTime);
+
+    // Update message timer
+    if (messageTimer > 0.0) {
+      messageTimer -= frameTime;
+      if (messageTimer <= 0.0) {
+        currentMessage.clear();
+        messageTimer = 0.0;
+      }
+    }
+
     sol::protected_function fn = impl->lua["on_update"];
     if (fn.valid()) {
       auto result = fn(frameTime);
@@ -276,9 +495,14 @@ namespace NN::Scripting {
 
   void LuaEngine::callOnEntityKilled(uint32_t entity) {
     if (!impl || !scriptLoaded) return;
+    // Find entity name if registered
+    std::string entName;
+    for (const auto &[name, ent] : entityNames) {
+      if (ent == entity) { entName = name; break; }
+    }
     sol::protected_function fn = impl->lua["on_entity_killed"];
     if (fn.valid()) {
-      auto result = fn(entity);
+      auto result = fn(entity, entName);
       if (!result.valid()) {
         sol::error err = result;
         std::cerr << "Lua error in on_entity_killed(): " << err.what() << std::endl;
@@ -301,5 +525,82 @@ namespace NN::Scripting {
   void LuaEngine::callOnInteract() { callFunction("on_interact"); }
 
   bool LuaEngine::isLoaded() const { return scriptLoaded; }
+
+  // Entity registry
+  void LuaEngine::registerEntity(const std::string &name, Entities::Entity entity) {
+    entityNames[name] = entity;
+  }
+
+  void LuaEngine::unregisterEntity(const std::string &name) {
+    entityNames.erase(name);
+  }
+
+  Entities::Entity LuaEngine::getEntityByName(const std::string &name) const {
+    auto it = entityNames.find(name);
+    if (it != entityNames.end()) return it->second;
+    return 0;
+  }
+
+  bool LuaEngine::hasEntity(const std::string &name) const {
+    return entityNames.find(name) != entityNames.end();
+  }
+
+  // Timer system
+  void LuaEngine::updateTimers(double dt) {
+    if (!impl || !scriptLoaded) return;
+
+    // Process timers - collect expired ones first to avoid mutation during iteration
+    std::vector<ScriptTimer> expired;
+    for (auto &timer : timers) {
+      timer.remaining -= dt;
+      if (timer.remaining <= 0.0) {
+        expired.push_back(timer);
+      }
+    }
+
+    // Remove one-shots and reset repeating timers
+    for (const auto &t : expired) {
+      if (t.interval > 0.0) {
+        // Reset repeating timer
+        for (auto &timer : timers) {
+          if (timer.id == t.id) {
+            timer.remaining = timer.interval;
+            break;
+          }
+        }
+      } else {
+        // Remove one-shot
+        timers.erase(
+          std::remove_if(timers.begin(), timers.end(),
+                          [&t](const ScriptTimer &timer) { return timer.id == t.id; }),
+          timers.end());
+      }
+    }
+
+    // Fire callbacks
+    for (const auto &t : expired) {
+      sol::protected_function fn = impl->lua[t.callback];
+      if (fn.valid()) {
+        auto result = fn();
+        if (!result.valid()) {
+          sol::error err = result;
+          std::cerr << "Lua timer error (" << t.callback << "): " << err.what() << std::endl;
+        }
+      }
+    }
+  }
+
+  // Script message
+  const std::string &LuaEngine::getCurrentMessage() const {
+    return currentMessage;
+  }
+
+  bool LuaEngine::hasMessage() const {
+    return !currentMessage.empty();
+  }
+
+  double LuaEngine::getMessageTimer() const {
+    return messageTimer;
+  }
 
 }

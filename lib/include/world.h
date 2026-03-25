@@ -35,6 +35,7 @@ class World {
     ~World();
 
     int getMapPoint(int x, int y);
+    void setMapPoint(int x, int y, int value);
 
     void markNotTraversable(int x, int y);
     void markTraversable(int x, int y);

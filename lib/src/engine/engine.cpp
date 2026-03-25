@@ -19,9 +19,12 @@
 #include "weapons/projectile_system.h"
 #include "weapons/weapon_components.h"
 #include "ui/ui_system.h"
+#include "ui/ui_components.h"
 #include "audio/sound_system.h"
 #include "scripting/lua_engine.h"
 #include "world.h"
+
+#include <unordered_set>
 
 namespace NN {
   Engine::Engine(Config *config): config(config) {
@@ -115,6 +118,18 @@ namespace NN {
 
     // Initialize Lua scripting
     scriptEngine->setup(this, soundSystem.get());
+
+    // Create script message UI canvas
+    scriptCanvas = std::make_unique<UI::UICanvas>();
+    // Background bar for message
+    scriptMessageBgId = scriptCanvas->addRect(0, -60, 600, 40,
+      UI::Color(0, 0, 0, 180), UI::Anchor::BOTTOM_CENTER, 50);
+    scriptCanvas->getElement(scriptMessageBgId).visible = false;
+    // Text element for message
+    scriptMessageElementId = scriptCanvas->addText(0, -52, "", UI::Color(255, 255, 255, 255),
+      16, UI::Anchor::BOTTOM_CENTER, 51);
+    scriptCanvas->getElement(scriptMessageElementId).visible = false;
+    uiSystem->addCanvas(scriptCanvas.get());
   }
 
   void Engine::run() {
@@ -165,10 +180,32 @@ namespace NN {
         weaponSystem->update(this, GAME_LOOP_TICKS / 1000.0);
         projectileSystem->update(this, GAME_LOOP_TICKS / 1000.0);
 
-        // Update door animations
+        // Update door animations and detect newly opened doors
         World *w = getWorld();
         if (w) {
+          // Snapshot door states before update
+          std::unordered_set<int64_t> wasOpen;
+          if (scriptEngine->isLoaded()) {
+            for (const auto &d : w->getDoors()) {
+              if (d.openProgress >= 1.0) {
+                wasOpen.insert((static_cast<int64_t>(d.mapY) << 32) | d.mapX);
+              }
+            }
+          }
+
           w->updateDoors(GAME_LOOP_TICKS / 1000.0);
+
+          // Fire on_door_opened for doors that just reached fully open
+          if (scriptEngine->isLoaded()) {
+            for (const auto &d : w->getDoors()) {
+              if (d.openProgress >= 1.0) {
+                int64_t key = (static_cast<int64_t>(d.mapY) << 32) | d.mapX;
+                if (wasOpen.find(key) == wasOpen.end()) {
+                  scriptEngine->callOnDoorOpened(d.mapX, d.mapY);
+                }
+              }
+            }
+          }
 
           // Update zones and fire Lua callbacks
           if (scriptEngine->isLoaded()) {
@@ -190,6 +227,17 @@ namespace NN {
 
       renderSystem->update(this, frameTime);
       spriteSystem->update(this, frameTime);
+
+      // Update script message UI
+      if (scriptEngine->hasMessage()) {
+        scriptCanvas->getElement(scriptMessageBgId).visible = true;
+        auto &textEl = scriptCanvas->getElement(scriptMessageElementId);
+        textEl.visible = true;
+        textEl.text = scriptEngine->getCurrentMessage();
+      } else {
+        scriptCanvas->getElement(scriptMessageBgId).visible = false;
+        scriptCanvas->getElement(scriptMessageElementId).visible = false;
+      }
 
       // Render UI on top of the 3D scene
       renderSystem->presentPreUI(debug, (int)(1.0 / frameTime));

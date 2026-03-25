@@ -112,6 +112,11 @@ namespace NN {
       std::unique_ptr<Scripting::LuaEngine> scriptEngine;
 
       bool prevInteract = false;
+
+      // Script message UI
+      std::unique_ptr<UI::UICanvas> scriptCanvas;
+      int scriptMessageElementId = -1;
+      int scriptMessageBgId = -1;
   };
 }
 

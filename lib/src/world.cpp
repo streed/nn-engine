@@ -22,6 +22,17 @@ int World::getMapPoint(int x, int y) {
   return *(this->map + y * this->width + x);
 }
 
+void World::setMapPoint(int x, int y, int value) {
+  if (x < 0 || x >= width || y < 0 || y >= height) return;
+  *(this->map + y * this->width + x) = value;
+  // Update navmesh: 0 = traversable, anything else = solid
+  if (value == 0) {
+    markTraversable(x, y);
+  } else {
+    markNotTraversable(x, y);
+  }
+}
+
 void World::markNotTraversable(int x, int y) {
   if (x < 0 || x >= width || y < 0 || y >= height) return;
   navMesh[y * this->width + x] = false;
