@@ -58,6 +58,10 @@ namespace NN::Systems::Graphics {
     SDL_GL_SetSwapInterval(0);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
+    // Allocate buffers to match configured screen size
+    buffer.resize(config->getScreenWidth() * config->getScreenHeight(), 0);
+    zBuffer.resize(config->getScreenWidth(), 0.0);
+
     font = TTF_OpenFont("./font/font.TTF", 32);
 
     if (font == NULL) {
@@ -125,13 +129,13 @@ namespace NN::Systems::Graphics {
           .getPixels()
           ->at(TEXTURE_HEIGHT * ty + tx);
         color = (color >> 1) & 8355711;
-        buffer[y][x] = color;
+        buffer[y * config->getScreenWidth() + x] = color;
 
         color = textures->at(ceilingTexture)
           .getPixels()
           ->at(TEXTURE_HEIGHT * ty + tx);
         color = (color >> 1) & 8355711;
-        buffer[config->getScreenHeight() - y - 1][x] = color;
+        buffer[(config->getScreenHeight() - y - 1) * config->getScreenWidth() + x] = color;
       }
     }
 
@@ -196,20 +200,16 @@ namespace NN::Systems::Graphics {
         color = (color >> 1) & 8355711;
       }
 
-      buffer[y][x] = color;
+      buffer[y * config->getScreenWidth() + x] = color;
     }
   }
 
   void RenderSystem::drawBuffer() {
-    SDL_UpdateTexture(screen, NULL, (const void *)&buffer, config->getScreenWidth() * sizeof(Uint32));
+    SDL_UpdateTexture(screen, NULL, buffer.data(), config->getScreenWidth() * sizeof(Uint32));
   }
 
   void RenderSystem::clearBuffer() {
-    for(int y = 0; y < config->getScreenHeight(); y++) {
-      for(int x = 0; x < config->getScreenWidth(); x++) {
-        buffer[y][x] = 0;
-      }
-    }
+    std::fill(buffer.begin(), buffer.end(), 0);
   }
 
   void RenderSystem::present(bool debug, int fps) {
@@ -248,11 +248,11 @@ namespace NN::Systems::Graphics {
   }
 
   double *RenderSystem::getZBuffer() {
-    return zBuffer;
+    return zBuffer.data();
   }
 
   void RenderSystem::setBufferPixel(int x, int y, Uint32 color) {
-    buffer[y][x] = color;
+    buffer[y * config->getScreenWidth() + x] = color;
   }
 
   void RenderSystem::presentPreUI(bool debug, int fps) {
@@ -275,6 +275,42 @@ namespace NN::Systems::Graphics {
       SDL_DestroyTexture(fpsTexture);
       SDL_FreeSurface(fpsText);
     }
+  }
+
+  void RenderSystem::drawMuzzleFlash(double intensity) {
+    if (intensity <= 0.0) return;
+
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+    int w = config->getScreenWidth();
+    int h = config->getScreenHeight();
+    int cx = w / 2;
+    int cy = h / 2;
+
+    // Bright center flash — a bright yellow-white burst at lower-center screen
+    int flashW = static_cast<int>(40 * intensity);
+    int flashH = static_cast<int>(60 * intensity);
+    int flashX = cx - flashW / 2;
+    int flashY = h - flashH - 10;
+
+    // Core flash (white-yellow)
+    uint8_t alpha = static_cast<uint8_t>(220 * intensity);
+    SDL_SetRenderDrawColor(renderer, 255, 240, 180, alpha);
+    SDL_Rect core = { flashX, flashY, flashW, flashH };
+    SDL_RenderFillRect(renderer, &core);
+
+    // Inner bright core
+    int innerW = flashW / 2;
+    int innerH = flashH * 2 / 3;
+    SDL_SetRenderDrawColor(renderer, 255, 255, 240, alpha);
+    SDL_Rect inner = { cx - innerW / 2, h - innerH - 10, innerW, innerH };
+    SDL_RenderFillRect(renderer, &inner);
+
+    // Screen-wide light tint (simulates muzzle illuminating the scene)
+    uint8_t tintAlpha = static_cast<uint8_t>(40 * intensity);
+    SDL_SetRenderDrawColor(renderer, 255, 200, 100, tintAlpha);
+    SDL_Rect fullScreen = { 0, 0, w, h };
+    SDL_RenderFillRect(renderer, &fullScreen);
   }
 
   void RenderSystem::presentFinal() {

@@ -7,6 +7,7 @@
 
 #include "penguin_shooter_scene.h"
 
+#include "engine/config.h"
 #include "entities.h"
 #include "components.h"
 #include "coordinator.h"
@@ -75,20 +76,20 @@ void PenguinShooterScene::setupMap() {
 
 	// Add doors at the arena entrances (eagle texture = index 2)
 	// North entrance (top wall, row 7, cols 9-10) - opens up
-	world->addDoor(9, 7, true, 2, 2.0, 5.0);
-	world->addDoor(10, 7, true, 2, 2.0, 5.0);
+	world->addDoor(9, 7, true, 2, 0.5, 5.0);
+	world->addDoor(10, 7, true, 2, 0.5, 5.0);
 
 	// South entrance (bottom wall, row 12, cols 9-10) - opens down
-	world->addDoor(9, 12, false, 2, 2.0, 5.0);
-	world->addDoor(10, 12, false, 2, 2.0, 5.0);
+	world->addDoor(9, 12, false, 2, 0.5, 5.0);
+	world->addDoor(10, 12, false, 2, 0.5, 5.0);
 
 	// West entrance (left wall, col 6, rows 9-10) - opens up
-	world->addDoor(6, 9, true, 2, 2.0, 5.0);
-	world->addDoor(6, 10, true, 2, 2.0, 5.0);
+	world->addDoor(6, 9, true, 2, 0.5, 5.0);
+	world->addDoor(6, 10, true, 2, 0.5, 5.0);
 
 	// East entrance (right wall, col 13, rows 9-10) - opens down
-	world->addDoor(13, 9, false, 2, 2.0, 5.0);
-	world->addDoor(13, 10, false, 2, 2.0, 5.0);
+	world->addDoor(13, 9, false, 2, 0.5, 5.0);
+	world->addDoor(13, 10, false, 2, 0.5, 5.0);
 }
 
 void PenguinShooterScene::setupPlayer() {
@@ -191,7 +192,7 @@ void PenguinShooterScene::setupHUD() {
 
 	// Health bar - bottom left, Doom style
 	hudCanvas.addRect(0, -60, 200, 60, Color(40, 40, 40, 200), Anchor::BOTTOM_LEFT, 1);
-	hudCanvas.addText(10, -55, "HEALTH", Color(180, 180, 180, 255), 12, Anchor::BOTTOM_LEFT, 10);
+	hudCanvas.addText(10, -55, "HEALTH", Color(180, 180, 180, 255), 24, Anchor::BOTTOM_LEFT, 10);
 	healthBarId = hudCanvas.addBar(10, -35, 180, 20,
 		100.0, 100.0,
 		Color(200, 0, 0, 255),
@@ -201,16 +202,34 @@ void PenguinShooterScene::setupHUD() {
 	// Kill counter - bottom right
 	hudCanvas.addRect(-200, -60, 200, 60, Color(40, 40, 40, 200), Anchor::BOTTOM_RIGHT, 1);
 	killCountId = hudCanvas.addText(-190, -45, "KILLS: 0 / 8",
-		Color(255, 200, 50, 255), 14, Anchor::BOTTOM_RIGHT, 10);
+		Color(255, 200, 50, 255), 28, Anchor::BOTTOM_RIGHT, 10);
 
 	// Weapon name - bottom center
-	hudCanvas.addText(-40, -25, "PENGUIN BLASTER",
-		Color(200, 200, 200, 180), 10, Anchor::BOTTOM_CENTER, 10);
+	hudCanvas.addText(-80, -25, "PENGUIN BLASTER",
+		Color(200, 200, 200, 180), 22, Anchor::BOTTOM_CENTER, 10);
 
 	// Game message (for win/lose) - center, initially invisible
 	messageId = hudCanvas.addText(-100, -20, "",
-		Color(255, 50, 50, 255), 24, Anchor::CENTER, 50);
+		Color(255, 50, 50, 255), 32, Anchor::CENTER, 50);
 	hudCanvas.getElement(messageId).visible = false;
+
+	// Muzzle flash elements (initially invisible)
+	// Screen tint
+	int sw = engine->getConfig()->getScreenWidth();
+	int sh = engine->getConfig()->getScreenHeight();
+	muzzleFlashTintId = hudCanvas.addRect(0, 0, sw, sh,
+		Color(255, 200, 100, 40), Anchor::TOP_LEFT, 90);
+	hudCanvas.getElement(muzzleFlashTintId).visible = false;
+
+	// Outer flash glow at bottom-center
+	muzzleFlashOuterId = hudCanvas.addRect(-20, -70, 40, 60,
+		Color(255, 240, 180, 220), Anchor::BOTTOM_CENTER, 91);
+	hudCanvas.getElement(muzzleFlashOuterId).visible = false;
+
+	// Inner bright core
+	muzzleFlashInnerId = hudCanvas.addRect(-10, -65, 20, 45,
+		Color(255, 255, 240, 240), Anchor::BOTTOM_CENTER, 92);
+	hudCanvas.getElement(muzzleFlashInnerId).visible = false;
 
 	engine->getUISystem()->addCanvas(&hudCanvas);
 }
@@ -236,6 +255,34 @@ void PenguinShooterScene::update(double frameTime) {
 
 	// Check win/lose
 	checkWinCondition();
+
+	// Update muzzle flash visibility based on weapon state
+	NN::Coordinator* coordinator = engine->getCoordinator();
+	auto &weapon = coordinator->getComponent<NN::Components::Weapon>(weaponEntity);
+	bool flashActive = weapon.muzzleFlashTimer > 0.0;
+	if (muzzleFlashOuterId >= 0) hudCanvas.getElement(muzzleFlashOuterId).visible = flashActive;
+	if (muzzleFlashInnerId >= 0) hudCanvas.getElement(muzzleFlashInnerId).visible = flashActive;
+	if (muzzleFlashTintId >= 0) hudCanvas.getElement(muzzleFlashTintId).visible = flashActive;
+
+	if (flashActive) {
+		double intensity = weapon.muzzleFlashTimer / weapon.muzzleFlashDuration;
+		uint8_t outerAlpha = static_cast<uint8_t>(220 * intensity);
+		uint8_t innerAlpha = static_cast<uint8_t>(240 * intensity);
+		uint8_t tintAlpha = static_cast<uint8_t>(40 * intensity);
+		hudCanvas.getElement(muzzleFlashOuterId).fillColor = NN::UI::Color(255, 240, 180, outerAlpha);
+		hudCanvas.getElement(muzzleFlashInnerId).fillColor = NN::UI::Color(255, 255, 240, innerAlpha);
+		hudCanvas.getElement(muzzleFlashTintId).fillColor = NN::UI::Color(255, 200, 100, tintAlpha);
+	}
+
+	// Update crosshair color: red on hit, yellow on fire, white default
+	if (crosshairHitTimer > 0.0) {
+		crosshairHitTimer -= frameTime;
+		hudCanvas.getElement(crosshairId).crosshairColor = NN::UI::Color(255, 50, 50, 255);
+	} else if (flashActive) {
+		hudCanvas.getElement(crosshairId).crosshairColor = NN::UI::Color(255, 255, 50, 255);
+	} else {
+		hudCanvas.getElement(crosshairId).crosshairColor = NN::UI::Color(255, 255, 255, 255);
+	}
 }
 
 void PenguinShooterScene::updateWeaponFiring(double frameTime) {
@@ -253,6 +300,7 @@ void PenguinShooterScene::updateWeaponFiring(double frameTime) {
 		if (it != penguins.end()) {
 			auto &health = coordinator->getComponent<NN::Components::Health>(event.target);
 			health.takeDamage(event.damage);
+			crosshairHitTimer = 0.15; // Flash crosshair red on hit
 
 			if (health.isDead()) {
 				// Remove penguin from tracking

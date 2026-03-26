@@ -6747,6 +6747,10 @@ namespace sol {
 		/// one.
 		///
 		/// \group emplace
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtemplate-body"
+#endif
 		template <class... Args>
 		T& emplace(Args&&... args) noexcept {
 			static_assert(std::is_constructible<T, Args&&...>::value, "T must be constructible with Args");
@@ -6754,6 +6758,9 @@ namespace sol {
 			*this = nullopt;
 			this->construct(std::forward<Args>(args)...);
 		}
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 		/// Swaps this optional with the other.
 		///

@@ -5,8 +5,7 @@
 #include <unordered_map>
 
 struct Mix_Chunk;
-struct _Mix_Music;
-typedef _Mix_Music Mix_Music;
+struct Mix_Music;
 
 namespace NN::Audio {
 

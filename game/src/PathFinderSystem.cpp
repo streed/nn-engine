@@ -42,12 +42,21 @@ void PathFinderSystem::update(NN::Engine *engine, double frameTime) {
 		velocity.velocityY = 0.0;
 
 		if (target.state == TargetEntity::SEEKING) {
-			Position nextCellToMoveTo = findNextPositionToMoveTo({ double(int(position.posX)), double(int(position.posY)) },
-																 { double(int(targetPosition.posX)), double(int(targetPosition.posY)) },
-																 world);
+			// Only recalculate path periodically
+			target.pathTimer -= frameTime;
+			if (target.pathTimer <= 0.0 || !target.hasCachedPath) {
+				Position nextCellToMoveTo = findNextPositionToMoveTo(
+					{ double(int(position.posX)), double(int(position.posY)) },
+					{ double(int(targetPosition.posX)), double(int(targetPosition.posY)) },
+					world);
+				target.cachedNextX = nextCellToMoveTo.posX;
+				target.cachedNextY = nextCellToMoveTo.posY;
+				target.hasCachedPath = true;
+				target.pathTimer = PATH_UPDATE_INTERVAL;
+			}
 
-			double diffX = (nextCellToMoveTo.posX + 0.5) - position.posX;
-			double diffY = (nextCellToMoveTo.posY + 0.5) - position.posY;
+			double diffX = (target.cachedNextX + 0.5) - position.posX;
+			double diffY = (target.cachedNextY + 0.5) - position.posY;
 
 			double length = std::sqrt(diffX * diffX + diffY * diffY);
 			if (length > 0.0) {

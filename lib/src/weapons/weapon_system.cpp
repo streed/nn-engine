@@ -13,9 +13,10 @@
 
 namespace NN::Systems::Weapons {
 
-  // Check if a hitscan ray hits a sprite entity by testing the actual sprite pixels.
-  // Projects the ray into sprite-space and samples the texture to see if
-  // a non-transparent pixel is hit.
+  // Check if a hitscan ray hits a sprite entity using pixel-perfect detection.
+  // Uses the same camera transform as the renderer to compute exact texture
+  // coordinates where the crosshair ray intersects the sprite, then checks
+  // if that pixel is opaque.
   struct SpriteHitResult {
     bool hit = false;
     double distance = 0.0;
@@ -26,6 +27,7 @@ namespace NN::Systems::Weapons {
   static SpriteHitResult testSpritePixelHit(
       double rayStartX, double rayStartY,
       double rayDirX, double rayDirY,
+      const Components::Camera &camera,
       double spritePosX, double spritePosY,
       const Components::AnimatedSprite &sprite,
       double maxDist,
@@ -33,45 +35,62 @@ namespace NN::Systems::Weapons {
   {
     SpriteHitResult result;
 
-    // Vector from ray origin to sprite center
-    double toSpriteX = spritePosX - rayStartX;
-    double toSpriteY = spritePosY - rayStartY;
+    // Use the same camera transform the sprite renderer uses
+    double spriteX = spritePosX - rayStartX;
+    double spriteY = spritePosY - rayStartY;
 
-    // Distance along ray to the sprite's perpendicular plane
-    // Using the same projection the renderer uses:
-    // We project the sprite position onto the ray direction
-    double dot = toSpriteX * rayDirX + toSpriteY * rayDirY;
-    if (dot <= 0.0) return result; // Sprite is behind us
-    if (dot > maxDist) return result; // Beyond weapon range or wall
+    double invDet = camera.getInvDet();
 
-    // Perpendicular distance from ray to sprite center
-    // Cross product gives signed perpendicular distance
-    double cross = toSpriteX * rayDirY - toSpriteY * rayDirX;
-    // |cross| / |rayDir| = perpendicular distance, but rayDir should be unit-length
-    double rayLen = std::sqrt(rayDirX * rayDirX + rayDirY * rayDirY);
-    double perpDist = cross / rayLen;
+    // Transform sprite position to camera space (same as sprite_system.cpp)
+    double transformX = invDet * (camera.dirY * spriteX - camera.dirX * spriteY);
+    double transformY = invDet * (-camera.planeY * spriteX + camera.planeX * spriteY);
 
-    // The sprite has a world-space width based on its distance.
-    // In the renderer, spriteHeight = screenHeight / transformY, and
-    // spriteWidth = screenHeight / transformY / scaleX.
-    // In world space, the sprite occupies roughly 1/scaleX units wide at its position.
-    double worldSpriteHalfWidth = 0.5 / sprite.spriteScaleX;
+    if (transformY <= 0.0) return result; // Behind camera
+    if (transformY > maxDist) return result; // Beyond range
 
-    // Check if the ray passes within the sprite's width
-    if (std::fabs(perpDist) > worldSpriteHalfWidth) return result;
+    int screenWidth = config->getScreenWidth();
+    int screenHeight = config->getScreenHeight();
 
-    // Now determine the texture X coordinate hit by the ray
-    // perpDist ranges from -worldSpriteHalfWidth to +worldSpriteHalfWidth
-    // Map to 0..spriteWidth pixels
-    double normalizedX = (perpDist + worldSpriteHalfWidth) / (2.0 * worldSpriteHalfWidth);
-    int texX = static_cast<int>(normalizedX * sprite.spriteWidth);
+    // Screen X position of sprite center
+    int spriteScreenX = static_cast<int>((screenWidth / 2) * (1.0 + transformX / transformY));
+
+    // Sprite dimensions on screen (matching renderer)
+    int spriteHeightOnScreen = std::abs(static_cast<int>(screenHeight / transformY)) / sprite.spriteScaleY;
+    int spriteWidthOnScreen = std::abs(static_cast<int>(screenHeight / transformY)) / sprite.spriteScaleX;
+
+    if (spriteWidthOnScreen <= 0 || spriteHeightOnScreen <= 0) return result;
+
+    // Compute draw bounds (same as renderer)
+    int vMoveScreen = static_cast<int>(sprite.vMove / transformY);
+
+    int drawStartX = -spriteWidthOnScreen / 2 + spriteScreenX;
+    int drawEndX = spriteWidthOnScreen / 2 + spriteScreenX;
+    int drawStartY = -spriteHeightOnScreen / 2 + screenHeight / 2 + vMoveScreen;
+    int drawEndY = spriteHeightOnScreen / 2 + screenHeight / 2 + vMoveScreen;
+
+    // The crosshair is at screen center
+    int crosshairX = screenWidth / 2;
+    int crosshairY = screenHeight / 2;
+
+    // Check if crosshair falls within the sprite's screen bounds
+    if (crosshairX < drawStartX || crosshairX >= drawEndX) return result;
+    if (crosshairY < drawStartY || crosshairY >= drawEndY) return result;
+
+    // Compute texture coordinates at the crosshair position
+    // (same math as sprite_system.cpp)
+    int texX = static_cast<int>(
+      256 * (crosshairX - (-spriteWidthOnScreen / 2 + spriteScreenX))
+      * sprite.spriteWidth / spriteWidthOnScreen
+    ) / 256;
+
+    int d = (crosshairY - vMoveScreen) * 256 - screenHeight * 128 + spriteHeightOnScreen * 128;
+    int texY = ((d * sprite.spriteHeight) / spriteHeightOnScreen) / 256;
+
+    // Clamp texture coordinates
     if (texX < 0) texX = 0;
     if (texX >= sprite.spriteWidth) texX = sprite.spriteWidth - 1;
-
-    // For the Y axis in this 2.5D engine, we always shoot from the center of the screen
-    // (eye level), so we test the middle row of the sprite texture.
-    // A more advanced version could account for vertical aim offset.
-    int texY = sprite.spriteHeight / 2;
+    if (texY < 0) texY = 0;
+    if (texY >= sprite.spriteHeight) texY = sprite.spriteHeight - 1;
 
     // Sample the texture pixel
     int textureIndex = sprite.currentFrame;
@@ -90,31 +109,16 @@ namespace NN::Systems::Weapons {
 
     uint32_t color = pixels->at(pixelIndex);
 
-    // Check if pixel is non-transparent (same check the sprite renderer uses)
+    // Pixel-perfect: only count as hit if the exact pixel is opaque
     if ((color & 0x00FFFFFF) == 0) {
-      // Transparent pixel — scan nearby rows to be more forgiving
-      // Check a vertical band of pixels around center
-      bool foundSolid = false;
-      int scanRange = sprite.spriteHeight / 4;
-      for (int dy = -scanRange; dy <= scanRange && !foundSolid; dy++) {
-        int scanY = texY + dy;
-        if (scanY < 0 || scanY >= sprite.spriteHeight) continue;
-        int scanIdx = sprite.spriteWidth * scanY + texX;
-        if (scanIdx >= 0 && scanIdx < static_cast<int>(pixels->size())) {
-          uint32_t scanColor = pixels->at(scanIdx);
-          if ((scanColor & 0x00FFFFFF) != 0) {
-            foundSolid = true;
-          }
-        }
-      }
-      if (!foundSolid) return result;
+      return result; // Transparent pixel — miss
     }
 
     // Hit confirmed
     result.hit = true;
-    result.distance = dot;
-    result.hitX = rayStartX + rayDirX * dot;
-    result.hitY = rayStartY + rayDirY * dot;
+    result.distance = transformY; // perpendicular distance (same as zBuffer)
+    result.hitX = rayStartX + rayDirX * transformY;
+    result.hitY = rayStartY + rayDirY * transformY;
     return result;
   }
 
@@ -203,6 +207,7 @@ namespace NN::Systems::Weapons {
       SpriteHitResult spriteHit = testSpritePixelHit(
         playerPos.posX, playerPos.posY,
         playerCam.dirX, playerCam.dirY,
+        playerCam,
         targetPos.posX, targetPos.posY,
         targetSprite,
         closestDist,

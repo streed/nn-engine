@@ -49,4 +49,12 @@ class PenguinShooterScene : public NN::Scenes::Scene {
 		int killCountId = -1;
 		int messageId = -1;
 		int crosshairId = -1;
+
+		// Muzzle flash HUD elements
+		int muzzleFlashOuterId = -1;
+		int muzzleFlashInnerId = -1;
+		int muzzleFlashTintId = -1;
+
+		// Crosshair hit feedback timer
+		double crosshairHitTimer = 0.0;
 };

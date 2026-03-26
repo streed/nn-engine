@@ -46,6 +46,9 @@ namespace NN {
         void presentFinal();
         void clear();
 
+        // Draw a muzzle flash effect on screen (intensity 0.0 to 1.0)
+        void drawMuzzleFlash(double intensity);
+
         double *getZBuffer();
         void setBufferPixel(int x, int y, Uint32 color);
 
@@ -73,8 +76,8 @@ namespace NN {
         SDL_Texture *screen = NULL;
         TTF_Font *font = NULL;
 
-        Uint32 buffer[SCREEN_HEIGHT][SCREEN_WIDTH];
-        double zBuffer[SCREEN_WIDTH];
+        std::vector<Uint32> buffer;
+        std::vector<double> zBuffer;
     };
   }
 }

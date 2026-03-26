@@ -11,7 +11,8 @@ struct DoorState {
   int mapX, mapY;
   bool opensUp;          // true = slides up into ceiling, false = slides down into floor
   int textureIndex;      // texture to render the door with
-  double openProgress;   // 0.0 = fully closed, 1.0 = fully open
+  double openProgress;   // 0.0 = fully closed, 1.0 = fully open (eased)
+  double openTime;       // 0.0 = fully closed, 1.0 = fully open (linear, pre-easing)
   double speed;          // how fast the door opens/closes (progress per second)
   bool opening;
   bool closing;

@@ -127,7 +127,7 @@ namespace NN {
     scriptCanvas->getElement(scriptMessageBgId).visible = false;
     // Text element for message
     scriptMessageElementId = scriptCanvas->addText(0, -52, "", UI::Color(255, 255, 255, 255),
-      16, UI::Anchor::BOTTOM_CENTER, 51);
+      28, UI::Anchor::BOTTOM_CENTER, 51);
     scriptCanvas->getElement(scriptMessageElementId).visible = false;
     uiSystem->addCanvas(scriptCanvas.get());
   }

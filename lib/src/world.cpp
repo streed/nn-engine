@@ -96,6 +96,7 @@ void World::addDoor(int x, int y, bool opensUp, int textureIndex, double speed, 
   door.opensUp = opensUp;
   door.textureIndex = textureIndex;
   door.openProgress = 0.0;
+  door.openTime = 0.0;
   door.speed = speed;
   door.opening = false;
   door.closing = false;
@@ -131,9 +132,9 @@ void World::updateDoors(double frameTime) {
 
   for (auto &door : doors) {
     if (door.opening) {
-      door.openProgress += door.speed * frameTime;
-      if (door.openProgress >= 1.0) {
-        door.openProgress = 1.0;
+      door.openTime += door.speed * frameTime;
+      if (door.openTime >= 1.0) {
+        door.openTime = 1.0;
         door.opening = false;
         // Start auto-close timer
         if (door.autoCloseDelay > 0) {
@@ -141,9 +142,9 @@ void World::updateDoors(double frameTime) {
         }
       }
     } else if (door.closing) {
-      door.openProgress -= door.speed * frameTime;
-      if (door.openProgress <= 0.0) {
-        door.openProgress = 0.0;
+      door.openTime -= door.speed * frameTime;
+      if (door.openTime <= 0.0) {
+        door.openTime = 0.0;
         door.closing = false;
       }
     } else if (door.autoCloseTimer > 0) {
@@ -154,6 +155,10 @@ void World::updateDoors(double frameTime) {
         door.closing = true;
       }
     }
+
+    // Smoothstep easing: slow start, fast middle, slow end
+    double t = door.openTime;
+    door.openProgress = t * t * (3.0 - 2.0 * t);
 
     // Update navmesh based on door state
     if (door.openProgress >= PASSABLE_THRESHOLD) {

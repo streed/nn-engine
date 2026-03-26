@@ -153,7 +153,13 @@ namespace NN::UI {
       return;
     }
 
-    SDL_Rect dest = { px, py, surface->w, surface->h };
+    // Scale rendered text to match the requested fontSize
+    // Font is loaded at a fixed size (32), so scale proportionally
+    double scale = (element.fontSize > 0) ? (element.fontSize / 32.0) : 1.0;
+    int destW = static_cast<int>(surface->w * scale);
+    int destH = static_cast<int>(surface->h * scale);
+
+    SDL_Rect dest = { px, py, destW, destH };
     SDL_RenderCopy(renderer, texture, nullptr, &dest);
 
     SDL_DestroyTexture(texture);
